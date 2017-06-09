@@ -1,0 +1,3 @@
+[submodule "pangocairo"]
+	path = pangocairo
+	url = git@github.com:mjkillough/pangocairo-rs.git

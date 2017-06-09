@@ -1,0 +1,31 @@
+[package]
+name = "huế"
+version = "0.1.0"
+authors = ["Michael Killough <michaeljkillough@gmail.com>"]
+
+[dependencies]
+
+
+[dependencies.xcb]
+version = "0.7.6"
+features = ["xlib_xcb"]
+
+
+# We need the git version of gtk-rs packages so that we can have the fix for
+# gtk-rs/cairo#130.
+[dependencies.cairo-rs]
+git = "https://github.com/gtk-rs/cairo"
+default-features = false
+features = ["xcb"]
+
+[dependencies.cairo-sys-rs]
+git = "https://github.com/gtk-rs/cairo"
+
+[dependencies.pango]
+git = "https://github.com/gtk-rs/pango"
+
+
+# We include pangocairo as a submodule so that we can modify it to also use
+# the git version of gtk-rs packages.
+[dependencies.pangocairo]
+path = "./pangocairo"
