@@ -109,6 +109,32 @@ struct TextAttributes {
     padding: Padding,
 }
 
+impl TextAttributes {
+    fn with_font(&self, font: pango::FontDescription) -> TextAttributes {
+        let mut new = self.clone();
+        new.font = font;
+        new
+    }
+
+    fn with_fg_color(&self, fg_color: Color) -> TextAttributes {
+        let mut new = self.clone();
+        new.fg_color = fg_color;
+        new
+    }
+
+    fn with_bg_color(&self, bg_color: Option<Color>) -> TextAttributes {
+        let mut new = self.clone();
+        new.bg_color = bg_color;
+        new
+    }
+
+    fn with_padding(&self, padding: Padding) -> TextAttributes {
+        let mut new = self.clone();
+        new.padding = padding;
+        new
+    }
+}
+
 
 struct Text {
     attr: TextAttributes,
@@ -382,9 +408,7 @@ impl Window {
             bg_color: None,
             padding: Padding::new(10.0, 10.0, 5.0, 5.0),
         };
-        let mut active_attr = inactive_attr.clone();
-        active_attr.bg_color = Some(Color::blue());
-
+        let active_attr = inactive_attr.with_bg_color(Some(Color::blue()));
 
         self.render_text_blocks(Pager::new(active_attr, inactive_attr).compute_text());
 
