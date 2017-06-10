@@ -55,12 +55,49 @@ impl Color {
     }
 }
 
+#[derive(Clone, Debug)]
+struct Padding {
+    left: f64,
+    right: f64,
+    top: f64,
+    bottom: f64,
+}
+
+impl Padding {
+    fn none() -> Padding {
+        Padding {
+            left: 0.0,
+            right: 0.0,
+            top: 0.0,
+            bottom: 0.0,
+        }
+    }
+    fn new(left: f64, right: f64, top: f64, bottom: f64) -> Padding {
+        Padding {
+            left,
+            right,
+            top,
+            bottom,
+        }
+    }
+
+    fn uniform(value: f64) -> Padding {
+        Padding {
+            left: value,
+            right: value,
+            top: value,
+            bottom: value,
+        }
+    }
+}
+
 
 #[derive(Clone)]
 struct TextAttributes {
     font: pango::FontDescription,
     fg_color: Color,
     bg_color: Option<Color>,
+    padding: Padding,
 }
 
 
@@ -94,16 +131,18 @@ struct TextLayout {
 
 impl TextLayout {
     fn width(&self) -> f64 {
-        self.layout.get_pixel_size().0 as f64
+        let text_width = self.layout.get_pixel_size().0 as f64;
+        text_width + self.attr.padding.left + self.attr.padding.right
     }
 
     fn height(&self) -> f64 {
-        self.layout.get_pixel_size().1 as f64
+        let text_height = self.layout.get_pixel_size().1 as f64;
+        text_height + self.attr.padding.top + self.attr.padding.bottom
     }
 
     fn render(&self, x: f64, y: f64) {
         self.context.save();
-        self.context.translate(x, y);
+        self.context.translate(x, y + self.attr.padding.top);
 
         if let Some(ref bg_color) = self.attr.bg_color {
             bg_color.apply_to_context(&self.context);
@@ -111,11 +150,17 @@ impl TextLayout {
             // full height of the bar, not the full height of the text. It
             // would be useful if we could do Surface.get_height(), but that
             // doesn't seem to be available in cairo-rs for some reason?
-            self.context.rectangle(0.0, 0.0, self.width(), self.height());
+            self.context
+                .rectangle(0.0,
+                           0.0,
+                           self.width() + self.attr.padding.right,
+                           self.height() + self.attr.padding.bottom);
             self.context.fill();
         }
 
         self.attr.fg_color.apply_to_context(&self.context);
+        self.context
+            .translate(self.attr.padding.left, self.attr.padding.right);
         self.context.show_pango_layout(&self.layout);
 
         self.context.restore();
@@ -199,16 +244,22 @@ impl Window {
             font: font.clone(),
             fg_color: Color::red(),
             bg_color: None,
+            padding: Padding::uniform(5.0),
         };
         let attr2 = TextAttributes {
             font: font.clone(),
             fg_color: Color::blue(),
             bg_color: Some(Color::red()),
+            padding: Padding::uniform(5.0),
         };
-        let texts = vec![
-            Text { attr: attr1, text: "Hello, world!".to_owned() },
-            Text { attr: attr2, text: "Again".to_owned(), },
-        ];
+        let texts = vec![Text {
+                             attr: attr1,
+                             text: "Hello, world!".to_owned(),
+                         },
+                         Text {
+                             attr: attr2,
+                             text: "Again".to_owned(),
+                         }];
         let layouts: Vec<_> = texts.into_iter().map(|t| t.layout(&self.surface)).collect();
         let mut x = 0.0;
         for layout in layouts {
