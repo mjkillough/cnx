@@ -11,7 +11,7 @@ version = "0.7.6"
 features = ["xlib_xcb"]
 
 [dependencies.xcb-util]
-version = "0.1.7"
+path = "./xcb-util"
 features = ["ewmh"]
 
 # We need the git version of gtk-rs packages so that we can have the fix for

@@ -297,6 +297,51 @@ impl Pager {
 }
 
 
+struct ActiveWindowTitle {
+    conn: xcb_util::ewmh::Connection,
+    screen_idx: i32,
+
+    attr: TextAttributes,
+}
+
+impl ActiveWindowTitle {
+    fn new(attr: TextAttributes) -> ActiveWindowTitle {
+        let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
+        let ewmh_conn = xcb_util::ewmh::Connection::connect(conn)
+            .map_err(|_| ())
+            .unwrap();
+
+        ActiveWindowTitle {
+            conn: ewmh_conn,
+            screen_idx: screen_idx,
+
+            attr: attr,
+        }
+    }
+
+    fn get_active_window_title(&self) -> String {
+        let active_window = xcb_util::ewmh::get_active_window(&self.conn, self.screen_idx)
+            .get_reply()
+            .unwrap();
+        let reply = xcb_util::ewmh::get_wm_name(&self.conn, active_window).get_reply();
+
+        match reply {
+            Ok(inner) => inner.string().to_owned(),
+            // Probably means there's no window focused, or it doesn't have _NET_WM_NAME:
+            Err(_) => "".to_owned(),
+        }
+    }
+
+    fn compute_text(&self) -> Vec<Text> {
+        vec![Text {
+                 attr: self.attr.clone(),
+                 text: self.get_active_window_title(),
+                 stretch: true,
+             }]
+    }
+}
+
+
 // TODO: impl Drop?
 struct Window {
     conn: Rc<xcb::Connection>,
@@ -375,7 +420,10 @@ impl Window {
         };
         let active_attr = inactive_attr.with_bg_color(Some(Color::blue()));
 
-        self.render_text_blocks(Pager::new(active_attr, inactive_attr).compute_text());
+        let mut texts = Pager::new(active_attr, inactive_attr.clone()).compute_text();
+        texts.extend(ActiveWindowTitle::new(inactive_attr).compute_text());
+
+        self.render_text_blocks(texts);
 
         self.conn.flush();
     }
