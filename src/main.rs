@@ -367,41 +367,6 @@ impl Window {
     }
 
     fn expose(&self) {
-        let font = pango::FontDescription::from_string("Envy Code R 27");
-
-        let attr1 = TextAttributes {
-            font: font.clone(),
-            fg_color: Color::red(),
-            bg_color: None,
-            padding: Padding::uniform(5.0),
-        };
-        let attr2 = TextAttributes {
-            font: font.clone(),
-            fg_color: Color::blue(),
-            bg_color: Some(Color::red()),
-            padding: Padding::uniform(5.0),
-        };
-        let texts = vec![Text {
-                             attr: attr1.clone(),
-                             text: "Hello, world!".to_owned(),
-                             stretch: false,
-                         },
-                         Text {
-                             attr: attr2.clone(),
-                             text: "Again".to_owned(),
-                             stretch: true,
-                         },
-                         Text {
-                             attr: attr1,
-                             text: "Stretched".to_owned(),
-                             stretch: true,
-                         },
-                         Text {
-                             attr: attr2,
-                             text: "Not Stretched".to_owned(),
-                             stretch: false,
-                         }];
-
         let inactive_attr = TextAttributes {
             font: pango::FontDescription::from_string("Envy Code R 27"),
             fg_color: Color::white(),
