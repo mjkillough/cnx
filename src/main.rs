@@ -1,4 +1,5 @@
 extern crate xcb;
+extern crate xcb_util;
 extern crate cairo;
 extern crate cairo_sys;
 extern crate pango;
@@ -34,6 +35,14 @@ struct Color {
 }
 
 impl Color {
+    fn white() -> Color {
+        Color {
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+        }
+    }
+
     fn red() -> Color {
         Color {
             red: 1.0,
@@ -138,17 +147,19 @@ struct TextLayout {
 
 impl TextLayout {
     fn width(&self) -> f64 {
-        self.width.unwrap_or_else(|| {
-            let text_width = self.layout.get_pixel_size().0 as f64;
-            text_width + self.attr.padding.left + self.attr.padding.right
-        })
+        self.width
+            .unwrap_or_else(|| {
+                                let text_width = self.layout.get_pixel_size().0 as f64;
+                                text_width + self.attr.padding.left + self.attr.padding.right
+                            })
     }
 
     fn height(&self) -> f64 {
-        self.height.unwrap_or_else(|| {
-            let text_height = self.layout.get_pixel_size().1 as f64;
-            text_height + self.attr.padding.top + self.attr.padding.bottom
-        })
+        self.height
+            .unwrap_or_else(|| {
+                                let text_height = self.layout.get_pixel_size().1 as f64;
+                                text_height + self.attr.padding.top + self.attr.padding.bottom
+                            })
     }
 
     fn set_width(&mut self, width: f64) {
@@ -174,19 +185,88 @@ impl TextLayout {
             // would be useful if we could do Surface.get_height(), but that
             // doesn't seem to be available in cairo-rs for some reason?
             self.context
-                .rectangle(0.0,
-                           0.0,
-                           self.width() + self.attr.padding.right,
-                           self.height() + self.attr.padding.bottom);
+                .rectangle(0.0, 0.0, self.width(), self.height());
             self.context.fill();
         }
 
         self.attr.fg_color.apply_to_context(&self.context);
         self.context
-            .translate(self.attr.padding.left, self.attr.padding.right);
+            .translate(self.attr.padding.left, self.attr.padding.top);
         self.context.show_pango_layout(&self.layout);
 
         self.context.restore();
+    }
+}
+
+
+struct Pager {
+    conn: xcb_util::ewmh::Connection,
+    screen_idx: i32,
+
+    active_attr: TextAttributes,
+    inactive_attr: TextAttributes,
+}
+
+impl Pager {
+    fn new(active_attr: TextAttributes, inactive_attr: TextAttributes) -> Pager {
+        let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
+        let ewmh_conn = xcb_util::ewmh::Connection::connect(conn)
+            .map_err(|_| ())
+            .unwrap();
+
+        Pager {
+            conn: ewmh_conn,
+            screen_idx: screen_idx,
+            active_attr: active_attr,
+            inactive_attr: inactive_attr,
+        }
+    }
+
+    fn get_desktops_info(&self) -> Vec<(bool, String)> {
+        let number = xcb_util::ewmh::get_number_of_desktops(&self.conn, self.screen_idx)
+            .get_reply()
+            .unwrap() as usize;
+        let current = xcb_util::ewmh::get_current_desktop(&self.conn, self.screen_idx)
+            .get_reply()
+            .unwrap() as usize;
+        let names_reply = xcb_util::ewmh::get_desktop_names(&self.conn, self.screen_idx)
+            .get_reply()
+            .unwrap();
+        let mut names = names_reply.strings();
+
+        // EWMH states that `number` may not equal `names.len()`, as there may
+        // be unnamed desktops, or more desktops than are currently in use.
+        if names.len() > number {
+            names.truncate(number);
+        } else if number > names.len() {
+            for i in 0..(number - names.len()) {
+                names.push("?");
+            }
+        }
+
+        names
+            .into_iter()
+            .enumerate()
+            .map(|(i, name)| (i == current, name.to_owned()))
+            .collect()
+    }
+
+    fn compute_text(&self) -> Vec<Text> {
+        let desktops = self.get_desktops_info();
+        self.get_desktops_info()
+            .into_iter()
+            .map(|(active, name)| {
+                Text {
+                    attr: if active {
+                        self.active_attr.clone()
+                    } else {
+                        self.inactive_attr.clone()
+                    },
+                    text: name,
+                    stretch: false,
+                }
+            })
+            .collect()
     }
 }
 
@@ -295,9 +375,31 @@ impl Window {
                              text: "Not Stretched".to_owned(),
                              stretch: false,
                          }];
+
+        let inactive_attr = TextAttributes {
+            font: pango::FontDescription::from_string("Envy Code R 27"),
+            fg_color: Color::white(),
+            bg_color: None,
+            padding: Padding::new(10.0, 10.0, 5.0, 5.0),
+        };
+        let mut active_attr = inactive_attr.clone();
+        active_attr.bg_color = Some(Color::blue());
+
+
+        self.render_text_blocks(Pager::new(active_attr, inactive_attr).compute_text());
+
+        self.conn.flush();
+    }
+
+    fn render_text_blocks(&self, texts: Vec<Text>) {
+        // Layout each block of text. After this, we can query the width of each
+        // block, which will allow us to do more complex layout below.
         let mut layouts: Vec<_> = texts.into_iter().map(|t| t.layout(&self.surface)).collect();
 
-        // Handle stretch text blocks.
+        // Calculate how much free space we have after laying out all the
+        // non-stretch blocks. Split the remaining space (if any) between the
+        // stretch blocks. If there isn't enough space for the non-stretch blocks
+        // do nothing and allow it to overflow.
         {
             let mut width = 0.0;
             let mut stretched = Vec::new();
@@ -308,21 +410,28 @@ impl Window {
                     stretched.push(layout);
                 }
             }
+
             let remaining_width = self.screen().width_in_pixels() as f64 - width;
-            let remaining_width = if remaining_width < 0.0 { 0.0 } else { remaining_width };
+            let remaining_width = if remaining_width < 0.0 {
+                0.0
+            } else {
+                remaining_width
+            };
             let width_per_stretched = remaining_width / (stretched.len() as f64);
             for layout in stretched.iter_mut() {
                 layout.set_width(width_per_stretched);
             }
         }
 
+        // TODO: Set the height of the window and the height of each text block(?)
+        // to the height of the largest bit of text.
+
+        // Finally, just render each block of text in turn.
         let mut x = 0.0;
         for layout in &layouts {
             layout.render(x, 0.0);
             x += layout.width();
         }
-
-        self.conn.flush();
     }
 }
 
