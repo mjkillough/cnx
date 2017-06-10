@@ -104,33 +104,33 @@ impl Padding {
 
 
 #[derive(Clone)]
-struct TextAttributes {
+struct Attributes {
     font: pango::FontDescription,
     fg_color: Color,
     bg_color: Option<Color>,
     padding: Padding,
 }
 
-impl TextAttributes {
-    fn with_font(&self, font: pango::FontDescription) -> TextAttributes {
+impl Attributes {
+    fn with_font(&self, font: pango::FontDescription) -> Attributes {
         let mut new = self.clone();
         new.font = font;
         new
     }
 
-    fn with_fg_color(&self, fg_color: Color) -> TextAttributes {
+    fn with_fg_color(&self, fg_color: Color) -> Attributes {
         let mut new = self.clone();
         new.fg_color = fg_color;
         new
     }
 
-    fn with_bg_color(&self, bg_color: Option<Color>) -> TextAttributes {
+    fn with_bg_color(&self, bg_color: Option<Color>) -> Attributes {
         let mut new = self.clone();
         new.bg_color = bg_color;
         new
     }
 
-    fn with_padding(&self, padding: Padding) -> TextAttributes {
+    fn with_padding(&self, padding: Padding) -> Attributes {
         let mut new = self.clone();
         new.padding = padding;
         new
@@ -139,7 +139,7 @@ impl TextAttributes {
 
 
 struct Text {
-    attr: TextAttributes,
+    attr: Attributes,
     text: String,
     stretch: bool,
 }
@@ -165,7 +165,7 @@ impl Text {
 
 
 struct TextLayout {
-    attr: TextAttributes,
+    attr: Attributes,
     stretch: bool,
     width: Option<f64>,
     height: Option<f64>,
@@ -231,12 +231,12 @@ struct Pager {
     conn: xcb_util::ewmh::Connection,
     screen_idx: i32,
 
-    active_attr: TextAttributes,
-    inactive_attr: TextAttributes,
+    active_attr: Attributes,
+    inactive_attr: Attributes,
 }
 
 impl Pager {
-    fn new(active_attr: TextAttributes, inactive_attr: TextAttributes) -> Pager {
+    fn new(active_attr: Attributes, inactive_attr: Attributes) -> Pager {
         let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
         let ewmh_conn = xcb_util::ewmh::Connection::connect(conn)
             .map_err(|_| ())
@@ -303,11 +303,11 @@ struct ActiveWindowTitle {
     conn: xcb_util::ewmh::Connection,
     screen_idx: i32,
 
-    attr: TextAttributes,
+    attr: Attributes,
 }
 
 impl ActiveWindowTitle {
-    fn new(attr: TextAttributes) -> ActiveWindowTitle {
+    fn new(attr: Attributes) -> ActiveWindowTitle {
         let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
         let ewmh_conn = xcb_util::ewmh::Connection::connect(conn)
             .map_err(|_| ())
@@ -347,11 +347,11 @@ impl ActiveWindowTitle {
 struct Clock {
     conn: xcb::Connection,
 
-    attr: TextAttributes,
+    attr: Attributes,
 }
 
 impl Clock {
-    fn new(attr: TextAttributes) -> Clock {
+    fn new(attr: Attributes) -> Clock {
         let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
 
         Clock {
@@ -441,7 +441,7 @@ impl Window {
     }
 
     fn expose(&self) {
-        let inactive_attr = TextAttributes {
+        let inactive_attr = Attributes {
             font: pango::FontDescription::from_string("Envy Code R 27"),
             fg_color: Color::white(),
             bg_color: None,
