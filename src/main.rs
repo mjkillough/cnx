@@ -64,9 +64,10 @@ impl Window {
             let surface = unsafe {
                 let cairo_conn = XCBConnection::from_raw_none(conn.get_raw_conn() as
                                                               *mut cairo_sys::xcb_connection_t);
-                let visual = XCBVisualType::from_raw_none(&mut get_root_visual_type(&conn, &screen).base as
-                                                          *mut xcb::ffi::xcb_visualtype_t as
-                                                          *mut cairo_sys::xcb_visualtype_t);
+                let visual =
+                    XCBVisualType::from_raw_none(&mut get_root_visual_type(&conn, &screen).base as
+                                                 *mut xcb::ffi::xcb_visualtype_t as
+                                                 *mut cairo_sys::xcb_visualtype_t);
                 let drawable = XCBDrawable(id);
                 Surface::create(&cairo_conn, &drawable, &visual, width as i32, height as i32)
                 // TODO: Update surface width/height when window size changes.
