@@ -26,6 +26,103 @@ fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Vi
 }
 
 
+#[derive(Clone, Debug)]
+struct Color {
+    red: f64,
+    green: f64,
+    blue: f64,
+}
+
+impl Color {
+    fn red() -> Color {
+        Color {
+            red: 1.0,
+            green: 0.0,
+            blue: 0.0,
+        }
+    }
+
+    fn blue() -> Color {
+        Color {
+            red: 0.0,
+            green: 0.0,
+            blue: 1.0,
+        }
+    }
+
+    fn apply_to_context(&self, cr: &Context) {
+        cr.set_source_rgb(self.red, self.green, self.blue);
+    }
+}
+
+
+#[derive(Clone)]
+struct TextAttributes {
+    font: pango::FontDescription,
+    fg_color: Color,
+    bg_color: Option<Color>,
+}
+
+
+struct Text {
+    attr: TextAttributes,
+    text: String,
+}
+
+impl Text {
+    fn layout(self, surface: &Surface) -> TextLayout {
+        let context = Context::new(&surface);
+
+        let layout = context.create_pango_layout();
+        layout.set_text(&self.text, self.text.len() as i32);
+        layout.set_font_description(Some(&self.attr.font));
+
+        TextLayout {
+            attr: self.attr.clone(),
+            context: context,
+            layout: layout,
+        }
+    }
+}
+
+
+struct TextLayout {
+    attr: TextAttributes,
+    context: Context,
+    layout: pango::Layout,
+}
+
+impl TextLayout {
+    fn width(&self) -> f64 {
+        self.layout.get_pixel_size().0 as f64
+    }
+
+    fn height(&self) -> f64 {
+        self.layout.get_pixel_size().1 as f64
+    }
+
+    fn render(&self, x: f64, y: f64) {
+        self.context.save();
+        self.context.translate(x, y);
+
+        if let Some(ref bg_color) = self.attr.bg_color {
+            bg_color.apply_to_context(&self.context);
+            // FIXME: The use of `height` isnt' right here: we want to do the
+            // full height of the bar, not the full height of the text. It
+            // would be useful if we could do Surface.get_height(), but that
+            // doesn't seem to be available in cairo-rs for some reason?
+            self.context.rectangle(0.0, 0.0, self.width(), self.height());
+            self.context.fill();
+        }
+
+        self.attr.fg_color.apply_to_context(&self.context);
+        self.context.show_pango_layout(&self.layout);
+
+        self.context.restore();
+    }
+}
+
+
 // TODO: impl Drop?
 struct Window {
     conn: Rc<xcb::Connection>,
@@ -98,14 +195,26 @@ impl Window {
     fn expose(&self) {
         let font = pango::FontDescription::from_string("Envy Code R 27");
 
-        let cr = Context::new(&self.surface);
-        cr.set_source_rgb(1.0, 0.0, 0.0);
-
-        let layout = cr.create_pango_layout();
-        layout.set_text("Hello, world!", 13);
-        layout.set_font_description(Some(&font));
-
-        cr.show_pango_layout(&layout);
+        let attr1 = TextAttributes {
+            font: font.clone(),
+            fg_color: Color::red(),
+            bg_color: None,
+        };
+        let attr2 = TextAttributes {
+            font: font.clone(),
+            fg_color: Color::blue(),
+            bg_color: Some(Color::red()),
+        };
+        let texts = vec![
+            Text { attr: attr1, text: "Hello, world!".to_owned() },
+            Text { attr: attr2, text: "Again".to_owned(), },
+        ];
+        let layouts: Vec<_> = texts.into_iter().map(|t| t.layout(&self.surface)).collect();
+        let mut x = 0.0;
+        for layout in layouts {
+            layout.render(x, 0.0);
+            x += layout.width();
+        }
 
         self.conn.flush();
     }
