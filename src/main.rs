@@ -104,6 +104,7 @@ struct TextAttributes {
 struct Text {
     attr: TextAttributes,
     text: String,
+    stretch: bool,
 }
 
 impl Text {
@@ -116,6 +117,9 @@ impl Text {
 
         TextLayout {
             attr: self.attr.clone(),
+            stretch: self.stretch,
+            width: None,
+            height: None,
             context: context,
             layout: layout,
         }
@@ -125,19 +129,38 @@ impl Text {
 
 struct TextLayout {
     attr: TextAttributes,
+    stretch: bool,
+    width: Option<f64>,
+    height: Option<f64>,
     context: Context,
     layout: pango::Layout,
 }
 
 impl TextLayout {
     fn width(&self) -> f64 {
-        let text_width = self.layout.get_pixel_size().0 as f64;
-        text_width + self.attr.padding.left + self.attr.padding.right
+        self.width.unwrap_or_else(|| {
+            let text_width = self.layout.get_pixel_size().0 as f64;
+            text_width + self.attr.padding.left + self.attr.padding.right
+        })
     }
 
     fn height(&self) -> f64 {
-        let text_height = self.layout.get_pixel_size().1 as f64;
-        text_height + self.attr.padding.top + self.attr.padding.bottom
+        self.height.unwrap_or_else(|| {
+            let text_height = self.layout.get_pixel_size().1 as f64;
+            text_height + self.attr.padding.top + self.attr.padding.bottom
+        })
+    }
+
+    fn set_width(&mut self, width: f64) {
+        self.width = Some(width);
+    }
+
+    fn set_height(&mut self, height: f64) {
+        self.height = Some(height);
+    }
+
+    fn stretch(&self) -> bool {
+        self.stretch
     }
 
     fn render(&self, x: f64, y: f64) {
@@ -253,16 +276,48 @@ impl Window {
             padding: Padding::uniform(5.0),
         };
         let texts = vec![Text {
-                             attr: attr1,
+                             attr: attr1.clone(),
                              text: "Hello, world!".to_owned(),
+                             stretch: false,
+                         },
+                         Text {
+                             attr: attr2.clone(),
+                             text: "Again".to_owned(),
+                             stretch: true,
+                         },
+                         Text {
+                             attr: attr1,
+                             text: "Stretched".to_owned(),
+                             stretch: true,
                          },
                          Text {
                              attr: attr2,
-                             text: "Again".to_owned(),
+                             text: "Not Stretched".to_owned(),
+                             stretch: false,
                          }];
-        let layouts: Vec<_> = texts.into_iter().map(|t| t.layout(&self.surface)).collect();
+        let mut layouts: Vec<_> = texts.into_iter().map(|t| t.layout(&self.surface)).collect();
+
+        // Handle stretch text blocks.
+        {
+            let mut width = 0.0;
+            let mut stretched = Vec::new();
+            for layout in layouts.iter_mut() {
+                if !layout.stretch() {
+                    width += layout.width();
+                } else {
+                    stretched.push(layout);
+                }
+            }
+            let remaining_width = self.screen().width_in_pixels() as f64 - width;
+            let remaining_width = if remaining_width < 0.0 { 0.0 } else { remaining_width };
+            let width_per_stretched = remaining_width / (stretched.len() as f64);
+            for layout in stretched.iter_mut() {
+                layout.set_width(width_per_stretched);
+            }
+        }
+
         let mut x = 0.0;
-        for layout in layouts {
+        for layout in &layouts {
             layout.render(x, 0.0);
             x += layout.width();
         }
