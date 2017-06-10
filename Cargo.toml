@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Michael Killough <michaeljkillough@gmail.com>"]
 
 [dependencies]
+chrono = "0.3.1"
 
 
 [dependencies.xcb]

@@ -1,3 +1,4 @@
+extern crate chrono;
 extern crate xcb;
 extern crate xcb_util;
 extern crate cairo;
@@ -11,6 +12,7 @@ use cairo::{Context, Surface, XCBConnection, XCBDrawable, XCBSurface, XCBVisualT
 use pango::LayoutExt;
 use pangocairo::CairoContextExt;
 use xcb::ffi::*;
+use chrono::prelude::*;
 
 
 fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Visualtype {
@@ -342,6 +344,33 @@ impl ActiveWindowTitle {
 }
 
 
+struct Clock {
+    conn: xcb::Connection,
+
+    attr: TextAttributes,
+}
+
+impl Clock {
+    fn new(attr: TextAttributes) -> Clock {
+        let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
+
+        Clock {
+            conn: conn,
+            attr: attr,
+        }
+    }
+
+    fn compute_text(&self) -> Vec<Text> {
+        let current_time = Local::now().format("%Y-%m-%d %a %I:%M %p").to_string();
+        vec![Text {
+                 attr: self.attr.clone(),
+                 text: current_time,
+                 stretch: false,
+             }]
+    }
+}
+
+
 // TODO: impl Drop?
 struct Window {
     conn: Rc<xcb::Connection>,
@@ -421,7 +450,8 @@ impl Window {
         let active_attr = inactive_attr.with_bg_color(Some(Color::blue()));
 
         let mut texts = Pager::new(active_attr, inactive_attr.clone()).compute_text();
-        texts.extend(ActiveWindowTitle::new(inactive_attr).compute_text());
+        texts.extend(ActiveWindowTitle::new(inactive_attr.clone()).compute_text());
+        texts.extend(Clock::new(inactive_attr.clone()).compute_text());
 
         self.render_text_blocks(texts);
 
