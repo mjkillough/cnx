@@ -171,13 +171,12 @@ fn handle_xcb_events(conn: &xcb::base::Connection, w: &Window) {
     // returning to mio.
     // XXX Do we need to oneshot our EventedFd?
     while let Some(event) = conn.poll_for_event() {
-        let r = event.response_type() & !0x80;
-        match r {
-            xcb::EXPOSE => w.expose(),
-            _ => {}
-        }
+
     }
 }
+
+extern crate futures;
+extern crate tokio_core;
 
 fn main() {
     let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
@@ -185,24 +184,64 @@ fn main() {
 
     let w = Window::new(conn.clone(), screen_idx as usize);
 
-    let conn_fd = unsafe { xcb::ffi::base::xcb_get_file_descriptor(conn.get_raw_conn()) };
 
-    const TOKEN_XCB: Token = Token(0);
-    let poll = Poll::new().unwrap();
-    poll.register(&EventedFd(&conn_fd),
-                  TOKEN_XCB,
-                  Ready::readable(),
-                  PollOpt::edge())
-        .unwrap();
+    use tokio_core::reactor::{Core, Handle, PollEvented};
 
-    let mut events = Events::with_capacity(1024);
-    loop {
-        poll.poll(&mut events, None).unwrap();
-        for event in events.iter() {
-            match event.token() {
-                TOKEN_XCB => handle_xcb_events(&conn, &w),
-                _ => unreachable!("Unhandled mio event"),
+    let mut core = Core::new().unwrap();
+    let handle = core.handle();
+
+    use futures::future;
+    use futures::{Async, Poll, Stream};
+
+    struct XcbEventStream<'a> {
+        conn: Rc<xcb::Connection>,
+        poll: PollEvented<EventedFd<'a>>,
+        would_block: bool,
+    };
+
+    impl<'a> XcbEventStream<'a> {
+        fn new(conn: Rc<xcb::Connection>, conn_fd: &'a std::os::unix::io::RawFd, handle: &Handle) -> XcbEventStream<'a> {
+            // XXX Lifetime of the connection?
+            XcbEventStream {
+                conn: conn,
+                poll: PollEvented::new(EventedFd(conn_fd), &handle).unwrap(),
+                would_block: true,
             }
         }
     }
+
+    impl<'a> Stream for XcbEventStream<'a> {
+        type Item = xcb::GenericEvent;
+        type Error = ();
+
+        fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+            if self.would_block {
+                match self.poll.poll_read() {
+                    Async::Ready(()) => self.would_block = false,
+                    Async::NotReady => return Ok(Async::NotReady),
+                }
+            }
+
+            match self.conn.poll_for_event() {
+                Some(event) => Ok(Async::Ready(Some(event))),
+                None => {
+                    self.would_block = true;
+                    self.poll.need_read();
+                    Ok(Async::NotReady)
+                }
+            }
+        }
+    }
+
+    let conn_fd = unsafe { xcb::ffi::base::xcb_get_file_descriptor(conn.get_raw_conn()) };
+    let stream = XcbEventStream::new(conn.clone(), &conn_fd, &handle);
+
+    core.run(stream.for_each(|event| {
+        let r = event.response_type() & !0x80;
+        match r {
+            xcb::EXPOSE => w.expose(),
+            _ => {}
+        }
+        future::ok(())
+    }));
 }

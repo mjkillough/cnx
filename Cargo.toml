@@ -6,7 +6,8 @@ authors = ["Michael Killough <michaeljkillough@gmail.com>"]
 [dependencies]
 chrono = "0.3.1"
 mio = "0.6.9"
-
+tokio-core = "0.1.8"
+futures = "0.1.14"
 
 [dependencies.xcb]
 version = "0.7.6"
