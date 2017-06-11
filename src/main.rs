@@ -1,18 +1,20 @@
-extern crate chrono;
-extern crate xcb;
-extern crate xcb_util;
-extern crate cairo;
 extern crate cairo_sys;
+extern crate cairo;
+extern crate chrono;
+extern crate mio;
 extern crate pango;
 extern crate pangocairo;
+extern crate xcb_util;
+extern crate xcb;
 
 use std::rc::Rc;
 
 use cairo::{Context, Surface, XCBConnection, XCBDrawable, XCBSurface, XCBVisualType};
+use mio::{Events, Ready, Poll, PollOpt, Token};
+use mio::unix::EventedFd;
 use pango::LayoutExt;
 use pangocairo::CairoContextExt;
 use xcb::ffi::*;
-use chrono::prelude::*;
 
 mod text;
 use text::*;
@@ -164,6 +166,18 @@ impl Window {
     }
 }
 
+fn handle_xcb_events(conn: &xcb::base::Connection, w: &Window) {
+    // As we're edge triggered, we must completely drain all events before
+    // returning to mio.
+    // XXX Do we need to oneshot our EventedFd?
+    while let Some(event) = conn.poll_for_event() {
+        let r = event.response_type() & !0x80;
+        match r {
+            xcb::EXPOSE => w.expose(),
+            _ => {}
+        }
+    }
+}
 
 fn main() {
     let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
@@ -171,18 +185,21 @@ fn main() {
 
     let w = Window::new(conn.clone(), screen_idx as usize);
 
+    let conn_fd = unsafe {
+        xcb::ffi::base::xcb_get_file_descriptor(conn.get_raw_conn())
+    };
+
+    const TOKEN_XCB: Token = Token(0);
+    let poll = Poll::new().unwrap();
+    poll.register(&EventedFd(&conn_fd), TOKEN_XCB, Ready::readable(), PollOpt::edge()).unwrap();
+
+    let mut events = Events::with_capacity(1024);
     loop {
-        let event = conn.wait_for_event();
-        match event {
-            None => {
-                break;
-            }
-            Some(event) => {
-                let r = event.response_type() & !0x80;
-                match r {
-                    xcb::EXPOSE => w.expose(),
-                    _ => {}
-                }
+        poll.poll(&mut events, None).unwrap();
+        for event in events.iter() {
+            match event.token() {
+                TOKEN_XCB => handle_xcb_events(&conn, &w),
+                _ => unreachable!("Unhandled mio event"),
             }
         }
     }
