@@ -185,13 +185,15 @@ fn main() {
 
     let w = Window::new(conn.clone(), screen_idx as usize);
 
-    let conn_fd = unsafe {
-        xcb::ffi::base::xcb_get_file_descriptor(conn.get_raw_conn())
-    };
+    let conn_fd = unsafe { xcb::ffi::base::xcb_get_file_descriptor(conn.get_raw_conn()) };
 
     const TOKEN_XCB: Token = Token(0);
     let poll = Poll::new().unwrap();
-    poll.register(&EventedFd(&conn_fd), TOKEN_XCB, Ready::readable(), PollOpt::edge()).unwrap();
+    poll.register(&EventedFd(&conn_fd),
+                  TOKEN_XCB,
+                  Ready::readable(),
+                  PollOpt::edge())
+        .unwrap();
 
     let mut events = Events::with_capacity(1024);
     loop {
