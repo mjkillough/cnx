@@ -24,7 +24,6 @@ fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Vi
 pub struct Window {
     conn: Rc<xcb::Connection>,
     screen_idx: usize,
-    id: u32,
     surface: cairo::Surface,
 }
 
@@ -76,7 +75,6 @@ impl Window {
         Window {
             conn,
             screen_idx,
-            id,
             surface,
         }
     }
