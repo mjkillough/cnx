@@ -48,9 +48,8 @@ impl Pager {
         if names.len() > number {
             names.truncate(number);
         } else if number > names.len() {
-            for i in 0..(number - names.len()) {
-                names.push("?");
-            }
+            let num_unnamed = number - names.len();
+            names.extend(vec!["?"; num_unnamed]);
         }
 
         names
