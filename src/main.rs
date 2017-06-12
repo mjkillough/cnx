@@ -48,7 +48,7 @@ fn main() {
             // XXX Lifetime of the connection?
             XcbEventStream {
                 conn: conn,
-                poll: PollEvented::new(EventedFd(conn_fd), &handle).unwrap(),
+                poll: PollEvented::new(EventedFd(conn_fd), handle).unwrap(),
                 would_block: true,
             }
         }
