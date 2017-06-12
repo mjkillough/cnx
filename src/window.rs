@@ -50,7 +50,6 @@ fn cairo_surface_for_xcb_window(conn: &xcb::Connection,
 }
 
 
-// TODO: impl Drop?
 pub struct Window {
     conn: Rc<xcb::Connection>,
     window_id: u32,
