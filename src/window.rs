@@ -54,7 +54,7 @@ impl Window {
                                screen.root_visual(),
                                &values);
 
-            let surface = unsafe {
+            unsafe {
                 let cairo_conn = cairo::XCBConnection::from_raw_none(conn.get_raw_conn() as
                                                                      *mut cairo_sys::xcb_connection_t);
                 let visual =
@@ -64,9 +64,7 @@ impl Window {
                 let drawable = cairo::XCBDrawable(id);
                 cairo::Surface::create(&cairo_conn, &drawable, &visual, width as i32, height as i32)
                 // TODO: Update surface width/height when window size changes.
-            };
-
-            surface
+            }
         };
 
         xcb::map_window(&conn, id);
