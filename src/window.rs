@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
-use xcb;
 use cairo::{self, Context, XCBSurface};
 use cairo_sys;
+use xcb;
 
 use text::{Color, Text};
 
@@ -20,9 +20,31 @@ fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Vi
     panic!("No visual type found");
 }
 
+
+/// Creates a `cairo::Surface` for the XCB window with the given `id`.
+fn cairo_surface_for_xcb_window(conn: &xcb::Connection,
+                                screen: &xcb::Screen,
+                                id: u32,
+                                width: i32,
+                                height: i32)
+                                -> cairo::Surface {
+    let cairo_conn = unsafe {
+        cairo::XCBConnection::from_raw_none(conn.get_raw_conn() as *mut cairo_sys::xcb_connection_t)
+    };
+    let visual = unsafe {
+        cairo::XCBVisualType::from_raw_none(&mut get_root_visual_type(&conn, &screen).base as
+                                            *mut xcb::ffi::xcb_visualtype_t as
+                                            *mut cairo_sys::xcb_visualtype_t)
+    };
+    let drawable = cairo::XCBDrawable(id);
+    cairo::Surface::create(&cairo_conn, &drawable, &visual, width, height)
+}
+
+
 // TODO: impl Drop?
 pub struct Window {
     conn: Rc<xcb::Connection>,
+    window_id: u32,
     screen_idx: usize,
     surface: cairo::Surface,
 }
@@ -54,30 +76,26 @@ impl Window {
                                screen.root_visual(),
                                &values);
 
-            unsafe {
-                let cairo_conn =
-                    cairo::XCBConnection::from_raw_none(conn.get_raw_conn() as
-                                                        *mut cairo_sys::xcb_connection_t);
-                let visual =
-                        cairo::XCBVisualType::from_raw_none(&mut get_root_visual_type(&conn,
-                                                                                      &screen)
-                                                                         .base as
-                                                            *mut xcb::ffi::xcb_visualtype_t as
-                                                            *mut cairo_sys::xcb_visualtype_t);
-                let drawable = cairo::XCBDrawable(id);
-                cairo::Surface::create(&cairo_conn, &drawable, &visual, width as i32, height as i32)
-                // TODO: Update surface width/height when window size changes.
-            }
+            cairo_surface_for_xcb_window(&conn, &screen, id, width as i32, height as i32)
         };
 
-        xcb::map_window(&conn, id);
-        conn.flush();
-
-        Window {
+        let window = Window {
             conn,
+            window_id: id,
             screen_idx,
             surface,
-        }
+        };
+        window.flush();
+        window.map();
+        window
+    }
+
+    fn flush(&self) {
+        self.conn.flush();
+    }
+
+    fn map(&self) {
+        xcb::map_window(&self.conn, self.window_id);
     }
 
     fn screen(&self) -> xcb::Screen {
