@@ -1,10 +1,10 @@
 use std::rc::Rc;
 
 use xcb;
-use cairo::{self, XCBSurface};
+use cairo::{self, Context, XCBSurface};
 use cairo_sys;
 
-use text::Text;
+use text::{Color, Text};
 
 
 fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Visualtype {
@@ -94,6 +94,11 @@ impl Window {
     }
 
     pub fn expose(&self, texts: Vec<Text>) {
+        // Clear to black before re-painting.
+        let context = Context::new(&self.surface);
+        Color::black().apply_to_context(&context);
+        context.paint();
+
         self.render_text_blocks(texts);
         self.conn.flush();
     }
