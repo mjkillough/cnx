@@ -136,5 +136,5 @@ fn main() {
         window: w,
     };
 
-    core.run(fut);
+    core.run(fut).unwrap();
 }
