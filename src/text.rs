@@ -132,7 +132,7 @@ impl Text {
                   height: Option<f64>)
                   -> (f64, f64) {
         let (context, layout) = self.create_contexts(surface);
-        context.translate(x, y + self.attr.padding.top);
+        context.translate(x, y);
 
         // The `width`/`height` parameters allow the caller to override how big we'll draw
         // this block of text. If they are not specified, then we'll default to whatever
