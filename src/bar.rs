@@ -50,7 +50,7 @@ fn cairo_surface_for_xcb_window(conn: &xcb::Connection,
 }
 
 
-pub struct Window {
+pub struct Bar {
     conn: Rc<xcb::Connection>,
     window_id: u32,
     screen_idx: usize,
@@ -58,8 +58,8 @@ pub struct Window {
     contents: Vec<Vec<Text>>,
 }
 
-impl Window {
-    pub fn new() -> Window {
+impl Bar {
+    pub fn new() -> Bar {
         let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
         let screen_idx = screen_idx as usize;
         let id = conn.generate_id();
@@ -90,23 +90,23 @@ impl Window {
             cairo_surface_for_xcb_window(&conn, &screen, id, width as i32, height as i32)
         };
 
-        let window = Window {
+        let bar = Bar {
             conn: Rc::new(conn),
             window_id: id,
             screen_idx,
             surface,
             contents: Vec::new(),
         };
-        window.map();
-        window.flush();
-        window
+        bar.map_window();
+        bar.flush();
+        bar
     }
 
     fn flush(&self) {
         self.conn.flush();
     }
 
-    fn map(&self) {
+    fn map_window(&self) {
         xcb::map_window(&self.conn, self.window_id);
     }
 

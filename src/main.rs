@@ -16,12 +16,12 @@ mod text;
 use text::*;
 mod widgets;
 use widgets::*;
-mod window;
-use window::*;
+mod bar;
+use bar::*;
 
 
 fn main() {
-    let w = Window::new();
+    let w = Bar::new();
 
 
     let mut core = Core::new().unwrap();
