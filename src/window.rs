@@ -77,7 +77,7 @@ impl Window {
         }
     }
 
-    fn screen<'a>(&'a self) -> xcb::Screen<'a> {
+    fn screen(&self) -> xcb::Screen {
         self.conn
             .get_setup()
             .roots()
