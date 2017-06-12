@@ -1,9 +1,12 @@
 extern crate cairo_sys;
 extern crate cairo;
 extern crate chrono;
+extern crate futures;
 extern crate mio;
 extern crate pango;
 extern crate pangocairo;
+extern crate tokio_core;
+extern crate tokio_timer;
 extern crate xcb_util;
 extern crate xcb;
 
@@ -23,9 +26,6 @@ use widgets::*;
 mod window;
 use window::*;
 
-extern crate futures;
-extern crate tokio_core;
-extern crate tokio_timer;
 
 fn main() {
     let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
