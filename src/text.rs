@@ -51,24 +51,6 @@ impl Padding {
             bottom,
         }
     }
-
-    pub fn none() -> Padding {
-        Padding {
-            left: 0.0,
-            right: 0.0,
-            top: 0.0,
-            bottom: 0.0,
-        }
-    }
-
-    pub fn uniform(value: f64) -> Padding {
-        Padding {
-            left: value,
-            right: value,
-            top: value,
-            bottom: value,
-        }
-    }
 }
 
 
@@ -81,24 +63,28 @@ pub struct Attributes {
 }
 
 impl Attributes {
+    #[allow(dead_code)]
     pub fn with_font(&self, font: FontDescription) -> Attributes {
         let mut new = self.clone();
         new.font = font;
         new
     }
 
+    #[allow(dead_code)]
     pub fn with_fg_color(&self, fg_color: Color) -> Attributes {
         let mut new = self.clone();
         new.fg_color = fg_color;
         new
     }
 
+    #[allow(dead_code)]
     pub fn with_bg_color(&self, bg_color: Option<Color>) -> Attributes {
         let mut new = self.clone();
         new.bg_color = bg_color;
         new
     }
 
+    #[allow(dead_code)]
     pub fn with_padding(&self, padding: Padding) -> Attributes {
         let mut new = self.clone();
         new.padding = padding;
