@@ -114,6 +114,7 @@ impl Attributes {
 }
 
 
+#[derive(Clone)]
 pub struct Text {
     pub attr: Attributes,
     pub text: String,

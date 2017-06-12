@@ -43,6 +43,8 @@ struct Window {
     surface: Surface,
 }
 
+use widgets::WidgetList;
+
 impl Window {
     fn new(conn: Rc<xcb::Connection>, screen_idx: usize) -> Window {
         let id = conn.generate_id();
@@ -104,21 +106,8 @@ impl Window {
             .expect("Invalid screen")
     }
 
-    fn expose(&self) {
-        let inactive_attr = Attributes {
-            font: pango::FontDescription::from_string("Envy Code R 27"),
-            fg_color: Color::white(),
-            bg_color: None,
-            padding: Padding::new(10.0, 10.0, 5.0, 5.0),
-        };
-        let active_attr = inactive_attr.with_bg_color(Some(Color::blue()));
-
-        let mut texts = Pager::new(active_attr, inactive_attr.clone()).compute_text();
-        texts.extend(ActiveWindowTitle::new(inactive_attr.clone()).compute_text());
-        texts.extend(Clock::new(inactive_attr.clone()).compute_text());
-
+    fn expose(&self, texts: Vec<Text>) {
         self.render_text_blocks(texts);
-
         self.conn.flush();
     }
 
@@ -170,13 +159,12 @@ fn handle_xcb_events(conn: &xcb::base::Connection, w: &Window) {
     // As we're edge triggered, we must completely drain all events before
     // returning to mio.
     // XXX Do we need to oneshot our EventedFd?
-    while let Some(event) = conn.poll_for_event() {
-
-    }
+    while let Some(event) = conn.poll_for_event() {}
 }
 
 extern crate futures;
 extern crate tokio_core;
+extern crate tokio_timer;
 
 fn main() {
     let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
@@ -191,7 +179,7 @@ fn main() {
     let handle = core.handle();
 
     use futures::future;
-    use futures::{Async, Poll, Stream};
+    use futures::{Async, Future, Poll, Stream};
 
     struct XcbEventStream<'a> {
         conn: Rc<xcb::Connection>,
@@ -200,7 +188,10 @@ fn main() {
     };
 
     impl<'a> XcbEventStream<'a> {
-        fn new(conn: Rc<xcb::Connection>, conn_fd: &'a std::os::unix::io::RawFd, handle: &Handle) -> XcbEventStream<'a> {
+        fn new(conn: Rc<xcb::Connection>,
+               conn_fd: &'a std::os::unix::io::RawFd,
+               handle: &Handle)
+               -> XcbEventStream<'a> {
             // XXX Lifetime of the connection?
             XcbEventStream {
                 conn: conn,
@@ -233,15 +224,67 @@ fn main() {
         }
     }
 
+    let inactive_attr = Attributes {
+        font: pango::FontDescription::from_string("Envy Code R 27"),
+        fg_color: Color::white(),
+        bg_color: None,
+        padding: Padding::new(10.0, 10.0, 5.0, 5.0),
+    };
+    let active_attr = inactive_attr.with_bg_color(Some(Color::blue()));
+
+
     let conn_fd = unsafe { xcb::ffi::base::xcb_get_file_descriptor(conn.get_raw_conn()) };
     let stream = XcbEventStream::new(conn.clone(), &conn_fd, &handle);
 
-    core.run(stream.for_each(|event| {
-        let r = event.response_type() & !0x80;
-        match r {
-            xcb::EXPOSE => w.expose(),
-            _ => {}
+    let widgets: Vec<Box<Widget>> = vec![
+        Box::new(Pager::new(active_attr, inactive_attr.clone())) as Box<Widget>,
+        Box::new(ActiveWindowTitle::new(inactive_attr.clone())) as Box<Widget>,
+        Box::new(Clock::new(inactive_attr.clone())) as Box<Widget>,
+    ];
+
+    use std::rc::Rc;
+
+    let widget_list = widgets::WidgetList::new(widgets);
+
+
+    struct MainLoop<'a> {
+        xcb_stream: XcbEventStream<'a>,
+        widget_list: WidgetList,
+        window: Window,
+    }
+
+    impl<'a> Future for MainLoop<'a> {
+        type Item = ();
+        type Error = ();
+
+        fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+            match self.widget_list.poll() {
+                Ok(Async::Ready(texts)) => self.window.expose(self.widget_list.texts()),
+                Ok(Async::NotReady) => {},
+                Err(e) => return Err(e),
+            }
+            match self.xcb_stream.poll() {
+                Ok(Async::Ready(event)) => {
+                    if let Some(event) = event {
+                        let r = event.response_type() & !0x80;
+                        match r {
+                            xcb::EXPOSE => self.window.expose(self.widget_list.texts()),
+                            _ => {}
+                        }
+                    }
+                },
+                Ok(Async::NotReady) => {},
+                Err(e) => return Err(e),
+            }
+            Ok(Async::NotReady)
         }
-        future::ok(())
-    }));
+    }
+
+    let fut = MainLoop {
+        xcb_stream: stream,
+        widget_list: widget_list,
+        window: w,
+    };
+
+    core.run(fut);
 }

@@ -1,4 +1,7 @@
+use super::TimerUpdateWidget;
 use text::{Attributes, Text};
+
+use std::time::Duration;
 
 use xcb;
 use xcb_util;
@@ -7,7 +10,7 @@ use xcb_util;
 pub struct Pager {
     conn: xcb_util::ewmh::Connection,
     screen_idx: i32,
-
+    update_interval: Duration,
     active_attr: Attributes,
     inactive_attr: Attributes,
 }
@@ -22,6 +25,7 @@ impl Pager {
         Pager {
             conn: ewmh_conn,
             screen_idx: screen_idx,
+            update_interval: Duration::from_secs(1),
             active_attr: active_attr,
             inactive_attr: inactive_attr,
         }
@@ -55,8 +59,14 @@ impl Pager {
             .map(|(i, name)| (i == current, name.to_owned()))
             .collect()
     }
+}
 
-    pub fn compute_text(&self) -> Vec<Text> {
+impl TimerUpdateWidget for Pager {
+    fn update_interval(&self) -> Duration {
+        self.update_interval
+    }
+
+    fn tick(&self) -> Vec<Text> {
         let desktops = self.get_desktops_info();
         self.get_desktops_info()
             .into_iter()

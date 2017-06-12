@@ -1,4 +1,7 @@
+use super::TimerUpdateWidget;
 use text::{Attributes, Text};
+
+use std::time::Duration;
 
 use xcb;
 use xcb_util;
@@ -7,7 +10,7 @@ use xcb_util;
 pub struct ActiveWindowTitle {
     conn: xcb_util::ewmh::Connection,
     screen_idx: i32,
-
+    update_interval: Duration,
     attr: Attributes,
 }
 
@@ -21,7 +24,7 @@ impl ActiveWindowTitle {
         ActiveWindowTitle {
             conn: ewmh_conn,
             screen_idx: screen_idx,
-
+            update_interval: Duration::from_secs(1),
             attr: attr,
         }
     }
@@ -38,8 +41,14 @@ impl ActiveWindowTitle {
             Err(_) => "".to_owned(),
         }
     }
+}
 
-    pub fn compute_text(&self) -> Vec<Text> {
+impl TimerUpdateWidget for ActiveWindowTitle {
+    fn update_interval(&self) -> Duration {
+        self.update_interval
+    }
+
+    fn tick(&self) -> Vec<Text> {
         vec![Text {
                  attr: self.attr.clone(),
                  text: self.get_active_window_title(),
