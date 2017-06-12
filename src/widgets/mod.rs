@@ -35,50 +35,32 @@ impl<T: 'static + TimerUpdateWidget> Widget for T {
 
 pub struct WidgetList {
     vec: Vec<Box<Stream<Item = Vec<Text>, Error = ()>>>,
-    cached: Vec<Option<Vec<Text>>>,
 }
 
 impl WidgetList {
     pub fn new(widgets: Vec<Box<Widget>>) -> WidgetList {
-        let len = widgets.len();
-        WidgetList {
-            vec: widgets.into_iter().map(|w| w.stream()).collect(),
-            cached: vec![None; len],
-        }
-    }
-
-    pub fn texts(&self) -> Vec<Text> {
-        self.cached
-            .clone()
-            .into_iter()
-            .filter_map(|o| o)
-            .flat_map(|v| v)
-            .collect()
+        WidgetList { vec: widgets.into_iter().map(|w| w.stream()).collect() }
     }
 }
 
 impl Stream for WidgetList {
-    type Item = Vec<Text>;
+    type Item = Vec<Option<Vec<Text>>>;
     type Error = ();
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        let mut none_ready = true;
-
-        for (i, stream) in self.vec.iter_mut().enumerate() {
+        let mut all_texts: Vec<Option<Vec<Text>>> = Vec::new();
+        for stream in &mut self.vec {
             match stream.poll() {
-                Ok(Async::Ready(texts)) => {
-                    none_ready = false;
-                    self.cached[i] = texts;
-                }
-                Ok(Async::NotReady) => {}
+                Ok(Async::Ready(Some(widget_texts))) => all_texts.push(Some(widget_texts)),
+                Ok(_) => all_texts.push(None),
                 Err(e) => return Err(e),
             }
         }
 
-        if none_ready {
+        if !all_texts.iter().any(|o| o.is_some()) {
             return Ok(Async::NotReady);
         }
 
-        Ok(Async::Ready(Some(self.texts())))
+        Ok(Async::Ready(Some(all_texts)))
     }
 }

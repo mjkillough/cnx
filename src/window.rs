@@ -1,10 +1,19 @@
+use std::io;
+use std::os::unix::io::RawFd;
 use std::rc::Rc;
 
-use cairo::{self, Context, XCBSurface};
 use cairo_sys;
+use cairo::{self, Context, XCBSurface};
+use futures::{future, Async, Future, Poll, Stream};
+use futures::stream::MergedItem;
+use mio::{self, PollOpt, Ready, Token};
+use mio::event::Evented;
+use mio::unix::EventedFd;
+use tokio_core::reactor::{Handle, PollEvented};
 use xcb;
 
 use text::{Color, Text};
+use widgets::{WidgetList, Widget};
 
 
 fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Visualtype {
@@ -47,10 +56,13 @@ pub struct Window {
     window_id: u32,
     screen_idx: usize,
     surface: cairo::Surface,
+    contents: Vec<Vec<Text>>,
 }
 
 impl Window {
-    pub fn new(conn: Rc<xcb::Connection>, screen_idx: usize) -> Window {
+    pub fn new() -> Window {
+        let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
+        let screen_idx = screen_idx as usize;
         let id = conn.generate_id();
 
         let surface = {
@@ -80,13 +92,14 @@ impl Window {
         };
 
         let window = Window {
-            conn,
+            conn: Rc::new(conn),
             window_id: id,
             screen_idx,
             surface,
+            contents: Vec::new(),
         };
-        window.flush();
         window.map();
+        window.flush();
         window
     }
 
@@ -106,14 +119,12 @@ impl Window {
             .expect("Invalid screen")
     }
 
-    pub fn expose(&self, texts: Vec<Text>) {
-        // Clear to black before re-painting.
-        let context = Context::new(&self.surface);
-        Color::black().apply_to_context(&context);
-        context.paint();
-
-        self.render_text_blocks(texts);
-        self.conn.flush();
+    fn update_contents(&mut self, new_contents: Vec<Option<Vec<Text>>>) {
+        for (i, opt) in new_contents.into_iter().enumerate() {
+            if let Some(new) = opt {
+                self.contents[i] = new;
+            }
+        }
     }
 
     fn render_text_blocks(&self, texts: Vec<Text>) {
@@ -156,6 +167,126 @@ impl Window {
         for layout in &layouts {
             layout.render(x, 0.0);
             x += layout.width();
+        }
+    }
+
+    fn expose(&self) {
+        // Clear to black before re-painting.
+        let context = Context::new(&self.surface);
+        Color::black().apply_to_context(&context);
+        context.paint();
+
+        let flattened_contents = self.contents.clone().into_iter().flat_map(|v| v).collect();
+
+        self.render_text_blocks(flattened_contents);
+        self.conn.flush();
+    }
+
+    pub fn run_event_loop(mut self,
+                          handle: &Handle,
+                          widgets: Vec<Box<Widget>>)
+                          -> Box<Future<Item = (), Error = ()>> {
+        self.contents = vec![Vec::new(); widgets.len()];
+
+        let events_stream = XcbEventStream::new(self.conn.clone(), handle);
+        let widget_updates_stream = WidgetList::new(widgets);
+
+        let event_loop = events_stream.merge(widget_updates_stream);
+        let fut = event_loop.for_each(move |item| {
+            let (xcb_event, widget_update) = match item {
+                MergedItem::First(e) => (Some(e), None),
+                MergedItem::Second(u) => (None, Some(u)),
+                MergedItem::Both(e, u) => (Some(e), Some(u)),
+            };
+
+            if let Some(update) = widget_update {
+                self.update_contents(update);
+                self.expose();
+            }
+            if let Some(event) = xcb_event {
+                match event.response_type() & !0x80 {
+                    xcb::EXPOSE => self.expose(),
+                    _ => {}
+                }
+            }
+
+            future::ok(())
+        });
+
+        Box::new(fut)
+    }
+}
+
+
+struct XcbEvented(Rc<xcb::Connection>);
+
+impl XcbEvented {
+    fn fd(&self) -> RawFd {
+        unsafe { xcb::ffi::base::xcb_get_file_descriptor(self.0.get_raw_conn()) }
+    }
+}
+
+impl Evented for XcbEvented {
+    fn register(&self,
+                poll: &mio::Poll,
+                token: Token,
+                interest: Ready,
+                opts: PollOpt)
+                -> io::Result<()> {
+        EventedFd(&self.fd()).register(poll, token, interest, opts)
+    }
+
+    fn reregister(&self,
+                  poll: &mio::Poll,
+                  token: Token,
+                  interest: Ready,
+                  opts: PollOpt)
+                  -> io::Result<()> {
+        EventedFd(&self.fd()).reregister(poll, token, interest, opts)
+    }
+
+    fn deregister(&self, poll: &mio::Poll) -> io::Result<()> {
+        EventedFd(&self.fd()).deregister(poll)
+    }
+}
+
+
+struct XcbEventStream {
+    conn: Rc<xcb::Connection>,
+    poll: PollEvented<XcbEvented>,
+    would_block: bool,
+}
+
+impl XcbEventStream {
+    fn new(conn: Rc<xcb::Connection>, handle: &Handle) -> XcbEventStream {
+        let evented = XcbEvented(conn.clone());
+        XcbEventStream {
+            conn,
+            poll: PollEvented::new(evented, handle).unwrap(),
+            would_block: true,
+        }
+    }
+}
+
+impl Stream for XcbEventStream {
+    type Item = xcb::GenericEvent;
+    type Error = ();
+
+    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
+        if self.would_block {
+            match self.poll.poll_read() {
+                Async::Ready(()) => self.would_block = false,
+                Async::NotReady => return Ok(Async::NotReady),
+            }
+        }
+
+        match self.conn.poll_for_event() {
+            Some(event) => Ok(Async::Ready(Some(event))),
+            None => {
+                self.would_block = true;
+                self.poll.need_read();
+                Ok(Async::NotReady)
+            }
         }
     }
 }
