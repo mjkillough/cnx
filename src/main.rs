@@ -12,13 +12,8 @@ extern crate xcb;
 
 use std::rc::Rc;
 
-
-use cairo::{Context, Surface, XCBConnection, XCBDrawable, XCBSurface, XCBVisualType};
-use futures::{future, Async, Future, Poll, Stream};
+use futures::{Async, Future, Poll, Stream};
 use mio::unix::EventedFd;
-use pango::LayoutExt;
-use pangocairo::CairoContextExt;
-use xcb::ffi::*;
 
 mod text;
 use text::*;

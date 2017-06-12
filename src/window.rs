@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use xcb;
-use cairo;
+use cairo::{self, XCBSurface};
 use cairo_sys;
 
 use text::Text;
@@ -56,8 +56,6 @@ impl Window {
                                &values);
 
             let surface = unsafe {
-
-                use cairo::{Context, Surface, XCBConnection, XCBDrawable, XCBSurface, XCBVisualType};
                 let cairo_conn = cairo::XCBConnection::from_raw_none(conn.get_raw_conn() as
                                                                      *mut cairo_sys::xcb_connection_t);
                 let visual =

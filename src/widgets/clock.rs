@@ -5,7 +5,6 @@ use std::time::Duration;
 
 use chrono::prelude::*;
 use xcb;
-use xcb_util;
 
 
 pub struct Clock {

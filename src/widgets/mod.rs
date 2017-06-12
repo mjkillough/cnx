@@ -8,7 +8,7 @@ pub use self::pager::Pager;
 
 use std::time::Duration;
 
-use futures::{future, Async, Stream, Poll};
+use futures::{Async, Stream, Poll};
 use tokio_timer::Timer;
 use text::Text;
 
