@@ -24,6 +24,7 @@ pub trait TimerUpdateWidget {
 }
 
 impl<T: 'static + TimerUpdateWidget> Widget for T {
+    #[allow(boxed_local)]
     fn stream(self: Box<Self>) -> Box<Stream<Item = Vec<Text>, Error = ()>> {
         let timer_stream = Timer::default().interval(self.update_interval());
         let text_stream = timer_stream.map(move |_| self.tick());
