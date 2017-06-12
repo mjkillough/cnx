@@ -67,7 +67,6 @@ impl TimerUpdateWidget for Pager {
     }
 
     fn tick(&self) -> Vec<Text> {
-        let desktops = self.get_desktops_info();
         self.get_desktops_info()
             .into_iter()
             .map(|(active, name)| {
