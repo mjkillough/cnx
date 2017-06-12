@@ -18,7 +18,7 @@ pub trait Widget {
 }
 
 
-trait TimerUpdateWidget {
+pub trait TimerUpdateWidget {
     fn update_interval(&self) -> Duration;
     fn tick(&self) -> Vec<Text>;
 }
