@@ -112,7 +112,6 @@ impl Text {
             attr: self.attr.clone(),
             stretch: self.stretch,
             width: None,
-            height: None,
             context: context,
             layout: layout,
         }
@@ -124,7 +123,6 @@ pub struct TextLayout {
     attr: Attributes,
     stretch: bool,
     width: Option<f64>,
-    height: Option<f64>,
     context: Context,
     layout: Layout,
 }
@@ -139,19 +137,12 @@ impl TextLayout {
     }
 
     pub fn height(&self) -> f64 {
-        self.height
-            .unwrap_or_else(|| {
-                                let text_height = self.layout.get_pixel_size().1 as f64;
-                                text_height + self.attr.padding.top + self.attr.padding.bottom
-                            })
+        let text_height = self.layout.get_pixel_size().1 as f64;
+        text_height + self.attr.padding.top + self.attr.padding.bottom
     }
 
     pub fn set_width(&mut self, width: f64) {
         self.width = Some(width);
-    }
-
-    pub fn set_height(&mut self, height: f64) {
-        self.height = Some(height);
     }
 
     pub fn stretch(&self) -> bool {
