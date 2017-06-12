@@ -102,7 +102,7 @@ impl Window {
         {
             let mut width = 0.0;
             let mut stretched = Vec::new();
-            for layout in layouts.iter_mut() {
+            for layout in &mut layouts {
                 if !layout.stretch() {
                     width += layout.width();
                 } else {
@@ -117,7 +117,7 @@ impl Window {
                 remaining_width
             };
             let width_per_stretched = remaining_width / (stretched.len() as f64);
-            for layout in stretched.iter_mut() {
+            for layout in &mut stretched {
                 layout.set_width(width_per_stretched);
             }
         }
