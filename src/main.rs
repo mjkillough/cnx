@@ -12,8 +12,9 @@ extern crate xcb;
 
 use std::rc::Rc;
 
+
 use cairo::{Context, Surface, XCBConnection, XCBDrawable, XCBSurface, XCBVisualType};
-use mio::{Events, Ready, Poll, PollOpt, Token};
+use futures::{future, Async, Future, Poll, Stream};
 use mio::unix::EventedFd;
 use pango::LayoutExt;
 use pangocairo::CairoContextExt;
@@ -33,14 +34,10 @@ fn main() {
 
     let w = Window::new(conn.clone(), screen_idx as usize);
 
-
     use tokio_core::reactor::{Core, Handle, PollEvented};
 
     let mut core = Core::new().unwrap();
     let handle = core.handle();
-
-    use futures::future;
-    use futures::{Async, Future, Poll, Stream};
 
     struct XcbEventStream<'a> {
         conn: Rc<xcb::Connection>,
@@ -103,10 +100,7 @@ fn main() {
         Box::new(Clock::new(inactive_attr.clone())) as Box<Widget>,
     ];
 
-    use std::rc::Rc;
-
     let widget_list = widgets::WidgetList::new(widgets);
-
 
     struct MainLoop<'a> {
         xcb_stream: XcbEventStream<'a>,
