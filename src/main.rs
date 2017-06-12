@@ -109,22 +109,20 @@ fn main() {
 
         fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
             match self.widget_list.poll() {
-                Ok(Async::Ready(texts)) => self.window.expose(self.widget_list.texts()),
-                Ok(Async::NotReady) => {},
+                Ok(Async::Ready(Some(texts))) => self.window.expose(texts),
                 Err(e) => return Err(e),
+                _ => {}
             }
             match self.xcb_stream.poll() {
-                Ok(Async::Ready(event)) => {
-                    if let Some(event) = event {
-                        let r = event.response_type() & !0x80;
-                        match r {
-                            xcb::EXPOSE => self.window.expose(self.widget_list.texts()),
-                            _ => {}
-                        }
+                Ok(Async::Ready(Some(event))) => {
+                    let r = event.response_type() & !0x80;
+                    match r {
+                        xcb::EXPOSE => self.window.expose(self.widget_list.texts()),
+                        _ => {}
                     }
                 },
-                Ok(Async::NotReady) => {},
                 Err(e) => return Err(e),
+                _ => {},
             }
             Ok(Async::NotReady)
         }
