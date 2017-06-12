@@ -11,6 +11,7 @@ use mio::event::Evented;
 use mio::unix::EventedFd;
 use tokio_core::reactor::{Handle, PollEvented};
 use xcb;
+use xcb_util::ewmh;
 
 use text::{Color, Text};
 use widgets::{WidgetList, Widget};
@@ -51,7 +52,7 @@ fn cairo_surface_for_xcb_window(conn: &xcb::Connection,
 
 
 pub struct Bar {
-    conn: Rc<xcb::Connection>,
+    conn: Rc<ewmh::Connection>,
     window_id: u32,
     screen_idx: usize,
     surface: cairo::Surface,
@@ -90,8 +91,10 @@ impl Bar {
             cairo_surface_for_xcb_window(&conn, &screen, id, width as i32, height as i32)
         };
 
+        let ewmh_conn = ewmh::Connection::connect(conn).map_err(|_| ()).unwrap();
+
         let bar = Bar {
-            conn: Rc::new(conn),
+            conn: Rc::new(ewmh_conn),
             window_id: id,
             screen_idx,
             surface,
@@ -217,11 +220,12 @@ impl Bar {
 }
 
 
-struct XcbEvented(Rc<xcb::Connection>);
+struct XcbEvented(Rc<ewmh::Connection>);
 
 impl XcbEvented {
     fn fd(&self) -> RawFd {
-        unsafe { xcb::ffi::base::xcb_get_file_descriptor(self.0.get_raw_conn()) }
+        let conn: &xcb::Connection = &self.0;
+        unsafe { xcb::ffi::base::xcb_get_file_descriptor(conn.get_raw_conn()) }
     }
 }
 
@@ -251,13 +255,13 @@ impl Evented for XcbEvented {
 
 
 struct XcbEventStream {
-    conn: Rc<xcb::Connection>,
+    conn: Rc<ewmh::Connection>,
     poll: PollEvented<XcbEvented>,
     would_block: bool,
 }
 
 impl XcbEventStream {
-    fn new(conn: Rc<xcb::Connection>, handle: &Handle) -> XcbEventStream {
+    fn new(conn: Rc<ewmh::Connection>, handle: &Handle) -> XcbEventStream {
         let evented = XcbEvented(conn.clone());
         XcbEventStream {
             conn,
