@@ -43,7 +43,7 @@ impl WidgetList {
         let len = widgets.len();
         WidgetList {
             vec: widgets.into_iter().map(|w| w.stream()).collect(),
-            cached: vec![None; len]
+            cached: vec![None; len],
         }
     }
 
@@ -69,8 +69,8 @@ impl Stream for WidgetList {
                 Ok(Async::Ready(texts)) => {
                     none_ready = false;
                     self.cached[i] = texts;
-                },
-                Ok(Async::NotReady) => {},
+                }
+                Ok(Async::NotReady) => {}
                 Err(e) => return Err(e),
             }
         }

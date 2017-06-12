@@ -31,41 +31,49 @@ impl Window {
     pub fn new(conn: Rc<xcb::Connection>, screen_idx: usize) -> Window {
         let id = conn.generate_id();
 
-        let surface = {
-            let screen = conn.get_setup()
-                .roots()
-                .nth(screen_idx)
-                .expect("invalid screen");
-            let values = [(xcb::CW_BACK_PIXEL, screen.black_pixel()),
-                          (xcb::CW_EVENT_MASK, xcb::EVENT_MASK_EXPOSURE)];
+        let surface =
+            {
+                let screen = conn.get_setup()
+                    .roots()
+                    .nth(screen_idx)
+                    .expect("invalid screen");
+                let values = [(xcb::CW_BACK_PIXEL, screen.black_pixel()),
+                              (xcb::CW_EVENT_MASK, xcb::EVENT_MASK_EXPOSURE)];
 
-            let (width, height) = (screen.width_in_pixels(), 100);
+                let (width, height) = (screen.width_in_pixels(), 100);
 
-            xcb::create_window(&conn,
-                               xcb::COPY_FROM_PARENT as u8,
-                               id,
-                               screen.root(),
-                               0,
-                               0,
-                               width,
-                               height,
-                               10,
-                               xcb::WINDOW_CLASS_INPUT_OUTPUT as u16,
-                               screen.root_visual(),
-                               &values);
+                xcb::create_window(&conn,
+                                   xcb::COPY_FROM_PARENT as u8,
+                                   id,
+                                   screen.root(),
+                                   0,
+                                   0,
+                                   width,
+                                   height,
+                                   10,
+                                   xcb::WINDOW_CLASS_INPUT_OUTPUT as u16,
+                                   screen.root_visual(),
+                                   &values);
 
-            unsafe {
-                let cairo_conn = cairo::XCBConnection::from_raw_none(conn.get_raw_conn() as
-                                                                     *mut cairo_sys::xcb_connection_t);
-                let visual =
-                    cairo::XCBVisualType::from_raw_none(&mut get_root_visual_type(&conn, &screen).base as
-                                                        *mut xcb::ffi::xcb_visualtype_t as
-                                                        *mut cairo_sys::xcb_visualtype_t);
-                let drawable = cairo::XCBDrawable(id);
-                cairo::Surface::create(&cairo_conn, &drawable, &visual, width as i32, height as i32)
-                // TODO: Update surface width/height when window size changes.
-            }
-        };
+                unsafe {
+                    let cairo_conn =
+                        cairo::XCBConnection::from_raw_none(conn.get_raw_conn() as
+                                                            *mut cairo_sys::xcb_connection_t);
+                    let visual =
+                        cairo::XCBVisualType::from_raw_none(&mut get_root_visual_type(&conn,
+                                                                                      &screen)
+                                                                         .base as
+                                                            *mut xcb::ffi::xcb_visualtype_t as
+                                                            *mut cairo_sys::xcb_visualtype_t);
+                    let drawable = cairo::XCBDrawable(id);
+                    cairo::Surface::create(&cairo_conn,
+                                           &drawable,
+                                           &visual,
+                                           width as i32,
+                                           height as i32)
+                    // TODO: Update surface width/height when window size changes.
+                }
+            };
 
         xcb::map_window(&conn, id);
         conn.flush();

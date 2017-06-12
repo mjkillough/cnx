@@ -89,11 +89,10 @@ fn main() {
     let conn_fd = unsafe { xcb::ffi::base::xcb_get_file_descriptor(conn.get_raw_conn()) };
     let stream = XcbEventStream::new(conn.clone(), &conn_fd, &handle);
 
-    let widgets: Vec<Box<Widget>> = vec![
-        Box::new(Pager::new(active_attr, inactive_attr.clone())) as Box<Widget>,
-        Box::new(ActiveWindowTitle::new(inactive_attr.clone())) as Box<Widget>,
-        Box::new(Clock::new(inactive_attr.clone())) as Box<Widget>,
-    ];
+    let widgets: Vec<Box<Widget>> =
+        vec![Box::new(Pager::new(active_attr, inactive_attr.clone())) as Box<Widget>,
+             Box::new(ActiveWindowTitle::new(inactive_attr.clone())) as Box<Widget>,
+             Box::new(Clock::new(inactive_attr.clone())) as Box<Widget>];
 
     let widget_list = widgets::WidgetList::new(widgets);
 
@@ -120,9 +119,9 @@ fn main() {
                         xcb::EXPOSE => self.window.expose(self.widget_list.texts()),
                         _ => {}
                     }
-                },
+                }
                 Err(e) => return Err(e),
-                _ => {},
+                _ => {}
             }
             Ok(Async::NotReady)
         }
