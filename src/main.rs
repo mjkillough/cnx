@@ -28,10 +28,10 @@ fn main() {
     let handle = core.handle();
 
     let inactive_attr = Attributes {
-        font: pango::FontDescription::from_string("Envy Code R 27"),
+        font: pango::FontDescription::from_string("SourceCodePro 21"),
         fg_color: Color::white(),
         bg_color: None,
-        padding: Padding::new(10.0, 10.0, 5.0, 5.0),
+        padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     };
     let active_attr = inactive_attr.with_bg_color(Some(Color::blue()));
 
