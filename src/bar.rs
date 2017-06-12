@@ -41,7 +41,7 @@ fn cairo_surface_for_xcb_window(conn: &xcb::Connection,
         cairo::XCBConnection::from_raw_none(conn.get_raw_conn() as *mut cairo_sys::xcb_connection_t)
     };
     let visual = unsafe {
-        cairo::XCBVisualType::from_raw_none(&mut get_root_visual_type(&conn, &screen).base as
+        cairo::XCBVisualType::from_raw_none(&mut get_root_visual_type(conn, screen).base as
                                             *mut xcb::ffi::xcb_visualtype_t as
                                             *mut cairo_sys::xcb_visualtype_t)
     };
