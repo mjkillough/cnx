@@ -56,6 +56,7 @@ pub struct Bar {
     window_id: u32,
     screen_idx: usize,
     surface: cairo::Surface,
+    height: u16,
     contents: Vec<Vec<Text>>,
 }
 
@@ -65,6 +66,10 @@ impl Bar {
         let screen_idx = screen_idx as usize;
         let id = conn.generate_id();
 
+        // TODO: Intialize this to 0 and then update the height once we know how
+        // big our contents are?
+        let height = 100;
+
         let surface = {
             let screen = conn.get_setup()
                 .roots()
@@ -73,7 +78,7 @@ impl Bar {
             let values = [(xcb::CW_BACK_PIXEL, screen.black_pixel()),
                           (xcb::CW_EVENT_MASK, xcb::EVENT_MASK_EXPOSURE)];
 
-            let (width, height) = (screen.width_in_pixels(), 100);
+            let width = screen.width_in_pixels();
 
             xcb::create_window(&conn,
                                xcb::COPY_FROM_PARENT as u8,
@@ -83,7 +88,7 @@ impl Bar {
                                0,
                                width,
                                height,
-                               10,
+                               0,
                                xcb::WINDOW_CLASS_INPUT_OUTPUT as u16,
                                screen.root_visual(),
                                &values);
@@ -98,8 +103,10 @@ impl Bar {
             window_id: id,
             screen_idx,
             surface,
+            height,
             contents: Vec::new(),
         };
+        bar.set_ewmh_properties();
         bar.map_window();
         bar.flush();
         bar
@@ -111,6 +118,26 @@ impl Bar {
 
     fn map_window(&self) {
         xcb::map_window(&self.conn, self.window_id);
+    }
+
+    fn set_ewmh_properties(&self) {
+        ewmh::set_wm_window_type(&self.conn, self.window_id, &[self.conn.WM_WINDOW_TYPE_DOCK()]);
+
+        // TODO: Update _WM_STRUT_PARTIAL if the height/position of the bar changes?
+        ewmh::set_wm_strut_partial(&self.conn, self.window_id, ewmh::StrutPartial {
+            left: 0,
+            right: 0,
+            top: self.height as u32,
+            bottom: 0,
+            left_start_y: 0,
+            left_end_y: 0,
+            right_start_y: 0,
+            right_end_y: 0,
+            top_start_x: 0,
+            top_end_x: 0,
+            bottom_start_x: 0,
+            bottom_end_x: 0,
+        });
     }
 
     fn screen(&self) -> xcb::Screen {
