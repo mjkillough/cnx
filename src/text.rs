@@ -10,30 +10,23 @@ pub struct Color {
     blue: f64,
 }
 
+macro_rules! color {
+    ($name:ident, ($r:expr, $g:expr, $b:expr)) => {
+        #[allow(dead_code)]
+        pub fn $name() -> Color {
+            Color {
+                red: $r, green: $g, blue: $b,
+            }
+        }
+    }
+}
+
 impl Color {
-    pub fn white() -> Color {
-        Color {
-            red: 1.0,
-            green: 1.0,
-            blue: 1.0,
-        }
-    }
-
-    pub fn red() -> Color {
-        Color {
-            red: 1.0,
-            green: 0.0,
-            blue: 0.0,
-        }
-    }
-
-    pub fn blue() -> Color {
-        Color {
-            red: 0.0,
-            green: 0.0,
-            blue: 1.0,
-        }
-    }
+    color!(red, (1.0, 0.0, 0.0));
+    color!(green, (0.0, 1.0, 0.0));
+    color!(blue, (0.0, 0.0, 1.0));
+    color!(white, (1.0, 1.0, 1.0));
+    color!(black, (0.0, 0.0, 0.0));
 
     pub fn apply_to_context(&self, cr: &Context) {
         cr.set_source_rgb(self.red, self.green, self.blue);
