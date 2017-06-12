@@ -4,21 +4,16 @@ use text::{Attributes, Text};
 use std::time::Duration;
 
 use chrono::prelude::*;
-use xcb;
 
 
 pub struct Clock {
-    conn: xcb::Connection,
     update_interval: Duration,
     attr: Attributes,
 }
 
 impl Clock {
     pub fn new(attr: Attributes) -> Clock {
-        let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
-
         Clock {
-            conn: conn,
             update_interval: Duration::from_secs(1),
             attr: attr,
         }
