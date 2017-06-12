@@ -51,26 +51,36 @@ fn cairo_surface_for_xcb_window(conn: &xcb::Connection,
 }
 
 
+#[derive(Clone, Debug)]
+pub enum Position {
+    Top,
+    Bottom,
+}
+
+
 pub struct Bar {
     conn: Rc<ewmh::Connection>,
     window_id: u32,
     screen_idx: usize,
     surface: cairo::Surface,
+    width: u16,
     height: u16,
+    position: Position,
     contents: Vec<Vec<Text>>,
 }
 
 impl Bar {
-    pub fn new() -> Bar {
+    pub fn new(position: Position) -> Bar {
         let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
         let screen_idx = screen_idx as usize;
         let id = conn.generate_id();
 
-        // TODO: Intialize this to 0 and then update the height once we know how
-        // big our contents are?
-        let height = 100;
+        // We don't actually care about how tall our initial window is - we'll resize
+        // our window once we know how big it needs to be. However, it seems to need
+        // to be bigger than 0px, or either Xcb/Cairo (or maybe QTile?) gets upset.
+        let height = 1;
 
-        let surface = {
+        let (width, surface) = {
             let screen = conn.get_setup()
                 .roots()
                 .nth(screen_idx)
@@ -93,7 +103,9 @@ impl Bar {
                                screen.root_visual(),
                                &values);
 
-            cairo_surface_for_xcb_window(&conn, &screen, id, width as i32, height as i32)
+            let surface = cairo_surface_for_xcb_window(&conn, &screen, id, width as i32, height as i32);
+
+            (width, surface)
         };
 
         let ewmh_conn = ewmh::Connection::connect(conn).map_err(|_| ()).unwrap();
@@ -103,11 +115,17 @@ impl Bar {
             window_id: id,
             screen_idx,
             surface,
+            width,
             height,
+            position,
             contents: Vec::new(),
         };
         bar.set_ewmh_properties();
-        bar.map_window();
+        // XXX We can't map the window until we've updated the window size, or nothing
+        // gets rendered. I can't tell if this is something we're doing, something Cairo
+        // is doing or something QTile is doing. This'll do for now and we'll see what
+        // it is like with Lanta!
+        // bar.map_window();
         bar.flush();
         bar
     }
@@ -121,13 +139,15 @@ impl Bar {
     }
 
     fn set_ewmh_properties(&self) {
-        ewmh::set_wm_window_type(&self.conn, self.window_id, &[self.conn.WM_WINDOW_TYPE_DOCK()]);
+        ewmh::set_wm_window_type(&self.conn,
+                                 self.window_id,
+                                 &[self.conn.WM_WINDOW_TYPE_DOCK()]);
 
         // TODO: Update _WM_STRUT_PARTIAL if the height/position of the bar changes?
-        ewmh::set_wm_strut_partial(&self.conn, self.window_id, ewmh::StrutPartial {
+        let mut strut_partial = ewmh::StrutPartial {
             left: 0,
             right: 0,
-            top: self.height as u32,
+            top: 0,
             bottom: 0,
             left_start_y: 0,
             left_end_y: 0,
@@ -137,7 +157,12 @@ impl Bar {
             top_end_x: 0,
             bottom_start_x: 0,
             bottom_end_x: 0,
-        });
+        };
+        match self.position {
+            Position::Top => strut_partial.top = self.height as u32,
+            Position::Bottom => strut_partial.bottom = self.height as u32,
+        }
+        ewmh::set_wm_strut_partial(&self.conn, self.window_id, strut_partial);
     }
 
     fn screen(&self) -> xcb::Screen {
@@ -148,6 +173,30 @@ impl Bar {
             .expect("Invalid screen")
     }
 
+    fn update_bar_height(&mut self, height: u16) {
+        if self.height != height {
+            self.height = height;
+
+            // If we're at the bottom of the screen, we'll need to update the
+            // position of the window.
+            let y = match self.position {
+                Position::Top => 0,
+                Position::Bottom => self.screen().height_in_pixels() - self.height,
+            };
+
+            // Update the height/position of the XCB window and the height of the Cairo surface.
+            let values = [(xcb::CONFIG_WINDOW_Y as u16, y as u32),
+                          (xcb::CONFIG_WINDOW_HEIGHT as u16, self.height as u32),
+                          (xcb::CONFIG_WINDOW_STACK_MODE as u16, xcb::STACK_MODE_ABOVE)];
+            xcb::configure_window(&self.conn, self.window_id, &values).request_check().unwrap();
+            xcb::map_window(&self.conn, self.window_id);
+            self.surface.set_size(self.width as i32, self.height as i32);
+
+            // Update EWMH properties - we might need to reserve more or less space.
+            self.set_ewmh_properties();
+        }
+    }
+
     fn update_contents(&mut self, new_contents: Vec<Option<Vec<Text>>>) {
         for (i, opt) in new_contents.into_iter().enumerate() {
             if let Some(new) = opt {
@@ -156,50 +205,56 @@ impl Bar {
         }
     }
 
-    fn render_text_blocks(&self, texts: Vec<Text>) {
-        // Layout each block of text. After this, we can query the width of each
-        // block, which will allow us to do more complex layout below.
-        let mut layouts: Vec<_> = texts.into_iter().map(|t| t.layout(&self.surface)).collect();
+    fn render_text_blocks(&mut self, texts: Vec<Text>) {
+        // Calculate the width/height of each text block.
+        let geometries: Vec<_> = texts
+            .iter()
+            .map(|t| t.compute_width_and_height(&self.surface))
+            .collect();
 
         // Calculate how much free space we have after laying out all the
         // non-stretch blocks. Split the remaining space (if any) between the
         // stretch blocks. If there isn't enough space for the non-stretch blocks
         // do nothing and allow it to overflow.
-        {
-            let mut width = 0.0;
-            let mut stretched = Vec::new();
-            for layout in &mut layouts {
-                if !layout.stretch() {
-                    width += layout.width();
-                } else {
-                    stretched.push(layout);
-                }
-            }
+        // While we're at it, we also calculate how
+        let width_per_stretched = {
+            let (stretched, non_stretched): (Vec<_>, Vec<_>) = texts
+                .iter()
+                .zip(geometries.clone())
+                .partition(|&(t, _)| t.stretch);
+            let width =
+                non_stretched
+                    .iter()
+                    .fold(0.0,
+                          |acc, &(text, (width, _))| if text.stretch { 0.0 } else { acc + width });
+            let remaining_width = (self.screen().width_in_pixels() as f64 - width).max(0.0);
+            remaining_width / (stretched.len() as f64)
+        };
 
-            let remaining_width = self.screen().width_in_pixels() as f64 - width;
-            let remaining_width = if remaining_width < 0.0 {
-                0.0
-            } else {
-                remaining_width
-            };
-            let width_per_stretched = remaining_width / (stretched.len() as f64);
-            for layout in &mut stretched {
-                layout.set_width(width_per_stretched);
-            }
-        }
+        // Get the height of the biggest Text and set the bar to be that big.
+        // TODO: Update all the Layouts so they all render that big too?
+        let mut height = geometries
+            .iter()
+            .cloned()
+            .fold(0. / 0., |acc, (_, h)| h.max(acc));
+        self.update_bar_height(height as u16);
 
-        // TODO: Set the height of the window and the height of each text block(?)
-        // to the height of the largest bit of text.
-
-        // Finally, just render each block of text in turn.
+        // Render each Text in turn. If it's a stretch block, override its width
+        // with the width we've just computed. Regardless of whether it's a stretch
+        // block, override its height - everything should be as big as the biggest item.
         let mut x = 0.0;
-        for layout in &layouts {
-            layout.render(x, 0.0);
-            x += layout.width();
+        for text in &texts {
+            let width = if text.stretch {
+                Some(width_per_stretched)
+            } else {
+                None
+            };
+            let (actual_width, _) = text.render(&self.surface, x, 0.0, width, Some(height));
+            x += actual_width;
         }
     }
 
-    fn expose(&self) {
+    fn expose(&mut self) {
         // Clear to black before re-painting.
         let context = Context::new(&self.surface);
         Color::black().apply_to_context(&context);

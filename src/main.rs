@@ -21,7 +21,7 @@ use bar::*;
 
 
 fn main() {
-    let w = Bar::new();
+    let w = Bar::new(Position::Top);
 
 
     let mut core = Core::new().unwrap();
