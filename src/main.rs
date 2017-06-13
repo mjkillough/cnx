@@ -1,3 +1,4 @@
+extern crate alsa;
 extern crate cairo_sys;
 extern crate cairo;
 extern crate chrono;
@@ -40,6 +41,7 @@ fn main() {
              Box<Widget>,
              Box::new(ActiveWindowTitle::new(handle.clone(), inactive_attr.clone())) as
              Box<Widget>,
+             Box::new(Volume::new(handle.clone(), inactive_attr.clone())) as Box<Widget>,
              Box::new(Battery::new(inactive_attr.clone())) as Box<Widget>,
              Box::new(Clock::new(inactive_attr.clone())) as Box<Widget>];
 

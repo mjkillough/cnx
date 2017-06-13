@@ -93,11 +93,13 @@ mod active_window_title;
 mod battery;
 mod clock;
 mod pager;
+mod volume;
 
 pub use self::active_window_title::ActiveWindowTitle;
 pub use self::battery::Battery;
 pub use self::clock::Clock;
 pub use self::pager::Pager;
+pub use self::volume::Volume;
 
 
 pub struct WidgetList {

@@ -9,6 +9,8 @@ mio = "0.6.9"
 tokio-core = "0.1.8"
 tokio-timer = "0.1.1"
 futures = "0.1.14"
+alsa = "0.1.8"
+libc = "0.2.23"
 
 [dependencies.xcb]
 version = "0.7.6"
