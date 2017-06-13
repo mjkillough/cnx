@@ -40,6 +40,7 @@ fn main() {
              Box<Widget>,
              Box::new(ActiveWindowTitle::new(handle.clone(), inactive_attr.clone())) as
              Box<Widget>,
+             Box::new(Battery::new(inactive_attr.clone())) as Box<Widget>,
              Box::new(Clock::new(inactive_attr.clone())) as Box<Widget>];
 
     core.run(w.run_event_loop(&handle, widgets)).unwrap();
