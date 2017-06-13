@@ -36,8 +36,10 @@ fn main() {
     let active_attr = inactive_attr.with_bg_color(Some(Color::blue()));
 
     let widgets: Vec<Box<Widget>> =
-        vec![Box::new(Pager::new(active_attr, inactive_attr.clone())) as Box<Widget>,
-             Box::new(ActiveWindowTitle::new(inactive_attr.clone())) as Box<Widget>,
+        vec![Box::new(Pager::new(handle.clone(), active_attr, inactive_attr.clone())) as
+             Box<Widget>,
+             Box::new(ActiveWindowTitle::new(handle.clone(), inactive_attr.clone())) as
+             Box<Widget>,
              Box::new(Clock::new(inactive_attr.clone())) as Box<Widget>];
 
     core.run(w.run_event_loop(&handle, widgets)).unwrap();

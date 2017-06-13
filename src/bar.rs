@@ -336,14 +336,14 @@ impl Evented for XcbEvented {
 }
 
 
-struct XcbEventStream {
+pub struct XcbEventStream {
     conn: Rc<ewmh::Connection>,
     poll: PollEvented<XcbEvented>,
     would_block: bool,
 }
 
 impl XcbEventStream {
-    fn new(conn: Rc<ewmh::Connection>, handle: &Handle) -> XcbEventStream {
+    pub fn new(conn: Rc<ewmh::Connection>, handle: &Handle) -> XcbEventStream {
         let evented = XcbEvented(conn.clone());
         XcbEventStream {
             conn,

@@ -1,27 +1,92 @@
 use std::time::Duration;
 
 use futures::{Async, Stream, Poll};
+use xcb;
+use xcb::xproto::{Atom, PropertyNotifyEvent, PROPERTY_NOTIFY};
+use xcb_util::ewmh;
+use tokio_core::reactor::Handle;
 use tokio_timer::Timer;
+
 use text::Text;
 
 
+pub type WidgetStream = Box<Stream<Item = Vec<Text>, Error = ()>>;
+
 pub trait Widget {
-    fn stream(self: Box<Self>) -> Box<Stream<Item = Vec<Text>, Error = ()>>;
+    fn stream(self: Box<Self>) -> WidgetStream;
 }
 
 
 macro_rules! timer_widget {
     ($widget:ty, $interval:ident, $tick:ident) => {
-        use futures::Stream;
-        use tokio_timer::Timer;
+        impl ::widgets::Widget for $widget {
+            fn stream(self: Box<Self>) -> ::widgets::WidgetStream {
+                use futures::{stream, Stream};
+                use tokio_timer::Timer;
 
-        use widgets::Widget;
+                // The Timer will only fire after the first interval. To avoid
+                // waiting for the initial state, call the tick ourselves.
+                let initial = stream::once::<_, ()>(Ok(self.$tick()));
 
-        impl Widget for $widget {
-            fn stream(self: Box<Self>) -> Box<Stream<Item = Vec<Text>, Error = ()>> {
                 let timer_stream = Timer::default().interval(self.$interval);
-                let text_stream = timer_stream.map(move |_| self.$tick());
-                Box::new(text_stream.map_err(|_| ()))
+                let text_stream = timer_stream.map(move |_| self.$tick()).map_err(|_| ());
+
+                Box::new(initial.chain(text_stream))
+            }
+        }
+    }
+}
+
+
+macro_rules! x_properties_widget {
+    ($widget:ty, $handle:ident, $on_change:ident; [ $( $property:ident ),+ ])  => {
+        impl ::widgets::Widget for $widget {
+            fn stream(self: Box<Self>) -> ::widgets::WidgetStream {
+                use std::rc::Rc;
+
+                use futures::{stream, Stream};
+                use xcb;
+                use xcb::xproto::{PropertyNotifyEvent, PROPERTY_NOTIFY};
+
+                use bar::XcbEventStream;
+
+                let (xcb_conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
+                let root_window = xcb_conn
+                    .get_setup()
+                    .roots()
+                    .nth(screen_idx as usize)
+                    .expect("Invalid screen")
+                    .root();
+                let ewmh_conn = ewmh::Connection::connect(xcb_conn)
+                    .map_err(|_| ())
+                    .unwrap();
+                let conn = Rc::new(ewmh_conn);
+
+                let properties = [ $( conn.$property() ),+ ];
+
+                // Register for all PROPERTY_CHANGE events. We'll filter out the ones
+                // that are interesting below.
+                let attributes = [(xcb::CW_EVENT_MASK, xcb::EVENT_MASK_PROPERTY_CHANGE)];
+                xcb::change_window_attributes(&conn, root_window, &attributes);
+                conn.flush();
+
+                // Pretend there was an initial property change to get the initial
+                // contents of the widget, then allow our stream of XCB events to
+                // call the callback for actual changes.
+                let initial = stream::once::<_, ()>(Ok(self.$on_change(&conn, screen_idx)));
+
+                let xcb_stream = XcbEventStream::new(conn.clone(), &self.$handle);
+                let text_stream = xcb_stream.filter_map(move |event| {
+                    if event.response_type() == PROPERTY_NOTIFY {
+                        let event: &PropertyNotifyEvent = xcb::cast_event(&event);
+                        if properties.iter().any(|p| *p == event.atom()) {
+                            return Some(self.$on_change(&conn, screen_idx));
+                        }
+                    }
+                    None
+                });
+
+                Box::new(initial.chain(text_stream))
             }
         }
     }
