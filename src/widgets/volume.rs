@@ -161,8 +161,8 @@ impl Stream for AlsaEventStream {
         // using it as a wake-up so we can check the volume again.
         let mixer = self.poll.get_ref().mixer();
         let ready = alsa::poll::poll_all(&[mixer], 0).unwrap();
-        let poll_descriptors: Vec<_> = ready.into_iter().map(|(p, _)| p).collect();
-        for poll_descriptor in &poll_descriptors {
+        let poll_descriptors = ready.into_iter().map(|(p, _)| p);
+        for poll_descriptor in poll_descriptors {
             mixer
                 .revents(poll_descriptor.get().unwrap().as_slice())
                 .unwrap();
