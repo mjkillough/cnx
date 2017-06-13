@@ -103,7 +103,8 @@ impl Bar {
                                screen.root_visual(),
                                &values);
 
-            let surface = cairo_surface_for_xcb_window(&conn, &screen, id, width as i32, height as i32);
+            let surface =
+                cairo_surface_for_xcb_window(&conn, &screen, id, width as i32, height as i32);
 
             (width, surface)
         };
@@ -188,7 +189,9 @@ impl Bar {
             let values = [(xcb::CONFIG_WINDOW_Y as u16, y as u32),
                           (xcb::CONFIG_WINDOW_HEIGHT as u16, self.height as u32),
                           (xcb::CONFIG_WINDOW_STACK_MODE as u16, xcb::STACK_MODE_ABOVE)];
-            xcb::configure_window(&self.conn, self.window_id, &values).request_check().unwrap();
+            xcb::configure_window(&self.conn, self.window_id, &values)
+                .request_check()
+                .unwrap();
             xcb::map_window(&self.conn, self.window_id);
             self.surface.set_size(self.width as i32, self.height as i32);
 
