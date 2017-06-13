@@ -1,11 +1,3 @@
-mod active_window_title;
-mod clock;
-mod pager;
-
-pub use self::active_window_title::ActiveWindowTitle;
-pub use self::clock::Clock;
-pub use self::pager::Pager;
-
 use std::time::Duration;
 
 use futures::{Async, Stream, Poll};
@@ -18,19 +10,32 @@ pub trait Widget {
 }
 
 
-pub trait TimerUpdateWidget {
-    fn update_interval(&self) -> Duration;
-    fn tick(&self) -> Vec<Text>;
-}
+macro_rules! timer_widget {
+    ($widget:ty, $interval:ident, $tick:ident) => {
+        use futures::Stream;
+        use tokio_timer::Timer;
 
-impl<T: 'static + TimerUpdateWidget> Widget for T {
-    #[allow(boxed_local)]
-    fn stream(self: Box<Self>) -> Box<Stream<Item = Vec<Text>, Error = ()>> {
-        let timer_stream = Timer::default().interval(self.update_interval());
-        let text_stream = timer_stream.map(move |_| self.tick());
-        Box::new(text_stream.map_err(|_| ()))
+        use widgets::Widget;
+
+        impl Widget for $widget {
+            fn stream(self: Box<Self>) -> Box<Stream<Item = Vec<Text>, Error = ()>> {
+                let timer_stream = Timer::default().interval(self.$interval);
+                let text_stream = timer_stream.map(move |_| self.$tick());
+                Box::new(text_stream.map_err(|_| ()))
+            }
+        }
     }
 }
+
+
+// Defined after macros because of macro scoping rules:
+mod active_window_title;
+mod clock;
+mod pager;
+
+pub use self::active_window_title::ActiveWindowTitle;
+pub use self::clock::Clock;
+pub use self::pager::Pager;
 
 
 pub struct WidgetList {

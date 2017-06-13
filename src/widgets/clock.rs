@@ -1,4 +1,3 @@
-use super::TimerUpdateWidget;
 use text::{Attributes, Text};
 
 use std::time::Duration;
@@ -18,12 +17,6 @@ impl Clock {
             attr: attr,
         }
     }
-}
-
-impl TimerUpdateWidget for Clock {
-    fn update_interval(&self) -> Duration {
-        self.update_interval
-    }
 
     fn tick(&self) -> Vec<Text> {
         let current_time = Local::now().format("%Y-%m-%d %a %I:%M:%S %p").to_string();
@@ -34,3 +27,5 @@ impl TimerUpdateWidget for Clock {
              }]
     }
 }
+
+timer_widget!(Clock, update_interval, tick);

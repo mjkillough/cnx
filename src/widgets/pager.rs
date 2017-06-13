@@ -1,4 +1,3 @@
-use super::TimerUpdateWidget;
 use text::{Attributes, Text};
 
 use std::time::Duration;
@@ -31,7 +30,7 @@ impl Pager {
         }
     }
 
-    fn get_desktops_info(&self) -> Vec<(bool, String)> {
+    fn tick(&self) -> Vec<Text> {
         let number = xcb_util::ewmh::get_number_of_desktops(&self.conn, self.screen_idx)
             .get_reply()
             .unwrap() as usize;
@@ -55,30 +54,20 @@ impl Pager {
         names
             .into_iter()
             .enumerate()
-            .map(|(i, name)| (i == current, name.to_owned()))
-            .collect()
-    }
-}
-
-impl TimerUpdateWidget for Pager {
-    fn update_interval(&self) -> Duration {
-        self.update_interval
-    }
-
-    fn tick(&self) -> Vec<Text> {
-        self.get_desktops_info()
-            .into_iter()
-            .map(|(active, name)| {
-                Text {
-                    attr: if active {
+            .map(|(i, name)| {
+                let attr = if i == current {
                         self.active_attr.clone()
                     } else {
                         self.inactive_attr.clone()
-                    },
-                    text: name,
+                    };
+                Text {
+                    attr: attr,
+                    text: name.to_owned(),
                     stretch: false,
                 }
             })
             .collect()
     }
 }
+
+timer_widget!(Pager, update_interval, tick);

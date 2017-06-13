@@ -1,4 +1,3 @@
-use super::TimerUpdateWidget;
 use text::{Attributes, Text};
 
 use std::time::Duration;
@@ -29,30 +28,24 @@ impl ActiveWindowTitle {
         }
     }
 
-    fn get_active_window_title(&self) -> String {
+    fn tick(&self) -> Vec<Text> {
         let active_window = xcb_util::ewmh::get_active_window(&self.conn, self.screen_idx)
             .get_reply()
             .unwrap();
         let reply = xcb_util::ewmh::get_wm_name(&self.conn, active_window).get_reply();
 
-        match reply {
+        let title = match reply {
             Ok(inner) => inner.string().to_owned(),
             // Probably means there's no window focused, or it doesn't have _NET_WM_NAME:
             Err(_) => "".to_owned(),
-        }
-    }
-}
+        };
 
-impl TimerUpdateWidget for ActiveWindowTitle {
-    fn update_interval(&self) -> Duration {
-        self.update_interval
-    }
-
-    fn tick(&self) -> Vec<Text> {
         vec![Text {
                  attr: self.attr.clone(),
-                 text: self.get_active_window_title(),
+                 text: title,
                  stretch: true,
              }]
     }
 }
+
+timer_widget!(ActiveWindowTitle, update_interval, tick);
