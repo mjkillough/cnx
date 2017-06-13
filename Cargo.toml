@@ -11,6 +11,8 @@ tokio-timer = "0.1.1"
 futures = "0.1.14"
 alsa = "0.1.8"
 libc = "0.2.23"
+regex = "0.2.2"
+lazy_static = "0.2.8"
 
 [dependencies.xcb]
 version = "0.7.6"
