@@ -1,6 +1,6 @@
 [submodule "pangocairo"]
 	path = pangocairo
-	url = git@github.com:mjkillough/pangocairo-rs.git
+	url = https://github.com/mjkillough/pangocairo-rs.git
 [submodule "xcb-util"]
 	path = xcb-util
-	url = https://github.com/meh/rust-xcb-util.git
+	url = https://github.com/mjkillough/rust-xcb-util.git
