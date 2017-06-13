@@ -20,10 +20,7 @@ pub struct Volume {
 
 impl Volume {
     pub fn new(handle: Handle, attr: Attributes) -> Volume {
-        Volume {
-            handle,
-            attr,
-        }
+        Volume { handle, attr }
     }
 }
 
