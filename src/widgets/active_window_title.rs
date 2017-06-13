@@ -16,10 +16,10 @@ impl ActiveWindowTitle {
     }
 
     fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Vec<Text> {
-        let active_window = ewmh::get_active_window(&conn, screen_idx)
+        let active_window = ewmh::get_active_window(conn, screen_idx)
             .get_reply()
             .unwrap();
-        let reply = ewmh::get_wm_name(&conn, active_window).get_reply();
+        let reply = ewmh::get_wm_name(conn, active_window).get_reply();
 
         // x_properties_widget!() will only register for notifications on the
         // root window, so will only receive notifications when the active window
@@ -28,7 +28,7 @@ impl ActiveWindowTitle {
         // window changes title. (We'll continue to receive notifications after
         // it is no longer the active window, but this isn't a big deal).
         let attributes = [(xcb::CW_EVENT_MASK, xcb::EVENT_MASK_PROPERTY_CHANGE)];
-        xcb::change_window_attributes(&conn, active_window, &attributes);
+        xcb::change_window_attributes(conn, active_window, &attributes);
         conn.flush();
 
         let title = match reply {

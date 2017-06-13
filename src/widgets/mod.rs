@@ -1,11 +1,4 @@
-use std::time::Duration;
-
 use futures::{Async, Stream, Poll};
-use xcb;
-use xcb::xproto::{Atom, PropertyNotifyEvent, PROPERTY_NOTIFY};
-use xcb_util::ewmh;
-use tokio_core::reactor::Handle;
-use tokio_timer::Timer;
 
 use text::Text;
 
@@ -20,6 +13,7 @@ pub trait Widget {
 macro_rules! timer_widget {
     ($widget:ty, $interval:ident, $tick:ident) => {
         impl ::widgets::Widget for $widget {
+            #[allow(boxed_local)]
             fn stream(self: Box<Self>) -> ::widgets::WidgetStream {
                 use futures::{stream, Stream};
                 use tokio_timer::Timer;
@@ -41,6 +35,7 @@ macro_rules! timer_widget {
 macro_rules! x_properties_widget {
     ($widget:ty, $handle:ident, $on_change:ident; [ $( $property:ident ),+ ])  => {
         impl ::widgets::Widget for $widget {
+            #[allow(boxed_local)]
             fn stream(self: Box<Self>) -> ::widgets::WidgetStream {
                 use std::rc::Rc;
 

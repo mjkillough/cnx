@@ -1,3 +1,4 @@
+use std::f64;
 use std::io;
 use std::os::unix::io::RawFd;
 use std::rc::Rc;
@@ -192,7 +193,7 @@ impl Bar {
             xcb::configure_window(&self.conn, self.window_id, &values)
                 .request_check()
                 .unwrap();
-            xcb::map_window(&self.conn, self.window_id);
+            self.map_window();
             self.surface.set_size(self.width as i32, self.height as i32);
 
             // Update EWMH properties - we might need to reserve more or less space.
@@ -236,10 +237,10 @@ impl Bar {
 
         // Get the height of the biggest Text and set the bar to be that big.
         // TODO: Update all the Layouts so they all render that big too?
-        let mut height = geometries
+        let height = geometries
             .iter()
             .cloned()
-            .fold(0. / 0., |acc, (_, h)| h.max(acc));
+            .fold(f64::NEG_INFINITY, |acc, (_, h)| h.max(acc));
         self.update_bar_height(height as u16);
 
         // Render each Text in turn. If it's a stretch block, override its width
@@ -291,9 +292,8 @@ impl Bar {
                 self.expose();
             }
             if let Some(event) = xcb_event {
-                match event.response_type() & !0x80 {
-                    xcb::EXPOSE => self.expose(),
-                    _ => {}
+                if let xcb::EXPOSE = event.response_type() & !0x80 {
+                    self.expose()
                 }
             }
 
