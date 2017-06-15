@@ -14,4 +14,4 @@ matrix:
 
 before_install:
     - sudo apt-get update -qq
-    - sudo apt-get install -y libx11-xcb-dev libxcb-ewmh-dev libasound2-dev
+    - sudo apt-get install -y libx11-xcb-dev libxcb-ewmh-dev libasound2-dev libpango1.0-dev libcairo2-dev libpangocairo-1.0-0
