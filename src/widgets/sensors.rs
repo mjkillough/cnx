@@ -17,7 +17,7 @@ fn parse_sensors_output<'a>(output: &'a str) -> HashMap<&'a str, Value<'a>> {
     lazy_static! {
         static ref RE: Regex = Regex::new(
             // Note: we ignore + but capture -
-            r"\n(?P<name>[\w ]+):\s+\+?(?P<temp>-?\d+\.\d+) (?P<units>[C|F])"
+            r"\n(?P<name>[\w ]+):\s+\+?(?P<temp>-?\d+\.\d+).(?P<units>[C|F])"
         ).unwrap();
     }
 
