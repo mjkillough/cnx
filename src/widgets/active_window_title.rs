@@ -16,26 +16,23 @@ impl ActiveWindowTitle {
     }
 
     fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Vec<Text> {
-        let active_window = ewmh::get_active_window(conn, screen_idx)
+        let title = ewmh::get_active_window(conn, screen_idx)
             .get_reply()
-            .unwrap();
-        let reply = ewmh::get_wm_name(conn, active_window).get_reply();
+            .and_then(|active_window| {
+                // x_properties_widget!() will only register for notifications on the
+                // root window, so will only receive notifications when the active window
+                // changes. So, for each active window we see, register for property
+                // change notifications, so that we can see when the currently active
+                // window changes title. (We'll continue to receive notifications after
+                // it is no longer the active window, but this isn't a big deal).
+                let attributes = [(xcb::CW_EVENT_MASK, xcb::EVENT_MASK_PROPERTY_CHANGE)];
+                xcb::change_window_attributes(conn, active_window, &attributes);
+                conn.flush();
 
-        // x_properties_widget!() will only register for notifications on the
-        // root window, so will only receive notifications when the active window
-        // changes. So, for each active window we see, register for property
-        // change notifications, so that we can see when the currently active
-        // window changes title. (We'll continue to receive notifications after
-        // it is no longer the active window, but this isn't a big deal).
-        let attributes = [(xcb::CW_EVENT_MASK, xcb::EVENT_MASK_PROPERTY_CHANGE)];
-        xcb::change_window_attributes(conn, active_window, &attributes);
-        conn.flush();
-
-        let title = match reply {
-            Ok(inner) => inner.string().to_owned(),
-            // Probably means there's no window focused, or it doesn't have _NET_WM_NAME:
-            Err(_) => "".to_owned(),
-        };
+                ewmh::get_wm_name(conn, active_window).get_reply()
+            })
+            .map(|reply| reply.string().to_owned())
+            .unwrap_or("".to_owned());
 
         vec![Text {
                  attr: self.attr.clone(),

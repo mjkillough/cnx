@@ -22,14 +22,15 @@ impl Pager {
     fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Vec<Text> {
         let number = ewmh::get_number_of_desktops(conn, screen_idx)
             .get_reply()
-            .unwrap() as usize;
+            .unwrap_or(0) as usize;
         let current = ewmh::get_current_desktop(conn, screen_idx)
             .get_reply()
-            .unwrap() as usize;
-        let names_reply = ewmh::get_desktop_names(conn, screen_idx)
-            .get_reply()
-            .unwrap();
-        let mut names = names_reply.strings();
+            .unwrap_or(0) as usize;
+        let names_reply = ewmh::get_desktop_names(conn, screen_idx).get_reply();
+        let mut names = match names_reply {
+            Ok(ref r) => r.strings(),
+            Err(_) => Vec::new(),
+        };
 
         // EWMH states that `number` may not equal `names.len()`, as there may
         // be unnamed desktops, or more desktops than are currently in use.
