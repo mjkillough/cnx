@@ -24,11 +24,13 @@ fn parse_sensors_output<'a>(output: &'a str) -> HashMap<&'a str, Value<'a>> {
     let mut map = HashMap::new();
     for mat in RE.captures_iter(output) {
         // These .unwraps() are harmless. If we have a match, we have these groups.
-        map.insert(mat.name("name").unwrap().as_str(),
-                   Value {
-                       temp: mat.name("temp").unwrap().as_str(),
-                       units: mat.name("units").unwrap().as_str(),
-                   });
+        map.insert(
+            mat.name("name").unwrap().as_str(),
+            Value {
+                temp: mat.name("temp").unwrap().as_str(),
+                units: mat.name("units").unwrap().as_str(),
+            },
+        );
     }
 
     map
@@ -51,18 +53,20 @@ impl Sensors {
     }
 
     fn tick(&self) -> Vec<Text> {
-        let output = Command::new("sensors")
-            .output()
-            .expect("Failed to run sensors");
+        let output = Command::new("sensors").output().expect(
+            "Failed to run sensors",
+        );
         let string = String::from_utf8(output.stdout).expect("Invalid UTF-8 in sensors output");
         let parsed = parse_sensors_output(&string);
         self.sensors
             .iter()
             .map(|sensor_name| {
-                let text = parsed
-                    .get::<str>(&sensor_name)
-                    .map_or("?".to_owned(),
-                            |&Value { temp, units }| format!("{}°{}", temp, units));
+                let text = parsed.get::<str>(&sensor_name).map_or(
+                    "?".to_owned(),
+                    |&Value { temp, units }| {
+                        format!("{}°{}", temp, units)
+                    },
+                );
                 Text {
                     attr: self.attr.clone(),
                     text: text,
@@ -96,26 +100,34 @@ Core 1:        +58.0 C  (high = +105.0 C, crit = +105.0 C)
 "#;
 
         let parsed = parse_sensors_output(output);
-        assert_eq!(parsed.get("Core 0"),
-                   Some(&Value {
-                            temp: "53.0",
-                            units: "C",
-                        }));
-        assert_eq!(parsed.get("Core 1"),
-                   Some(&Value {
-                            temp: "58.0",
-                            units: "C",
-                        }));
-        assert_eq!(parsed.get("Ts1S"),
-                   Some(&Value {
-                            temp: "-127.0",
-                            units: "C",
-                        }));
-        assert_eq!(parsed.get("Ts2S"),
-                   Some(&Value {
-                            temp: "34.0",
-                            units: "F",
-                        }));
+        assert_eq!(
+            parsed.get("Core 0"),
+            Some(&Value {
+                temp: "53.0",
+                units: "C",
+            })
+        );
+        assert_eq!(
+            parsed.get("Core 1"),
+            Some(&Value {
+                temp: "58.0",
+                units: "C",
+            })
+        );
+        assert_eq!(
+            parsed.get("Ts1S"),
+            Some(&Value {
+                temp: "-127.0",
+                units: "C",
+            })
+        );
+        assert_eq!(
+            parsed.get("Ts2S"),
+            Some(&Value {
+                temp: "34.0",
+                units: "F",
+            })
+        );
 
         assert_eq!(parsed.len(), 5);
     }

@@ -34,11 +34,13 @@ impl ActiveWindowTitle {
             .map(|reply| reply.string().to_owned())
             .unwrap_or("".to_owned());
 
-        vec![Text {
-                 attr: self.attr.clone(),
-                 text: title,
-                 stretch: true,
-             }]
+        vec![
+            Text {
+                attr: self.attr.clone(),
+                text: title,
+                stretch: true,
+            },
+        ]
     }
 }
 

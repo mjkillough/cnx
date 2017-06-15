@@ -33,19 +33,21 @@ fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Vi
 
 
 /// Creates a `cairo::Surface` for the XCB window with the given `id`.
-fn cairo_surface_for_xcb_window(conn: &xcb::Connection,
-                                screen: &xcb::Screen,
-                                id: u32,
-                                width: i32,
-                                height: i32)
-                                -> cairo::Surface {
+fn cairo_surface_for_xcb_window(
+    conn: &xcb::Connection,
+    screen: &xcb::Screen,
+    id: u32,
+    width: i32,
+    height: i32,
+) -> cairo::Surface {
     let cairo_conn = unsafe {
         cairo::XCBConnection::from_raw_none(conn.get_raw_conn() as *mut cairo_sys::xcb_connection_t)
     };
     let visual = unsafe {
-        cairo::XCBVisualType::from_raw_none(&mut get_root_visual_type(conn, screen).base as
-                                            *mut xcb::ffi::xcb_visualtype_t as
-                                            *mut cairo_sys::xcb_visualtype_t)
+        cairo::XCBVisualType::from_raw_none(
+            &mut get_root_visual_type(conn, screen).base as *mut xcb::ffi::xcb_visualtype_t as
+                *mut cairo_sys::xcb_visualtype_t,
+        )
     };
     let drawable = cairo::XCBDrawable(id);
     cairo::Surface::create(&cairo_conn, &drawable, &visual, width, height)
@@ -82,27 +84,30 @@ impl Bar {
         let height = 1;
 
         let (width, surface) = {
-            let screen = conn.get_setup()
-                .roots()
-                .nth(screen_idx)
-                .expect("invalid screen");
-            let values = [(xcb::CW_BACK_PIXEL, screen.black_pixel()),
-                          (xcb::CW_EVENT_MASK, xcb::EVENT_MASK_EXPOSURE)];
+            let screen = conn.get_setup().roots().nth(screen_idx).expect(
+                "invalid screen",
+            );
+            let values = [
+                (xcb::CW_BACK_PIXEL, screen.black_pixel()),
+                (xcb::CW_EVENT_MASK, xcb::EVENT_MASK_EXPOSURE),
+            ];
 
             let width = screen.width_in_pixels();
 
-            xcb::create_window(&conn,
-                               xcb::COPY_FROM_PARENT as u8,
-                               id,
-                               screen.root(),
-                               0,
-                               0,
-                               width,
-                               height,
-                               0,
-                               xcb::WINDOW_CLASS_INPUT_OUTPUT as u16,
-                               screen.root_visual(),
-                               &values);
+            xcb::create_window(
+                &conn,
+                xcb::COPY_FROM_PARENT as u8,
+                id,
+                screen.root(),
+                0,
+                0,
+                width,
+                height,
+                0,
+                xcb::WINDOW_CLASS_INPUT_OUTPUT as u16,
+                screen.root_visual(),
+                &values,
+            );
 
             let surface =
                 cairo_surface_for_xcb_window(&conn, &screen, id, width as i32, height as i32);
@@ -141,9 +146,11 @@ impl Bar {
     }
 
     fn set_ewmh_properties(&self) {
-        ewmh::set_wm_window_type(&self.conn,
-                                 self.window_id,
-                                 &[self.conn.WM_WINDOW_TYPE_DOCK()]);
+        ewmh::set_wm_window_type(
+            &self.conn,
+            self.window_id,
+            &[self.conn.WM_WINDOW_TYPE_DOCK()],
+        );
 
         // TODO: Update _WM_STRUT_PARTIAL if the height/position of the bar changes?
         let mut strut_partial = ewmh::StrutPartial {
@@ -168,11 +175,9 @@ impl Bar {
     }
 
     fn screen(&self) -> xcb::Screen {
-        self.conn
-            .get_setup()
-            .roots()
-            .nth(self.screen_idx)
-            .expect("Invalid screen")
+        self.conn.get_setup().roots().nth(self.screen_idx).expect(
+            "Invalid screen",
+        )
     }
 
     fn update_bar_height(&mut self, height: u16) {
@@ -187,9 +192,11 @@ impl Bar {
             };
 
             // Update the height/position of the XCB window and the height of the Cairo surface.
-            let values = [(xcb::CONFIG_WINDOW_Y as u16, y as u32),
-                          (xcb::CONFIG_WINDOW_HEIGHT as u16, self.height as u32),
-                          (xcb::CONFIG_WINDOW_STACK_MODE as u16, xcb::STACK_MODE_ABOVE)];
+            let values = [
+                (xcb::CONFIG_WINDOW_Y as u16, y as u32),
+                (xcb::CONFIG_WINDOW_HEIGHT as u16, self.height as u32),
+                (xcb::CONFIG_WINDOW_STACK_MODE as u16, xcb::STACK_MODE_ABOVE),
+            ];
             xcb::configure_window(&self.conn, self.window_id, &values)
                 .request_check()
                 .unwrap();
@@ -226,21 +233,19 @@ impl Bar {
                 .iter()
                 .zip(geometries.clone())
                 .partition(|&(t, _)| t.stretch);
-            let width =
-                non_stretched
-                    .iter()
-                    .fold(0.0,
-                          |acc, &(text, (width, _))| if text.stretch { 0.0 } else { acc + width });
+            let width = non_stretched.iter().fold(0.0, |acc, &(text, (width, _))| {
+                if text.stretch { 0.0 } else { acc + width }
+            });
             let remaining_width = (self.screen().width_in_pixels() as f64 - width).max(0.0);
             remaining_width / (stretched.len() as f64)
         };
 
         // Get the height of the biggest Text and set the bar to be that big.
         // TODO: Update all the Layouts so they all render that big too?
-        let height = geometries
-            .iter()
-            .cloned()
-            .fold(f64::NEG_INFINITY, |acc, (_, h)| h.max(acc));
+        let height = geometries.iter().cloned().fold(
+            f64::NEG_INFINITY,
+            |acc, (_, h)| h.max(acc),
+        );
         self.update_bar_height(height as u16);
 
         // Render each Text in turn. If it's a stretch block, override its width
@@ -270,10 +275,11 @@ impl Bar {
         self.conn.flush();
     }
 
-    pub fn run_event_loop(mut self,
-                          handle: &Handle,
-                          widgets: Vec<Box<Widget>>)
-                          -> Box<Future<Item = (), Error = ()>> {
+    pub fn run_event_loop(
+        mut self,
+        handle: &Handle,
+        widgets: Vec<Box<Widget>>,
+    ) -> Box<Future<Item = (), Error = ()>> {
         self.contents = vec![Vec::new(); widgets.len()];
 
         let events_stream = XcbEventStream::new(self.conn.clone(), handle);
@@ -315,21 +321,23 @@ impl XcbEvented {
 }
 
 impl Evented for XcbEvented {
-    fn register(&self,
-                poll: &mio::Poll,
-                token: Token,
-                interest: Ready,
-                opts: PollOpt)
-                -> io::Result<()> {
+    fn register(
+        &self,
+        poll: &mio::Poll,
+        token: Token,
+        interest: Ready,
+        opts: PollOpt,
+    ) -> io::Result<()> {
         EventedFd(&self.fd()).register(poll, token, interest, opts)
     }
 
-    fn reregister(&self,
-                  poll: &mio::Poll,
-                  token: Token,
-                  interest: Ready,
-                  opts: PollOpt)
-                  -> io::Result<()> {
+    fn reregister(
+        &self,
+        poll: &mio::Poll,
+        token: Token,
+        interest: Ready,
+        opts: PollOpt,
+    ) -> io::Result<()> {
         EventedFd(&self.fd()).reregister(poll, token, interest, opts)
     }
 

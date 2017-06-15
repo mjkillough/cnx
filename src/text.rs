@@ -124,13 +124,14 @@ impl Text {
         self.width_and_height_for_layout(&layout)
     }
 
-    pub fn render(&self,
-                  surface: &Surface,
-                  x: f64,
-                  y: f64,
-                  width: Option<f64>,
-                  height: Option<f64>)
-                  -> (f64, f64) {
+    pub fn render(
+        &self,
+        surface: &Surface,
+        x: f64,
+        y: f64,
+        width: Option<f64>,
+        height: Option<f64>,
+    ) -> (f64, f64) {
         let (context, layout) = self.create_contexts(surface);
         context.translate(x, y);
 

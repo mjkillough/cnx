@@ -46,9 +46,10 @@ impl Battery {
     }
 
     fn load_value<T>(&self, file: &str) -> T
-        where T: FromStr,
-              // XXX Remove once we get rid of unwrap():
-              T::Err: Debug
+    where
+        T: FromStr,
+        // XXX Remove once we get rid of unwrap():
+        T::Err: Debug,
     {
         let path = format!("/sys/class/power_supply/{}/{}", self.battery, file);
         let mut file = File::open(path).unwrap();
@@ -75,16 +76,20 @@ impl Battery {
         let minutes = (time * 60.0) as u64 % 60;
 
 
-        let text = format!("({percentage:.0}% - {hours}:{minutes:02})",
-                           percentage = percentage,
-                           hours = hours,
-                           minutes = minutes);
+        let text = format!(
+            "({percentage:.0}% - {hours}:{minutes:02})",
+            percentage = percentage,
+            hours = hours,
+            minutes = minutes
+        );
 
-        vec![Text {
-                 attr: self.attr.clone(),
-                 text: text,
-                 stretch: false,
-             }]
+        vec![
+            Text {
+                attr: self.attr.clone(),
+                text: text,
+                stretch: false,
+            },
+        ]
     }
 }
 

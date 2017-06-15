@@ -25,7 +25,7 @@ use bar::*;
 
 
 fn main() {
-    let w = Bar::new(Position::Top);
+    let w = Bar::new(Position::Bottom);
 
 
     let mut core = Core::new().unwrap();
@@ -42,14 +42,21 @@ fn main() {
     let sensors = vec!["Core 0".to_owned(), "Core 1".to_owned()];
 
     let widgets: Vec<Box<Widget>> =
-        vec![Box::new(Pager::new(handle.clone(), active_attr, inactive_attr.clone())) as
-             Box<Widget>,
-             Box::new(ActiveWindowTitle::new(handle.clone(), inactive_attr.clone())) as
-             Box<Widget>,
-             Box::new(Sensors::new(inactive_attr.clone(), sensors)) as Box<Widget>,
-             Box::new(Volume::new(handle.clone(), inactive_attr.clone())) as Box<Widget>,
-             Box::new(Battery::new(inactive_attr.clone())) as Box<Widget>,
-             Box::new(Clock::new(inactive_attr.clone())) as Box<Widget>];
+        vec![
+            Box::new(Pager::new(
+                handle.clone(),
+                active_attr,
+                inactive_attr.clone(),
+            )) as Box<Widget>,
+            Box::new(ActiveWindowTitle::new(
+                handle.clone(),
+                inactive_attr.clone(),
+            )) as Box<Widget>,
+            Box::new(Sensors::new(inactive_attr.clone(), sensors)) as Box<Widget>,
+            Box::new(Volume::new(handle.clone(), inactive_attr.clone())) as Box<Widget>,
+            Box::new(Battery::new(inactive_attr.clone())) as Box<Widget>,
+            Box::new(Clock::new(inactive_attr.clone())) as Box<Widget>,
+        ];
 
     core.run(w.run_event_loop(&handle, widgets)).unwrap();
 }

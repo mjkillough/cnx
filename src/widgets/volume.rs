@@ -82,24 +82,26 @@ impl AlsaEvented {
 }
 
 impl Evented for AlsaEvented {
-    fn register(&self,
-                poll: &mio::Poll,
-                token: Token,
-                interest: Ready,
-                opts: PollOpt)
-                -> io::Result<()> {
+    fn register(
+        &self,
+        poll: &mio::Poll,
+        token: Token,
+        interest: Ready,
+        opts: PollOpt,
+    ) -> io::Result<()> {
         for fd in &self.fds() {
             EventedFd(fd).register(poll, token, interest, opts)?
         }
         Ok(())
     }
 
-    fn reregister(&self,
-                  poll: &mio::Poll,
-                  token: Token,
-                  interest: Ready,
-                  opts: PollOpt)
-                  -> io::Result<()> {
+    fn reregister(
+        &self,
+        poll: &mio::Poll,
+        token: Token,
+        interest: Ready,
+        opts: PollOpt,
+    ) -> io::Result<()> {
         for fd in &self.fds() {
             EventedFd(fd).reregister(poll, token, interest, opts)?
         }
