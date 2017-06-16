@@ -74,7 +74,7 @@ pub struct Bar {
 
 impl Bar {
     pub fn new(position: Position) -> Bar {
-        let (conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
+        let (conn, screen_idx) = xcb::Connection::connect(None).unwrap();
         let screen_idx = screen_idx as usize;
         let id = conn.generate_id();
 

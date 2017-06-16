@@ -13,10 +13,7 @@ mio = "0.6.9"
 regex = "0.2.2"
 tokio-core = "0.1.8"
 tokio-timer = "0.1.1"
-
-[dependencies.xcb]
-version = "0.7.6"
-features = ["xlib_xcb"]
+xcb = "0.7.6"
 
 [dependencies.xcb-util]
 path = "./xcb-util"

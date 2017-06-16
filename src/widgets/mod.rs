@@ -45,7 +45,7 @@ macro_rules! x_properties_widget {
 
                 use bar::XcbEventStream;
 
-                let (xcb_conn, screen_idx) = xcb::Connection::connect_with_xlib_display().unwrap();
+                let (xcb_conn, screen_idx) = xcb::Connection::connect(None).unwrap();
                 let root_window = xcb_conn
                     .get_setup()
                     .roots()
