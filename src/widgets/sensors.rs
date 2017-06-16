@@ -46,7 +46,7 @@ pub struct Sensors {
 impl Sensors {
     pub fn new(attr: Attributes, sensors: Vec<String>) -> Sensors {
         Sensors {
-            update_interval: Duration::from_secs(1),
+            update_interval: Duration::from_secs(60),
             attr,
             sensors,
         }

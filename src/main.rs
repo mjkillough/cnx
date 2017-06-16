@@ -27,7 +27,6 @@ use bar::*;
 fn main() {
     let w = Bar::new(Position::Bottom);
 
-
     let mut core = Core::new().unwrap();
     let handle = core.handle();
 
