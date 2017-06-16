@@ -16,7 +16,7 @@ dependencies = [
  "tokio-core 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-timer 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "xcb 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "xcb-util 0.1.7",
+ "xcb-util 0.1.8",
 ]
 
 [[package]]
@@ -489,7 +489,7 @@ dependencies = [
 
 [[package]]
 name = "xcb-util"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "libc 0.2.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "xcb 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
