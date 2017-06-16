@@ -84,9 +84,10 @@ impl Bar {
         let height = 1;
 
         let (width, surface) = {
-            let screen = conn.get_setup().roots().nth(screen_idx).expect(
-                "invalid screen",
-            );
+            let screen = conn.get_setup()
+                .roots()
+                .nth(screen_idx)
+                .expect("invalid screen");
             let values = [
                 (xcb::CW_BACK_PIXEL, screen.black_pixel()),
                 (xcb::CW_EVENT_MASK, xcb::EVENT_MASK_EXPOSURE),
@@ -175,9 +176,11 @@ impl Bar {
     }
 
     fn screen(&self) -> xcb::Screen {
-        self.conn.get_setup().roots().nth(self.screen_idx).expect(
-            "Invalid screen",
-        )
+        self.conn
+            .get_setup()
+            .roots()
+            .nth(self.screen_idx)
+            .expect("Invalid screen")
     }
 
     fn update_bar_height(&mut self, height: u16) {
@@ -233,9 +236,13 @@ impl Bar {
                 .iter()
                 .zip(geometries.clone())
                 .partition(|&(t, _)| t.stretch);
-            let width = non_stretched.iter().fold(0.0, |acc, &(text, (width, _))| {
-                if text.stretch { 0.0 } else { acc + width }
-            });
+            let width = non_stretched
+                .iter()
+                .fold(0.0, |acc, &(text, (width, _))| if text.stretch {
+                    0.0
+                } else {
+                    acc + width
+                });
             let remaining_width = (self.screen().width_in_pixels() as f64 - width).max(0.0);
             remaining_width / (stretched.len() as f64)
         };

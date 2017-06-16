@@ -53,9 +53,9 @@ impl Sensors {
     }
 
     fn tick(&self) -> Vec<Text> {
-        let output = Command::new("sensors").output().expect(
-            "Failed to run sensors",
-        );
+        let output = Command::new("sensors")
+            .output()
+            .expect("Failed to run sensors");
         let string = String::from_utf8(output.stdout).expect("Invalid UTF-8 in sensors output");
         let parsed = parse_sensors_output(&string);
         self.sensors
