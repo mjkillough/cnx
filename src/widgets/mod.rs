@@ -17,7 +17,6 @@ macro_rules! timer_widget {
             #[allow(boxed_local)]
             fn stream(self: Box<Self>) -> ::errors::Result<::widgets::WidgetStream> {
                 use futures::{stream, Stream};
-                use tokio_timer::Timer;
 
                 use errors::*;
 
