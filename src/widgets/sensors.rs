@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 use std::process::Command;
+use std::rc::Rc;
 use std::time::Duration;
 
 use regex::Regex;
+use tokio_timer::Timer;
 
 use errors::*;
 use text::{Attributes, Text};
@@ -39,14 +41,16 @@ fn parse_sensors_output(output: &str) -> Result<HashMap<&str, Value>> {
 
 
 pub struct Sensors {
+    timer: Rc<Timer>,
     update_interval: Duration,
     attr: Attributes,
     sensors: Vec<String>,
 }
 
 impl Sensors {
-    pub fn new<S: Into<String>>(attr: Attributes, sensors: Vec<S>) -> Sensors {
+    pub fn new<S: Into<String>>(timer: Rc<Timer>, attr: Attributes, sensors: Vec<S>) -> Sensors {
         Sensors {
+            timer,
             update_interval: Duration::from_secs(60),
             attr,
             sensors: sensors.into_iter().map(Into::into).collect(),
@@ -80,7 +84,7 @@ impl Sensors {
     }
 }
 
-timer_widget!(Sensors, update_interval, tick);
+timer_widget!(Sensors, timer, update_interval, tick);
 
 
 #[cfg(test)]

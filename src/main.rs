@@ -16,7 +16,10 @@ extern crate tokio_timer;
 extern crate xcb_util;
 extern crate xcb;
 
+use std::rc::Rc;
+
 use tokio_core::reactor::Core;
+use tokio_timer::Timer;
 
 mod errors;
 use errors::*;
@@ -41,7 +44,7 @@ fn run() -> Result<()> {
     let active_attr = inactive_attr.with_bg_color(Some(Color::blue()));
 
     let sensors = vec!["Core 0", "Core 1"];
-
+    let timer = Rc::new(Timer::default());
     let widgets: Vec<Box<Widget>> =
         vec![
             Box::new(Pager::new(
@@ -53,10 +56,10 @@ fn run() -> Result<()> {
                 handle.clone(),
                 inactive_attr.clone(),
             )) as Box<Widget>,
-            Box::new(Sensors::new(inactive_attr.clone(), sensors)) as Box<Widget>,
+            Box::new(Sensors::new(timer.clone(), inactive_attr.clone(), sensors)) as Box<Widget>,
             Box::new(Volume::new(handle.clone(), inactive_attr.clone())) as Box<Widget>,
-            Box::new(Battery::new(inactive_attr.clone())) as Box<Widget>,
-            Box::new(Clock::new(inactive_attr.clone())) as Box<Widget>,
+            Box::new(Battery::new(timer.clone(), inactive_attr.clone())) as Box<Widget>,
+            Box::new(Clock::new(timer.clone(), inactive_attr.clone())) as Box<Widget>,
         ];
 
     let bar = Bar::new(Position::Top)?;

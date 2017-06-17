@@ -2,9 +2,12 @@ use std::error;
 use std::f64;
 use std::fs::File;
 use std::io::Read;
+use std::rc::Rc;
 use std::result;
 use std::str::FromStr;
 use std::time::Duration;
+
+use tokio_timer::Timer;
 
 use errors::*;
 use text::{Attributes, Text};
@@ -33,17 +36,19 @@ impl FromStr for Status {
 
 
 pub struct Battery {
+    timer: Rc<Timer>,
     update_interval: Duration,
     battery: String,
     attr: Attributes,
 }
 
 impl Battery {
-    pub fn new(attr: Attributes) -> Battery {
+    pub fn new(timer: Rc<Timer>, attr: Attributes) -> Battery {
         Battery {
+            timer,
             update_interval: Duration::from_secs(60),
             battery: "BAT0".to_owned(),
-            attr: attr,
+            attr,
         }
     }
 
@@ -104,4 +109,4 @@ impl Battery {
     }
 }
 
-timer_widget!(Battery, update_interval, tick);
+timer_widget!(Battery, timer, update_interval, tick);

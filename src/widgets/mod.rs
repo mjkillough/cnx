@@ -12,7 +12,7 @@ pub trait Widget {
 
 
 macro_rules! timer_widget {
-    ($widget:ty, $interval:ident, $tick:ident) => {
+    ($widget:ty, $timer:ident, $interval:ident, $tick:ident) => {
         impl ::widgets::Widget for $widget {
             #[allow(boxed_local)]
             fn stream(self: Box<Self>) -> ::errors::Result<::widgets::WidgetStream> {
@@ -25,7 +25,7 @@ macro_rules! timer_widget {
                 // waiting for the initial state, call the tick ourselves.
                 let initial = stream::once::<_, Error>(self.$tick());
 
-                let timer_stream = Timer::default().interval(self.$interval);
+                let timer_stream = self.$timer.interval(self.$interval);
                 let text_stream = timer_stream
                     .then(|r| r.chain_err(|| "Error in tokio_timer stream"))
                     .and_then(move |_| self.$tick());

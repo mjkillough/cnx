@@ -1,21 +1,25 @@
+use std::rc::Rc;
 use std::time::Duration;
 
 use chrono::prelude::*;
+use tokio_timer::Timer;
 
 use errors::*;
 use text::{Attributes, Text};
 
 
 pub struct Clock {
+    timer: Rc<Timer>,
     update_interval: Duration,
     attr: Attributes,
 }
 
 impl Clock {
-    pub fn new(attr: Attributes) -> Clock {
+    pub fn new(timer: Rc<Timer>, attr: Attributes) -> Clock {
         Clock {
+            timer,
             update_interval: Duration::from_secs(1),
-            attr: attr,
+            attr,
         }
     }
 
@@ -31,4 +35,4 @@ impl Clock {
     }
 }
 
-timer_widget!(Clock, update_interval, tick);
+timer_widget!(Clock, timer, update_interval, tick);
