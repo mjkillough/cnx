@@ -1,5 +1,5 @@
 use cairo::{Context, Surface};
-use pango::{FontDescription, Layout, LayoutExt};
+use pango::{self, EllipsizeMode, FontDescription, Layout, LayoutExt};
 use pangocairo::CairoContextExt;
 
 
@@ -141,6 +141,13 @@ impl Text {
         let (layout_width, layout_height) = self.width_and_height_for_layout(&layout);
         let width = width.unwrap_or(layout_width);
         let height = height.unwrap_or(layout_height);
+
+        // Set the width/height on the Pango layout so that it word-wraps/ellipises.
+        let text_width = width - self.attr.padding.left - self.attr.padding.right;
+        let text_height = height - self.attr.padding.top - self.attr.padding.bottom;
+        layout.set_ellipsize(EllipsizeMode::End);
+        layout.set_width(text_width as i32 * pango::SCALE);
+        layout.set_height(text_height as i32 * pango::SCALE);
 
         if let Some(ref bg_color) = self.attr.bg_color {
             bg_color.apply_to_context(&context);
