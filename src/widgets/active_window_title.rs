@@ -1,8 +1,9 @@
-use text::{Attributes, Text};
-
 use tokio_core::reactor::Handle;
 use xcb;
 use xcb_util::ewmh;
+
+use errors::*;
+use text::{Attributes, Text};
 
 
 pub struct ActiveWindowTitle {
@@ -15,7 +16,7 @@ impl ActiveWindowTitle {
         ActiveWindowTitle { tokio_handle, attr }
     }
 
-    fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Vec<Text> {
+    fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Result<Vec<Text>> {
         let title = ewmh::get_active_window(conn, screen_idx)
             .get_reply()
             .and_then(|active_window| {
@@ -32,15 +33,15 @@ impl ActiveWindowTitle {
                 ewmh::get_wm_name(conn, active_window).get_reply()
             })
             .map(|reply| reply.string().to_owned())
-            .unwrap_or("".to_owned());
+            .unwrap_or_else(|_| "".to_owned());
 
-        vec![
+        Ok(vec![
             Text {
                 attr: self.attr.clone(),
                 text: title,
                 stretch: true,
             },
-        ]
+        ])
     }
 }
 

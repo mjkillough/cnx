@@ -1,7 +1,8 @@
-use text::{Attributes, Text};
-
 use tokio_core::reactor::Handle;
 use xcb_util::ewmh;
+
+use errors::*;
+use text::{Attributes, Text};
 
 
 pub struct Pager {
@@ -19,7 +20,7 @@ impl Pager {
         }
     }
 
-    fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Vec<Text> {
+    fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Result<Vec<Text>> {
         let number = ewmh::get_number_of_desktops(conn, screen_idx)
             .get_reply()
             .unwrap_or(0) as usize;
@@ -41,22 +42,24 @@ impl Pager {
             names.extend(vec!["?"; num_unnamed]);
         }
 
-        names
-            .into_iter()
-            .enumerate()
-            .map(|(i, name)| {
-                let attr = if i == current {
-                    self.active_attr.clone()
-                } else {
-                    self.inactive_attr.clone()
-                };
-                Text {
-                    attr: attr,
-                    text: name.to_owned(),
-                    stretch: false,
-                }
-            })
-            .collect()
+        Ok(
+            names
+                .into_iter()
+                .enumerate()
+                .map(|(i, name)| {
+                    let attr = if i == current {
+                        self.active_attr.clone()
+                    } else {
+                        self.inactive_attr.clone()
+                    };
+                    Text {
+                        attr: attr,
+                        text: name.to_owned(),
+                        stretch: false,
+                    }
+                })
+                .collect(),
+        )
     }
 }
 

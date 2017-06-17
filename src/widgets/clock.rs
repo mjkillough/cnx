@@ -1,8 +1,9 @@
-use text::{Attributes, Text};
-
 use std::time::Duration;
 
 use chrono::prelude::*;
+
+use errors::*;
+use text::{Attributes, Text};
 
 
 pub struct Clock {
@@ -18,15 +19,15 @@ impl Clock {
         }
     }
 
-    fn tick(&self) -> Vec<Text> {
+    fn tick(&self) -> Result<Vec<Text>> {
         let current_time = Local::now().format("%Y-%m-%d %a %I:%M:%S %p").to_string();
-        vec![
+        Ok(vec![
             Text {
                 attr: self.attr.clone(),
                 text: current_time,
                 stretch: false,
             },
-        ]
+        ])
     }
 }
 

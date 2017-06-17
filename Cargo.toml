@@ -6,6 +6,7 @@ authors = ["Michael Killough <michaeljkillough@gmail.com>"]
 [dependencies]
 alsa = "0.1.8"
 chrono = "0.3.1"
+error-chain = "0.10.0"
 futures = "0.1.14"
 lazy_static = "0.2.8"
 libc = "0.2.23"
@@ -13,7 +14,7 @@ mio = "0.6.9"
 regex = "0.2.2"
 tokio-core = "0.1.8"
 tokio-timer = "0.1.1"
-xcb = "0.7.6"
+xcb = { path = "./xcb", features = ["thread"] }
 
 [dependencies.xcb-util]
 path = "./xcb-util"

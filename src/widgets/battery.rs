@@ -1,10 +1,12 @@
+use std::error;
 use std::f64;
-use std::fmt::Debug;
 use std::fs::File;
 use std::io::Read;
+use std::result;
 use std::str::FromStr;
 use std::time::Duration;
 
+use errors::*;
 use text::{Attributes, Text};
 
 
@@ -16,15 +18,15 @@ enum Status {
 }
 
 impl FromStr for Status {
-    type Err = String;
+    type Err = Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
         match s {
             "Full" => Ok(Status::Full),
             "Charging" => Ok(Status::Charging),
             "Discharging" => Ok(Status::Discharging),
             "Unknown" => Ok(Status::Unknown),
-            _ => Err(format!("Unknown Status: {}", s)),
+            _ => bail!("Unknown Status: {}", s),
         }
     }
 }
@@ -45,28 +47,37 @@ impl Battery {
         }
     }
 
-    fn load_value<T>(&self, file: &str) -> T
+    fn load_value_inner<T>(&self, file: &str) -> Result<T>
     where
         T: FromStr,
-        // XXX Remove once we get rid of unwrap():
-        T::Err: Debug,
+        <T as FromStr>::Err: error::Error + Send + 'static,
     {
         let path = format!("/sys/class/power_supply/{}/{}", self.battery, file);
-        let mut file = File::open(path).unwrap();
+        let mut file = File::open(path)?;
         let mut contents = String::new();
-        file.read_to_string(&mut contents).unwrap();
-        FromStr::from_str(contents.trim()).unwrap()
+        file.read_to_string(&mut contents)?;
+        FromStr::from_str(contents.trim()).chain_err(|| "Failed to parse value")
     }
 
-    fn tick(&self) -> Vec<Text> {
-        let full: f64 = self.load_value("energy_full");
-        let now: f64 = self.load_value("energy_now");
+    fn load_value<T>(&self, file: &str) -> Result<T>
+    where
+        T: FromStr,
+        <T as FromStr>::Err: error::Error + Send + 'static,
+    {
+        self.load_value_inner(file).chain_err(|| {
+            format!("Could not load value from battery status file: {}", file)
+        })
+    }
+
+    fn tick(&self) -> Result<Vec<Text>> {
+        let full: f64 = self.load_value("energy_full")?;
+        let now: f64 = self.load_value("energy_now")?;
         let percentage = (now / full) * 100.0;
 
         // If we're discharging, show time to empty.
         // If we're charging, show time to full.
-        let power: f64 = self.load_value("power_now");
-        let status: Status = self.load_value("status");
+        let power: f64 = self.load_value("power_now")?;
+        let status: Status = self.load_value("status")?;
         let time = match status {
             Status::Discharging => now / power,
             Status::Charging => (full - now) / power,
@@ -83,13 +94,13 @@ impl Battery {
             minutes = minutes
         );
 
-        vec![
+        Ok(vec![
             Text {
                 attr: self.attr.clone(),
                 text: text,
                 stretch: false,
             },
-        ]
+        ])
     }
 }
 

@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use regex::Regex;
 
+use errors::*;
 use text::{Attributes, Text};
 
 
@@ -13,12 +14,12 @@ struct Value<'a> {
     units: &'a str,
 }
 
-fn parse_sensors_output<'a>(output: &'a str) -> HashMap<&'a str, Value<'a>> {
+fn parse_sensors_output<'a>(output: &'a str) -> Result<HashMap<&'a str, Value<'a>>> {
     lazy_static! {
         static ref RE: Regex = Regex::new(
             // Note: we ignore + but capture -
             r"\n(?P<name>[\w ]+):\s+\+?(?P<temp>-?\d+\.\d+).(?P<units>[C|F])"
-        ).unwrap();
+        ).expect("Failed to compile regex for parsing sensors output");
     }
 
     let mut map = HashMap::new();
@@ -33,7 +34,7 @@ fn parse_sensors_output<'a>(output: &'a str) -> HashMap<&'a str, Value<'a>> {
         );
     }
 
-    map
+    Ok(map)
 }
 
 
@@ -52,12 +53,14 @@ impl Sensors {
         }
     }
 
-    fn tick(&self) -> Vec<Text> {
+    fn tick(&self) -> Result<Vec<Text>> {
         let output = Command::new("sensors")
             .output()
-            .expect("Failed to run sensors");
-        let string = String::from_utf8(output.stdout).expect("Invalid UTF-8 in sensors output");
-        let parsed = parse_sensors_output(&string);
+            .chain_err(|| "Failed to run `sensors`")?;
+        let string = String::from_utf8(output.stdout)
+            .chain_err(|| "Invalid UTF-8 in sensors output")?;
+        let parsed = parse_sensors_output(&string)
+            .chain_err(|| "Failed to parse `sensors` output")?;
         self.sensors
             .iter()
             .map(|sensor_name| {
@@ -67,11 +70,11 @@ impl Sensors {
                         format!("{}°{}", temp, units)
                     },
                 );
-                Text {
+                Ok(Text {
                     attr: self.attr.clone(),
                     text: text,
                     stretch: false,
-                }
+                })
             })
             .collect()
     }
@@ -99,7 +102,7 @@ Core 0:        +53.0 C  (high = +105.0 C, crit = +105.0 C)
 Core 1:        +58.0 C  (high = +105.0 C, crit = +105.0 C)
 "#;
 
-        let parsed = parse_sensors_output(output);
+        let parsed = parse_sensors_output(output).unwrap();
         assert_eq!(
             parsed.get("Core 0"),
             Some(&Value {

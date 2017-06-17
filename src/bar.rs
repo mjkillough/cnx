@@ -14,6 +14,7 @@ use tokio_core::reactor::{Handle, PollEvented};
 use xcb;
 use xcb_util::ewmh;
 
+use errors::*;
 use text::{Color, Text};
 use widgets::{WidgetList, Widget};
 
@@ -73,8 +74,9 @@ pub struct Bar {
 }
 
 impl Bar {
-    pub fn new(position: Position) -> Bar {
-        let (conn, screen_idx) = xcb::Connection::connect(None).unwrap();
+    pub fn new(position: Position) -> Result<Bar> {
+        let (conn, screen_idx) = xcb::Connection::connect(None)
+            .chain_err(|| "Failed to connect to X server")?;
         let screen_idx = screen_idx as usize;
         let id = conn.generate_id();
 
@@ -87,7 +89,7 @@ impl Bar {
             let screen = conn.get_setup()
                 .roots()
                 .nth(screen_idx)
-                .expect("invalid screen");
+                .ok_or("Invalid screen")?;
             let values = [
                 (xcb::CW_BACK_PIXEL, screen.black_pixel()),
                 (xcb::CW_EVENT_MASK, xcb::EVENT_MASK_EXPOSURE),
@@ -116,7 +118,9 @@ impl Bar {
             (width, surface)
         };
 
-        let ewmh_conn = ewmh::Connection::connect(conn).map_err(|_| ()).unwrap();
+        let ewmh_conn = ewmh::Connection::connect(conn)
+            .map_err(|(e, _)| e)
+            .chain_err(|| "Failed to wrap xcb::Connection in ewmh::Connection")?;
 
         let bar = Bar {
             conn: Rc::new(ewmh_conn),
@@ -135,7 +139,7 @@ impl Bar {
         // it is like with Lanta!
         // bar.map_window();
         bar.flush();
-        bar
+        Ok(bar)
     }
 
     fn flush(&self) {
@@ -175,15 +179,15 @@ impl Bar {
         ewmh::set_wm_strut_partial(&self.conn, self.window_id, strut_partial);
     }
 
-    fn screen(&self) -> xcb::Screen {
+    fn screen(&self) -> Result<xcb::Screen> {
         self.conn
             .get_setup()
             .roots()
             .nth(self.screen_idx)
-            .expect("Invalid screen")
+            .ok_or_else(|| "Invalid screen".into())
     }
 
-    fn update_bar_height(&mut self, height: u16) {
+    fn update_bar_height(&mut self, height: u16) -> Result<()> {
         if self.height != height {
             self.height = height;
 
@@ -191,7 +195,7 @@ impl Bar {
             // position of the window.
             let y = match self.position {
                 Position::Top => 0,
-                Position::Bottom => self.screen().height_in_pixels() - self.height,
+                Position::Bottom => self.screen()?.height_in_pixels() - self.height,
             };
 
             // Update the height/position of the XCB window and the height of the Cairo surface.
@@ -200,15 +204,15 @@ impl Bar {
                 (xcb::CONFIG_WINDOW_HEIGHT as u16, self.height as u32),
                 (xcb::CONFIG_WINDOW_STACK_MODE as u16, xcb::STACK_MODE_ABOVE),
             ];
-            xcb::configure_window(&self.conn, self.window_id, &values)
-                .request_check()
-                .unwrap();
+            xcb::configure_window(&self.conn, self.window_id, &values);
             self.map_window();
             self.surface.set_size(self.width as i32, self.height as i32);
 
             // Update EWMH properties - we might need to reserve more or less space.
             self.set_ewmh_properties();
         }
+
+        Ok(())
     }
 
     fn update_contents(&mut self, new_contents: Vec<Option<Vec<Text>>>) {
@@ -219,7 +223,7 @@ impl Bar {
         }
     }
 
-    fn render_text_blocks(&mut self, texts: Vec<Text>) {
+    fn render_text_blocks(&mut self, texts: Vec<Text>) -> Result<()> {
         // Calculate the width/height of each text block.
         let geometries: Vec<_> = texts
             .iter()
@@ -231,6 +235,9 @@ impl Bar {
         // stretch blocks. If there isn't enough space for the non-stretch blocks
         // do nothing and allow it to overflow.
         // While we're at it, we also calculate how
+        let screen_width = self.screen()
+            .chain_err(|| "Could not get screen width")?
+            .width_in_pixels() as f64;
         let width_per_stretched = {
             let (stretched, non_stretched): (Vec<_>, Vec<_>) = texts
                 .iter()
@@ -243,7 +250,7 @@ impl Bar {
                 } else {
                     acc + width
                 });
-            let remaining_width = (self.screen().width_in_pixels() as f64 - width).max(0.0);
+            let remaining_width = (screen_width - width).max(0.0);
             remaining_width / (stretched.len() as f64)
         };
 
@@ -253,7 +260,11 @@ impl Bar {
             f64::NEG_INFINITY,
             |acc, (_, h)| h.max(acc),
         );
-        self.update_bar_height(height as u16);
+        if let Err(_) = self.update_bar_height(height as u16) {
+            // Log and continue - the bar is hopefully still useful.
+            // TODO: Add log dependency.
+            // error!("Failed to update bar height to {}: {}", height, e);
+        }
 
         // Render each Text in turn. If it's a stretch block, override its width
         // with the width we've just computed. Regardless of whether it's a stretch
@@ -268,9 +279,11 @@ impl Bar {
             let (actual_width, _) = text.render(&self.surface, x, 0.0, width, Some(height));
             x += actual_width;
         }
+
+        Ok(())
     }
 
-    fn expose(&mut self) {
+    fn expose(&mut self) -> Result<()> {
         // Clear to black before re-painting.
         let context = Context::new(&self.surface);
         Color::black().apply_to_context(&context);
@@ -278,19 +291,21 @@ impl Bar {
 
         let flattened_contents = self.contents.clone().into_iter().flat_map(|v| v).collect();
 
-        self.render_text_blocks(flattened_contents);
+        self.render_text_blocks(flattened_contents)?;
         self.conn.flush();
+
+        Ok(())
     }
 
     pub fn run_event_loop(
         mut self,
         handle: &Handle,
         widgets: Vec<Box<Widget>>,
-    ) -> Box<Future<Item = (), Error = ()>> {
+    ) -> Result<Box<Future<Item = (), Error = Error>>> {
         self.contents = vec![Vec::new(); widgets.len()];
 
-        let events_stream = XcbEventStream::new(self.conn.clone(), handle);
-        let widget_updates_stream = WidgetList::new(widgets);
+        let events_stream = XcbEventStream::new(self.conn.clone(), handle)?;
+        let widget_updates_stream = WidgetList::new(widgets)?;
 
         let event_loop = events_stream.merge(widget_updates_stream);
         let fut = event_loop.for_each(move |item| {
@@ -300,20 +315,26 @@ impl Bar {
                 MergedItem::Both(e, u) => (Some(e), Some(u)),
             };
 
+            let mut need_expose = false;
             if let Some(update) = widget_update {
                 self.update_contents(update);
-                self.expose();
+                need_expose = true;
             }
             if let Some(event) = xcb_event {
                 if let xcb::EXPOSE = event.response_type() & !0x80 {
-                    self.expose()
+                    need_expose = true;
+                }
+            }
+            if need_expose {
+                if let Err(e) = self.expose() {
+                    return future::err(e);
                 }
             }
 
             future::ok(())
         });
 
-        Box::new(fut)
+        Ok(Box::new(fut))
     }
 }
 
@@ -361,19 +382,19 @@ pub struct XcbEventStream {
 }
 
 impl XcbEventStream {
-    pub fn new(conn: Rc<ewmh::Connection>, handle: &Handle) -> XcbEventStream {
+    pub fn new(conn: Rc<ewmh::Connection>, handle: &Handle) -> Result<XcbEventStream> {
         let evented = XcbEvented(conn.clone());
-        XcbEventStream {
+        Ok(XcbEventStream {
             conn,
-            poll: PollEvented::new(evented, handle).unwrap(),
+            poll: PollEvented::new(evented, handle)?,
             would_block: true,
-        }
+        })
     }
 }
 
 impl Stream for XcbEventStream {
     type Item = xcb::GenericEvent;
-    type Error = ();
+    type Error = Error;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         if self.would_block {

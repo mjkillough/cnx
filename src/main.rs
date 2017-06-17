@@ -2,6 +2,8 @@ extern crate alsa;
 extern crate cairo_sys;
 extern crate cairo;
 extern crate chrono;
+#[macro_use]
+extern crate error_chain;
 extern crate futures;
 #[macro_use]
 extern crate lazy_static;
@@ -16,6 +18,8 @@ extern crate xcb;
 
 use tokio_core::reactor::Core;
 
+mod errors;
+use errors::*;
 mod text;
 use text::*;
 mod widgets;
@@ -24,10 +28,8 @@ mod bar;
 use bar::*;
 
 
-fn main() {
-    let w = Bar::new(Position::Bottom);
-
-    let mut core = Core::new().unwrap();
+fn run() -> Result<()> {
+    let mut core = Core::new().chain_err(|| "Could not create Tokio Core")?;
     let handle = core.handle();
 
     let inactive_attr = Attributes {
@@ -57,5 +59,10 @@ fn main() {
             Box::new(Clock::new(inactive_attr.clone())) as Box<Widget>,
         ];
 
-    core.run(w.run_event_loop(&handle, widgets)).unwrap();
+    let bar = Bar::new(Position::Top)?;
+    core.run(bar.run_event_loop(&handle, widgets)?)?;
+
+    Ok(())
 }
+
+quick_main!(run);
