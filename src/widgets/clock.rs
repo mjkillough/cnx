@@ -20,7 +20,7 @@ impl Clock {
     }
 
     fn tick(&self) -> Result<Vec<Text>> {
-        let current_time = Local::now().format("%Y-%m-%d %a %I:%M:%S %p").to_string();
+        let current_time = Local::now().format("%Y-%m-%d %a %I:%M %p").to_string();
         Ok(vec![
             Text {
                 attr: self.attr.clone(),
