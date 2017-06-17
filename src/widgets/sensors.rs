@@ -45,11 +45,11 @@ pub struct Sensors {
 }
 
 impl Sensors {
-    pub fn new(attr: Attributes, sensors: Vec<String>) -> Sensors {
+    pub fn new<S: Into<String>>(attr: Attributes, sensors: Vec<S>) -> Sensors {
         Sensors {
             update_interval: Duration::from_secs(60),
             attr,
-            sensors,
+            sensors: sensors.into_iter().map(Into::into).collect(),
         }
     }
 

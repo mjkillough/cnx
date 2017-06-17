@@ -40,7 +40,7 @@ fn run() -> Result<()> {
     };
     let active_attr = inactive_attr.with_bg_color(Some(Color::blue()));
 
-    let sensors = vec!["Core 0".to_owned(), "Core 1".to_owned()];
+    let sensors = vec!["Core 0", "Core 1"];
 
     let widgets: Vec<Box<Widget>> =
         vec![
