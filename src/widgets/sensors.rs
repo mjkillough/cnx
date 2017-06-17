@@ -14,7 +14,7 @@ struct Value<'a> {
     units: &'a str,
 }
 
-fn parse_sensors_output<'a>(output: &'a str) -> Result<HashMap<&'a str, Value<'a>>> {
+fn parse_sensors_output(output: &str) -> Result<HashMap<&str, Value>> {
     lazy_static! {
         static ref RE: Regex = Regex::new(
             // Note: we ignore + but capture -
@@ -64,7 +64,7 @@ impl Sensors {
         self.sensors
             .iter()
             .map(|sensor_name| {
-                let text = parsed.get::<str>(&sensor_name).map_or(
+                let text = parsed.get::<str>(sensor_name).map_or(
                     "?".to_owned(),
                     |&Value { temp, units }| {
                         format!("{}°{}", temp, units)
