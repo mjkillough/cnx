@@ -48,11 +48,11 @@ impl Hue {
         })
     }
 
-    pub fn handle(&self) -> Handle {
+    fn handle(&self) -> Handle {
         self.core.handle()
     }
 
-    pub fn timer(&self) -> Rc<Timer> {
+    fn timer(&self) -> Rc<Timer> {
         self.timer.clone()
     }
 
