@@ -1,7 +1,7 @@
 use std::fmt;
 
 use cairo::{Context, Surface};
-use pango::{self, EllipsizeMode, FontDescription, Layout, LayoutExt};
+use pango::{self, EllipsizeMode, FontDescription, LayoutExt};
 use pangocairo::CairoContextExt;
 
 

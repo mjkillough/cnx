@@ -5,7 +5,7 @@ use std::os::unix::io::RawFd;
 use std::rc::Rc;
 
 use cairo_sys;
-use cairo::{self, Context, XCBSurface};
+use cairo::{self, XCBSurface};
 use futures::{future, Async, Future, Poll, Stream};
 use futures::stream::MergedItem;
 use mio::{self, PollOpt, Ready, Token};
@@ -16,7 +16,7 @@ use xcb;
 use xcb_util::ewmh;
 
 use errors::*;
-use text::{Color, Text, ComputedText};
+use text::{Text, ComputedText};
 use widgets::{WidgetList, Widget};
 
 
