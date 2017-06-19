@@ -65,25 +65,19 @@ impl Font {
     }
 }
 
+impl fmt::Debug for Font {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
-#[derive(Clone, PartialEq)]
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct Attributes {
     pub font: Font,
     pub fg_color: Color,
     pub bg_color: Option<Color>,
     pub padding: Padding,
-}
-
-impl fmt::Debug for Attributes {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Attributes {{ font: ?, fg_color: {:?}, bg_color: {:?}, padding {:?} }}",
-            self.fg_color,
-            self.bg_color,
-            self.padding
-        )
-    }
 }
 
 
