@@ -17,10 +17,7 @@ pub struct Clock {
 
 impl Clock {
     pub fn new(timer: Rc<Timer>, attr: Attributes) -> Clock {
-        Clock {
-            timer,
-            attr,
-        }
+        Clock { timer, attr }
     }
 }
 

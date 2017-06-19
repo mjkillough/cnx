@@ -340,12 +340,10 @@ impl Bar {
 
         // Get the height of the biggest Text and set the bar to be that big.
         // TODO: Update all the Layouts so they all render that big too?
-        let height = self.contents.iter().flat_map(|v| v).fold(
-            f64::NEG_INFINITY,
-            |acc, text| {
-                text.height.max(acc)
-            },
-        );
+        let height = self.contents
+            .iter()
+            .flat_map(|v| v)
+            .fold(f64::NEG_INFINITY, |acc, text| text.height.max(acc));
         if let Err(_) = self.update_bar_height(height as u16) {
             // Log and continue - the bar is hopefully still useful.
             // TODO: Add log dependency.

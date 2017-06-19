@@ -62,7 +62,7 @@ fn run() -> Result<()> {
             Box::new(Clock::new(timer.clone(), inactive_attr.clone())) as Box<Widget>,
         ];
 
-    let bar = Bar::new(Position::Top)?;
+    let bar = Bar::new(Position::Bottom)?;
     core.run(bar.run_event_loop(&handle, widgets)?)?;
 
     Ok(())
