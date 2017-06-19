@@ -1,5 +1,6 @@
 use std::f64;
 use std::io;
+use std::mem;
 use std::os::unix::io::RawFd;
 use std::rc::Rc;
 
@@ -15,7 +16,7 @@ use xcb;
 use xcb_util::ewmh;
 
 use errors::*;
-use text::{Color, Text};
+use text::{Color, Text, ComputedText};
 use widgets::{WidgetList, Widget};
 
 
@@ -70,7 +71,7 @@ pub struct Bar {
     width: u16,
     height: u16,
     position: Position,
-    contents: Vec<Vec<Text>>,
+    contents: Vec<Vec<ComputedText>>,
 }
 
 impl Bar {
@@ -215,20 +216,107 @@ impl Bar {
         Ok(())
     }
 
-    fn update_contents(&mut self, new_contents: Vec<Option<Vec<Text>>>) {
-        for (i, opt) in new_contents.into_iter().enumerate() {
-            if let Some(new) = opt {
-                self.contents[i] = new;
+    fn update_widget_contents(&mut self, new_contents: Vec<Option<Vec<Text>>>) -> bool {
+        // For each widget's texts:
+        //  - If they're equal to the previous texts we had for it, do nothing.
+        //  - If there are new texts or any non-stretch texts changed size, redraw
+        //    the entire bar.
+        //  - Otherwise, draw the texts that have changed since last time.
+        let mut redraw_entire_bar = false;
+
+        // Borrow these here, as otherwise our closures will try to borrow
+        // self as both immutable/mutable.
+        let surface = &self.surface;
+        let mut contents = &mut self.contents;
+
+        // We match up the new Vec<Text> for each widget with the Vec<> we
+        // already had from the last time we rendered it. We filter out any
+        // that haven't changed using the call to filter_map(). For each widget
+        // which has given us an update, we then call .compute() on each of its
+        // texts to lay it out and allow us to figure out if its width/height
+        // has changed in our loop.
+        let it = new_contents
+            .into_iter()
+            .zip(contents.iter_mut())
+            // We get a stream of updates from each widget, but not every
+            // widget will have given us an update. Filter out those which are
+            // None (no update).
+            .filter_map(|(opt, old)| opt.map(|new| (new, old)))
+            // Even if we have actually received an update, it may be identical
+            // to the text it gave previously. (If that's the case, we can
+            // avoid even calling .compute()).
+            .filter(|&(ref new, ref old)| {
+                let length_different = new.len() != old.len();
+                let all_same = !length_different &&
+                    new
+                        .iter()
+                        .zip(old.iter())
+                        .all(|(n, o)| n == o);
+                !all_same
+            })
+            // We finally have a list of the texts which have actually changed.
+            // Call .compute() on each of the new texts so that we can get
+            // layout information.
+            .map(|(new, old)| {
+                (
+                    new.into_iter()
+                        .map(|text| text.compute(surface))
+                        .collect::<Vec<_>>(),
+                    old,
+                )
+            });
+
+        for (mut new_texts, old_texts) in it {
+            // Redraw the entire bar if any of widget's non-stretch texts
+            // have changed size, or if the number of texts for this widget
+            // has changed. (Both of these would affect the size of other
+            // stretch texts). Redraw the entire bar if any texts change
+            // height. (It would be better to do this only if this changes
+            // the height of the bar).
+            let length_different = new_texts.len() != old_texts.len();
+            redraw_entire_bar = redraw_entire_bar || length_different ||
+                new_texts.iter().zip(old_texts.iter()).any(|(new, old)| {
+                    (!new.stretch && !old.stretch && new.width != old.width) ||
+                        old.height != new.height
+                });
+
+            // Where possible, re-use the position of the widget's previous
+            // texts. (If we re-draw the entire bar, it'll get updated anyway).
+            // For stretch widgets, use the old width/height as well.
+            for (new, old) in new_texts.iter_mut().zip(old_texts.iter()) {
+                new.x = old.x;
+                new.y = old.y;
+                if !redraw_entire_bar && new.stretch {
+                    new.width = old.width;
+                    new.height = old.height;
+                }
             }
+
+            // If we're not redrawing the entire bar, then render this widget.
+            // (It would actually be better if we could delay this render until
+            // after we've processes all the other widgets, in case any of them
+            // need to redraw the entire bar. However, that's more effort than
+            // it's worth!)
+            if !redraw_entire_bar {
+                let changed = new_texts
+                    .iter()
+                    .zip(old_texts.iter())
+                    .filter(|&(n, o)| n != o)
+                    .map(|(n, _)| n);
+                for text in changed {
+                    println!("Redrawing one");
+                    text.render(surface);
+                }
+            }
+
+            mem::swap(&mut new_texts, old_texts);
         }
+
+        redraw_entire_bar
     }
 
-    fn render_text_blocks(&mut self, texts: Vec<Text>) -> Result<()> {
-        // Calculate the width/height of each text block.
-        let geometries: Vec<_> = texts
-            .iter()
-            .map(|t| t.compute_width_and_height(&self.surface))
-            .collect();
+    fn redraw_entire_bar(&mut self) -> Result<()> {
+        println!("Redraw entire bar");
 
         // Calculate how much free space we have after laying out all the
         // non-stretch blocks. Split the remaining space (if any) between the
@@ -239,26 +327,24 @@ impl Bar {
             .chain_err(|| "Could not get screen width")?
             .width_in_pixels() as f64;
         let width_per_stretched = {
-            let (stretched, non_stretched): (Vec<_>, Vec<_>) = texts
-                .iter()
-                .zip(geometries.clone())
-                .partition(|&(t, _)| t.stretch);
-            let width = non_stretched
-                .iter()
-                .fold(0.0, |acc, &(text, (width, _))| if text.stretch {
-                    0.0
-                } else {
-                    acc + width
-                });
+            let texts = self.contents.iter().flat_map(|v| v);
+            let (stretched, non_stretched): (Vec<_>, Vec<_>) = texts.partition(|text| text.stretch);
+            let width = non_stretched.iter().fold(0.0, |acc, text| if text.stretch {
+                0.0
+            } else {
+                acc + text.width
+            });
             let remaining_width = (screen_width - width).max(0.0);
             remaining_width / (stretched.len() as f64)
         };
 
         // Get the height of the biggest Text and set the bar to be that big.
         // TODO: Update all the Layouts so they all render that big too?
-        let height = geometries.iter().cloned().fold(
+        let height = self.contents.iter().flat_map(|v| v).fold(
             f64::NEG_INFINITY,
-            |acc, (_, h)| h.max(acc),
+            |acc, text| {
+                text.height.max(acc)
+            },
         );
         if let Err(_) = self.update_bar_height(height as u16) {
             // Log and continue - the bar is hopefully still useful.
@@ -269,30 +355,17 @@ impl Bar {
         // Render each Text in turn. If it's a stretch block, override its width
         // with the width we've just computed. Regardless of whether it's a stretch
         // block, override its height - everything should be as big as the biggest item.
+        let texts = self.contents.iter_mut().flat_map(|v| v);
         let mut x = 0.0;
-        for text in &texts {
-            let width = if text.stretch {
-                Some(width_per_stretched)
-            } else {
-                None
-            };
-            let (actual_width, _) = text.render(&self.surface, x, 0.0, width, Some(height));
-            x += actual_width;
+        for text in texts {
+            if text.stretch {
+                text.width = width_per_stretched;
+            }
+            text.x = x;
+            text.y = 0.0;
+            text.render(&self.surface);
+            x += text.width;
         }
-
-        Ok(())
-    }
-
-    fn expose(&mut self) -> Result<()> {
-        // Clear to black before re-painting.
-        let context = Context::new(&self.surface);
-        Color::black().apply_to_context(&context);
-        context.paint();
-
-        let flattened_contents = self.contents.clone().into_iter().flat_map(|v| v).collect();
-
-        self.render_text_blocks(flattened_contents)?;
-        self.conn.flush();
 
         Ok(())
     }
@@ -315,21 +388,21 @@ impl Bar {
                 MergedItem::Both(e, u) => (Some(e), Some(u)),
             };
 
-            let mut need_expose = false;
+            let mut redraw_entire_bar = false;
             if let Some(update) = widget_update {
-                self.update_contents(update);
-                need_expose = true;
+                redraw_entire_bar = self.update_widget_contents(update);
             }
             if let Some(event) = xcb_event {
                 if let xcb::EXPOSE = event.response_type() & !0x80 {
-                    need_expose = true;
+                    redraw_entire_bar = true;
                 }
             }
-            if need_expose {
-                if let Err(e) = self.expose() {
+            if redraw_entire_bar {
+                if let Err(e) = self.redraw_entire_bar() {
                     return future::err(e);
                 }
             }
+            self.conn.flush();
 
             future::ok(())
         });

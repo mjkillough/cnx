@@ -1,9 +1,11 @@
+use std::fmt;
+
 use cairo::{Context, Surface};
 use pango::{self, EllipsizeMode, FontDescription, Layout, LayoutExt};
 use pangocairo::CairoContextExt;
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Color {
     red: f64,
     green: f64,
@@ -34,7 +36,7 @@ impl Color {
 }
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Padding {
     left: f64,
     right: f64,
@@ -54,7 +56,7 @@ impl Padding {
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Attributes {
     pub font: FontDescription,
     pub fg_color: Color,
@@ -92,8 +94,20 @@ impl Attributes {
     }
 }
 
+impl fmt::Debug for Attributes {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Attributes {{ font: ?, fg_color: {:?}, bg_color: {:?}, padding {:?} }}",
+            self.fg_color,
+            self.bg_color,
+            self.padding
+        )
+    }
+}
 
-#[derive(Clone)]
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct Text {
     pub attr: Attributes,
     pub text: String,
@@ -101,68 +115,81 @@ pub struct Text {
 }
 
 impl Text {
-    fn create_contexts(&self, surface: &Surface) -> (Context, Layout) {
-        let context = Context::new(&surface);
+    pub fn compute(self, surface: &Surface) -> ComputedText {
+        let (width, height) = {
+            let context = Context::new(&surface);
+            let layout = context.create_pango_layout();
+            layout.set_text(&self.text, self.text.len() as i32);
+            layout.set_font_description(Some(&self.attr.font));
 
+            let padding = &self.attr.padding;
+            let (text_width, text_height) = layout.get_pixel_size();
+            let width = text_width as f64 + padding.left + padding.right;
+            let height = text_height as f64 + padding.top + padding.bottom;
+            (width, height)
+        };
+
+        ComputedText {
+            attr: self.attr,
+            text: self.text,
+            stretch: self.stretch,
+            x: 0.0,
+            y: 0.0,
+            width,
+            height,
+        }
+    }
+}
+
+// This impl allows us to see whether a widget's text has changed without
+// having to call the (relatively) expensive .compute().
+impl PartialEq<ComputedText> for Text {
+    fn eq(&self, other: &ComputedText) -> bool {
+        self.attr == other.attr && self.text == other.text && self.stretch == other.stretch
+    }
+}
+
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct ComputedText {
+    pub attr: Attributes,
+    pub text: String,
+    pub stretch: bool,
+
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+}
+
+impl ComputedText {
+    pub fn render(&self, surface: &Surface) {
+        let context = Context::new(&surface);
         let layout = context.create_pango_layout();
         layout.set_text(&self.text, self.text.len() as i32);
         layout.set_font_description(Some(&self.attr.font));
 
-        (context, layout)
-    }
-
-    fn width_and_height_for_layout(&self, layout: &Layout) -> (f64, f64) {
-        let padding = &self.attr.padding;
-        let (text_width, text_height) = layout.get_pixel_size();
-        let width = text_width as f64 + padding.left + padding.right;
-        let height = text_height as f64 + padding.top + padding.bottom;
-        (width, height)
-    }
-
-    pub fn compute_width_and_height(&self, surface: &Surface) -> (f64, f64) {
-        let (_, layout) = self.create_contexts(surface);
-        self.width_and_height_for_layout(&layout)
-    }
-
-    pub fn render(
-        &self,
-        surface: &Surface,
-        x: f64,
-        y: f64,
-        width: Option<f64>,
-        height: Option<f64>,
-    ) -> (f64, f64) {
-        let (context, layout) = self.create_contexts(surface);
-        context.translate(x, y);
-
-        // The `width`/`height` parameters allow the caller to override how big we'll draw
-        // this block of text. If they are not specified, then we'll default to whatever
-        // width/height the text actually takes.
-        let (layout_width, layout_height) = self.width_and_height_for_layout(&layout);
-        let width = width.unwrap_or(layout_width);
-        let height = height.unwrap_or(layout_height);
+        context.translate(self.x, self.y);
 
         // Set the width/height on the Pango layout so that it word-wraps/ellipises.
-        let text_width = width - self.attr.padding.left - self.attr.padding.right;
-        let text_height = height - self.attr.padding.top - self.attr.padding.bottom;
+        let padding = &self.attr.padding;
+        let text_width = self.width - padding.left - padding.right;
+        let text_height = self.height - padding.top - padding.bottom;
         layout.set_ellipsize(EllipsizeMode::End);
         layout.set_width(text_width as i32 * pango::SCALE);
         layout.set_height(text_height as i32 * pango::SCALE);
 
-        if let Some(ref bg_color) = self.attr.bg_color {
-            bg_color.apply_to_context(&context);
-            // FIXME: The use of `height` isnt' right here: we want to do the
-            // full height of the bar, not the full height of the text. It
-            // would be useful if we could do Surface.get_height(), but that
-            // doesn't seem to be available in cairo-rs for some reason?
-            context.rectangle(0.0, 0.0, width, height);
-            context.fill();
-        }
+        let bg_color = &self.attr.bg_color.clone().unwrap_or_else(|| Color::black());
+        bg_color.apply_to_context(&context);
+        // FIXME: The use of `height` isnt' right here: we want to do the
+        // full height of the bar, not the full height of the text. It
+        // would be useful if we could do Surface.get_height(), but that
+        // doesn't seem to be available in cairo-rs for some reason?
+        context.rectangle(0.0, 0.0, self.width, self.height);
+        context.fill();
 
         self.attr.fg_color.apply_to_context(&context);
-        context.translate(self.attr.padding.left, self.attr.padding.top);
+        context.translate(padding.left, padding.top);
         context.show_pango_layout(&layout);
-
-        (width, height)
     }
 }
