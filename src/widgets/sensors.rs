@@ -6,6 +6,7 @@ use std::time::Duration;
 use regex::Regex;
 use tokio_timer::Timer;
 
+use Hue;
 use errors::*;
 use text::{Attributes, Text};
 
@@ -48,9 +49,9 @@ pub struct Sensors {
 }
 
 impl Sensors {
-    pub fn new<S: Into<String>>(timer: Rc<Timer>, attr: Attributes, sensors: Vec<S>) -> Sensors {
+    pub fn new<S: Into<String>>(hue: &Hue, attr: Attributes, sensors: Vec<S>) -> Sensors {
         Sensors {
-            timer,
+            timer: hue.timer(),
             update_interval: Duration::from_secs(60),
             attr,
             sensors: sensors.into_iter().map(Into::into).collect(),

@@ -31,7 +31,7 @@ mod bar;
 use bar::*;
 
 
-struct Hue {
+pub struct Hue {
     core: Core,
     timer: Rc<Timer>,
     bar: Bar,
@@ -56,13 +56,17 @@ impl Hue {
         self.timer.clone()
     }
 
-    pub fn add_widget<W>(&mut self, widget: W) where W: Widget + 'static {
+    pub fn add_widget<W>(&mut self, widget: W)
+    where
+        W: Widget + 'static,
+    {
         self.widgets.push(Box::new(widget) as Box<Widget>);
     }
 
     pub fn run(mut self) -> Result<()> {
         let handle = self.handle();
-        self.core.run(self.bar.run_event_loop(&handle, self.widgets)?)
+        self.core
+            .run(self.bar.run_event_loop(&handle, self.widgets)?)
     }
 }
 
@@ -78,7 +82,7 @@ fn run() -> Result<()> {
 
     let mut hue = Hue::new(Position::Bottom)?;
 
-    // Yucky macro to get around the fact that hue.add_widget(... hue.handle())
+    // Yucky macro to get around the fact that hue.add_widget(... &hue)
     // complains about the second immutable borrow. We should be able to get
     // rid of this if we implement a clever builder pattern for widgets which
     // Hue can use.
@@ -88,12 +92,15 @@ fn run() -> Result<()> {
             $hue.add_widget(widget);
         }
     }
-    add_widget!(hue, Pager::new(hue.handle(), active_attr, attr.clone()));
-    add_widget!(hue, ActiveWindowTitle::new(hue.handle(), attr.clone()));
-    add_widget!(hue, Sensors::new(hue.timer(), attr.clone(), vec!["Core 0", "Core 1"]));
-    add_widget!(hue, Volume::new(hue.handle(), attr.clone()));
-    add_widget!(hue, Battery::new(hue.timer(), attr.clone()));
-    add_widget!(hue, Clock::new(hue.timer(), attr.clone()));
+    add_widget!(hue, Pager::new(&hue, active_attr, attr.clone()));
+    add_widget!(hue, ActiveWindowTitle::new(&hue, attr.clone()));
+    add_widget!(
+        hue,
+        Sensors::new(&hue, attr.clone(), vec!["Core 0", "Core 1"])
+    );
+    add_widget!(hue, Volume::new(&hue, attr.clone()));
+    add_widget!(hue, Battery::new(&hue, attr.clone()));
+    add_widget!(hue, Clock::new(&hue, attr.clone()));
 
     hue.run()
 }

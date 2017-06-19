@@ -5,6 +5,7 @@ use chrono::prelude::*;
 use futures::{stream, Future, Stream};
 use tokio_timer::Timer;
 
+use Hue;
 use errors::*;
 use text::{Attributes, Text};
 use super::{Widget, WidgetStream};
@@ -16,8 +17,11 @@ pub struct Clock {
 }
 
 impl Clock {
-    pub fn new(timer: Rc<Timer>, attr: Attributes) -> Clock {
-        Clock { timer, attr }
+    pub fn new(hue: &Hue, attr: Attributes) -> Clock {
+        Clock {
+            timer: hue.timer(),
+            attr,
+        }
     }
 }
 

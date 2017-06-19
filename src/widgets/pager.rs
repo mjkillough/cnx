@@ -1,6 +1,7 @@
 use tokio_core::reactor::Handle;
 use xcb_util::ewmh;
 
+use Hue;
 use errors::*;
 use text::{Attributes, Text};
 
@@ -12,9 +13,9 @@ pub struct Pager {
 }
 
 impl Pager {
-    pub fn new(tokio_handle: Handle, active_attr: Attributes, inactive_attr: Attributes) -> Pager {
+    pub fn new(hue: &Hue, active_attr: Attributes, inactive_attr: Attributes) -> Pager {
         Pager {
-            tokio_handle,
+            tokio_handle: hue.handle(),
             active_attr,
             inactive_attr,
         }

@@ -2,6 +2,7 @@ use tokio_core::reactor::Handle;
 use xcb;
 use xcb_util::ewmh;
 
+use Hue;
 use errors::*;
 use text::{Attributes, Text};
 
@@ -12,8 +13,11 @@ pub struct ActiveWindowTitle {
 }
 
 impl ActiveWindowTitle {
-    pub fn new(tokio_handle: Handle, attr: Attributes) -> ActiveWindowTitle {
-        ActiveWindowTitle { tokio_handle, attr }
+    pub fn new(hue: &Hue, attr: Attributes) -> ActiveWindowTitle {
+        ActiveWindowTitle {
+            tokio_handle: hue.handle(),
+            attr,
+        }
     }
 
     fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Result<Vec<Text>> {
