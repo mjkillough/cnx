@@ -74,29 +74,6 @@ pub struct Attributes {
     pub padding: Padding,
 }
 
-impl Attributes {
-    #[allow(dead_code)]
-    pub fn with_fg_color(&self, fg_color: Color) -> Attributes {
-        let mut new = self.clone();
-        new.fg_color = fg_color;
-        new
-    }
-
-    #[allow(dead_code)]
-    pub fn with_bg_color(&self, bg_color: Option<Color>) -> Attributes {
-        let mut new = self.clone();
-        new.bg_color = bg_color;
-        new
-    }
-
-    #[allow(dead_code)]
-    pub fn with_padding(&self, padding: Padding) -> Attributes {
-        let mut new = self.clone();
-        new.padding = padding;
-        new
-    }
-}
-
 impl fmt::Debug for Attributes {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(

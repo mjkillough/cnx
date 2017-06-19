@@ -14,7 +14,8 @@ fn run() -> Result<()> {
         bg_color: None,
         padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     };
-    let active_attr = attr.with_bg_color(Some(Color::blue()));
+    let mut active_attr = attr.clone();
+    active_attr.bg_color = Some(Color::blue());
 
     let mut hue = Hue::new(Position::Bottom)?;
 
