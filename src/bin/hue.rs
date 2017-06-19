@@ -2,7 +2,6 @@
 extern crate error_chain;
 #[macro_use]
 extern crate hue;
-extern crate pango;
 
 use hue::*;
 use hue::widgets::*;
@@ -10,7 +9,7 @@ use hue::widgets::*;
 
 fn run() -> Result<()> {
     let attr = Attributes {
-        font: pango::FontDescription::from_string("SourceCodePro 21"),
+        font: Font::new("SourceCodePro 21"),
         fg_color: Color::white(),
         bg_color: None,
         padding: Padding::new(8.0, 8.0, 0.0, 0.0),

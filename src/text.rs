@@ -57,21 +57,24 @@ impl Padding {
 
 
 #[derive(Clone, PartialEq)]
+pub struct Font(FontDescription);
+
+impl Font {
+    pub fn new(name: &str) -> Font {
+        Font(FontDescription::from_string(name))
+    }
+}
+
+
+#[derive(Clone, PartialEq)]
 pub struct Attributes {
-    pub font: FontDescription,
+    pub font: Font,
     pub fg_color: Color,
     pub bg_color: Option<Color>,
     pub padding: Padding,
 }
 
 impl Attributes {
-    #[allow(dead_code)]
-    pub fn with_font(&self, font: FontDescription) -> Attributes {
-        let mut new = self.clone();
-        new.font = font;
-        new
-    }
-
     #[allow(dead_code)]
     pub fn with_fg_color(&self, fg_color: Color) -> Attributes {
         let mut new = self.clone();
@@ -120,7 +123,7 @@ impl Text {
             let context = Context::new(&surface);
             let layout = context.create_pango_layout();
             layout.set_text(&self.text, self.text.len() as i32);
-            layout.set_font_description(Some(&self.attr.font));
+            layout.set_font_description(Some(&self.attr.font.0));
 
             let padding = &self.attr.padding;
             let (text_width, text_height) = layout.get_pixel_size();
@@ -167,7 +170,7 @@ impl ComputedText {
         let context = Context::new(&surface);
         let layout = context.create_pango_layout();
         layout.set_text(&self.text, self.text.len() as i32);
-        layout.set_font_description(Some(&self.attr.font));
+        layout.set_font_description(Some(&self.attr.font.0));
 
         context.translate(self.x, self.y);
 
