@@ -21,14 +21,17 @@ use std::rc::Rc;
 use tokio_core::reactor::{Core, Handle};
 use tokio_timer::Timer;
 
-mod errors;
-use errors::*;
-mod text;
-use text::*;
-mod widgets;
-use widgets::*;
-mod bar;
-use bar::*;
+pub mod errors;
+pub mod text;
+pub mod widgets;
+pub mod bar;
+
+pub use bar::Position;
+pub use errors::*;
+pub use text::*;
+
+use bar::Bar;
+use widgets::Widget;
 
 
 pub struct Hue {
@@ -71,38 +74,11 @@ impl Hue {
 }
 
 
-fn run() -> Result<()> {
-    let attr = Attributes {
-        font: pango::FontDescription::from_string("SourceCodePro 21"),
-        fg_color: Color::white(),
-        bg_color: None,
-        padding: Padding::new(8.0, 8.0, 0.0, 0.0),
-    };
-    let active_attr = attr.with_bg_color(Some(Color::blue()));
-
-    let mut hue = Hue::new(Position::Bottom)?;
-
-    // Yucky macro to get around the fact that hue.add_widget(... &hue)
-    // complains about the second immutable borrow. We should be able to get
-    // rid of this if we implement a clever builder pattern for widgets which
-    // Hue can use.
-    macro_rules! add_widget {
-        ($hue:ident, $widget:expr) => {
-            let widget = $widget;
-            $hue.add_widget(widget);
-        }
+/// Convenience macro to get around lexical lifetime issue.
+#[macro_export]
+macro_rules! hue_add_widget {
+    ($hue:ident, $widget:expr) => {
+        let widget = $widget;
+        $hue.add_widget(widget);
     }
-    add_widget!(hue, Pager::new(&hue, active_attr, attr.clone()));
-    add_widget!(hue, ActiveWindowTitle::new(&hue, attr.clone()));
-    add_widget!(
-        hue,
-        Sensors::new(&hue, attr.clone(), vec!["Core 0", "Core 1"])
-    );
-    add_widget!(hue, Volume::new(&hue, attr.clone()));
-    add_widget!(hue, Battery::new(&hue, attr.clone()));
-    add_widget!(hue, Clock::new(&hue, attr.clone()));
-
-    hue.run()
 }
-
-quick_main!(run);

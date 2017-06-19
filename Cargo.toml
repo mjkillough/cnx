@@ -3,6 +3,9 @@ name = "hue"
 version = "0.1.0"
 authors = ["Michael Killough <michaeljkillough@gmail.com>"]
 
+[[bin]]
+name = "hue"
+
 [dependencies]
 alsa = "0.1.8"
 chrono = "0.3.1"
