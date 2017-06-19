@@ -1,10 +1,10 @@
 [package]
-name = "hue"
+name = "cnx"
 version = "0.1.0"
 authors = ["Michael Killough <michaeljkillough@gmail.com>"]
 
 [[bin]]
-name = "hue"
+name = "cnx"
 
 [dependencies]
 alsa = "0.1.8"

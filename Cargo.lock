@@ -1,5 +1,5 @@
 [root]
-name = "hue"
+name = "cnx"
 version = "0.1.0"
 dependencies = [
  "alsa 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",

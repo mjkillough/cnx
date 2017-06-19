@@ -2,7 +2,7 @@ use tokio_core::reactor::Handle;
 use xcb;
 use xcb_util::ewmh;
 
-use Hue;
+use Cnx;
 use errors::*;
 use text::{Attributes, Text};
 
@@ -13,7 +13,7 @@ pub struct ActiveWindowTitle {
 }
 
 impl ActiveWindowTitle {
-    pub fn new(hue: &Hue, attr: Attributes) -> ActiveWindowTitle {
+    pub fn new(hue: &Cnx, attr: Attributes) -> ActiveWindowTitle {
         ActiveWindowTitle {
             tokio_handle: hue.handle(),
             attr,

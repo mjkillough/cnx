@@ -9,7 +9,7 @@ use mio::event::Evented;
 use mio::unix::EventedFd;
 use tokio_core::reactor::{Handle, PollEvented};
 
-use Hue;
+use Cnx;
 use super::{Widget, WidgetStream};
 use errors::*;
 use text::{Attributes, Text};
@@ -21,7 +21,7 @@ pub struct Volume {
 }
 
 impl Volume {
-    pub fn new(hue: &Hue, attr: Attributes) -> Volume {
+    pub fn new(hue: &Cnx, attr: Attributes) -> Volume {
         Volume {
             handle: hue.handle(),
             attr,

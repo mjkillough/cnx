@@ -34,16 +34,16 @@ use bar::Bar;
 use widgets::Widget;
 
 
-pub struct Hue {
+pub struct Cnx {
     core: Core,
     timer: Rc<Timer>,
     bar: Bar,
     widgets: Vec<Box<Widget>>,
 }
 
-impl Hue {
-    pub fn new(position: Position) -> Result<Hue> {
-        Ok(Hue {
+impl Cnx {
+    pub fn new(position: Position) -> Result<Cnx> {
+        Ok(Cnx {
             core: Core::new().chain_err(|| "Could not create Tokio Core")?,
             timer: Rc::default(),
             bar: Bar::new(position)?,
@@ -76,9 +76,9 @@ impl Hue {
 
 /// Convenience macro to get around lexical lifetime issue.
 #[macro_export]
-macro_rules! hue_add_widget {
-    ($hue:ident, $widget:expr) => {
+macro_rules! cnx_add_widget {
+    ($cnx:ident, $widget:expr) => {
         let widget = $widget;
-        $hue.add_widget(widget);
+        $cnx.add_widget(widget);
     }
 }

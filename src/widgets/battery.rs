@@ -9,7 +9,7 @@ use std::time::Duration;
 
 use tokio_timer::Timer;
 
-use Hue;
+use Cnx;
 use errors::*;
 use text::{Attributes, Text};
 
@@ -44,7 +44,7 @@ pub struct Battery {
 }
 
 impl Battery {
-    pub fn new(hue: &Hue, attr: Attributes) -> Battery {
+    pub fn new(hue: &Cnx, attr: Attributes) -> Battery {
         Battery {
             timer: hue.timer(),
             update_interval: Duration::from_secs(60),
