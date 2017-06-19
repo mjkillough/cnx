@@ -3,21 +3,21 @@ name = "cnx"
 version = "0.1.0"
 dependencies = [
  "alsa 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "cairo-rs 0.1.3 (git+https://github.com/gtk-rs/cairo)",
- "cairo-sys-rs 0.3.4 (git+https://github.com/gtk-rs/cairo)",
+ "cairo-rs 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cairo-sys-rs 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "mio 0.6.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "pango 0.1.3 (git+https://github.com/gtk-rs/pango)",
- "pangocairo 0.1.3",
+ "pango 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pangocairo 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-core 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-timer 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "xcb 0.7.6",
- "xcb-util 0.1.8",
+ "xcb 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xcb-util 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -112,6 +112,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "cairo-rs"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+replace = "cairo-rs 0.1.3 (git+https://github.com/gtk-rs/cairo)"
+
+[[package]]
 name = "cairo-sys-rs"
 version = "0.3.4"
 source = "git+https://github.com/gtk-rs/cairo#88c1059b9fd4fd6bc825e1fc4bf3ff540363aa03"
@@ -120,6 +126,12 @@ dependencies = [
  "pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "cairo-sys-rs"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+replace = "cairo-sys-rs 0.3.4 (git+https://github.com/gtk-rs/cairo)"
 
 [[package]]
 name = "cfg-if"
@@ -324,6 +336,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "pango"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+replace = "pango 0.1.3 (git+https://github.com/gtk-rs/pango)"
+
+[[package]]
 name = "pango-sys"
 version = "0.3.4"
 source = "git+https://github.com/gtk-rs/sys#113444397b56ffda5214ffcc5a2ed80c25020fe5"
@@ -338,17 +356,25 @@ dependencies = [
 [[package]]
 name = "pangocairo"
 version = "0.1.3"
+source = "git+https://github.com/RazrFalcon/pangocairo-rs#55478cb05eb716e262d3a88777995d4aa33146a0"
 dependencies = [
  "cairo-rs 0.1.3 (git+https://github.com/gtk-rs/cairo)",
  "glib 0.1.3 (git+https://github.com/gtk-rs/glib)",
  "pango 0.1.3 (git+https://github.com/gtk-rs/pango)",
  "pango-sys 0.3.4 (git+https://github.com/gtk-rs/sys)",
- "pangocairo-sys 0.3.4",
+ "pangocairo-sys 0.3.4 (git+https://github.com/RazrFalcon/pangocairo-rs)",
 ]
+
+[[package]]
+name = "pangocairo"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+replace = "pangocairo 0.1.3 (git+https://github.com/RazrFalcon/pangocairo-rs)"
 
 [[package]]
 name = "pangocairo-sys"
 version = "0.3.4"
+source = "git+https://github.com/RazrFalcon/pangocairo-rs#55478cb05eb716e262d3a88777995d4aa33146a0"
 dependencies = [
  "cairo-sys-rs 0.3.4 (git+https://github.com/gtk-rs/cairo)",
  "glib-sys 0.3.4 (git+https://github.com/gtk-rs/sys)",
@@ -502,17 +528,25 @@ dependencies = [
 [[package]]
 name = "xcb"
 version = "0.7.6"
+source = "git+https://github.com/mjkillough/rust-xcb.git?branch=error_trait#d26e637a99151bc303fa2882d2c042adca271eb4"
 dependencies = [
  "libc 0.2.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
+name = "xcb"
+version = "0.7.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+replace = "xcb 0.7.6 (git+https://github.com/mjkillough/rust-xcb.git?branch=error_trait)"
+
+[[package]]
 name = "xcb-util"
 version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.24 (registry+https://github.com/rust-lang/crates.io-index)",
- "xcb 0.7.6",
+ "xcb 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [metadata]
@@ -527,7 +561,9 @@ dependencies = [
 "checksum bytes 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)" = "8b24f16593f445422331a5eed46b72f7f171f910fead4f2ea8f17e727e9c5c14"
 "checksum c_vec 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "6237ac5a4b1e81c213c24c6437964c61e646df910a914b4ab1487b46df20bd13"
 "checksum cairo-rs 0.1.3 (git+https://github.com/gtk-rs/cairo)" = "<none>"
+"checksum cairo-rs 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "0180a8b65dc13e78479c6a47c4d5f094d64dc34465a9433c6daef9ae2fbfb3ee"
 "checksum cairo-sys-rs 0.3.4 (git+https://github.com/gtk-rs/cairo)" = "<none>"
+"checksum cairo-sys-rs 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "a2414b86c20c40dfb56a98b1dbca05bde56411f488d268c4289a86df1b648c61"
 "checksum cfg-if 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d0c47d456a36ebf0536a6705c83c1cbbcb9255fbc1d905a6ded104f479268a29"
 "checksum chrono 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d9123be86fd2a8f627836c235ecdf331fdd067ecf7ac05aa1a68fbcf2429f056"
 "checksum dbghelp-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "97590ba53bcb8ac28279161ca943a924d1fd4a8fb3fa63302591647c4fc5b850"
@@ -552,7 +588,11 @@ dependencies = [
 "checksum num-iter 0.1.33 (registry+https://github.com/rust-lang/crates.io-index)" = "f7d1891bd7b936f12349b7d1403761c8a0b85a18b148e9da4429d5d102c1a41e"
 "checksum num-traits 0.1.39 (registry+https://github.com/rust-lang/crates.io-index)" = "1708c0628602a98b52fad936cf3edb9a107af06e52e49fdf0707e884456a6af6"
 "checksum pango 0.1.3 (git+https://github.com/gtk-rs/pango)" = "<none>"
+"checksum pango 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "4215233226ff03c9a3ed7c85cbc3c58257203723e3a93d5a20ce3560f66261b7"
 "checksum pango-sys 0.3.4 (git+https://github.com/gtk-rs/sys)" = "<none>"
+"checksum pangocairo 0.1.3 (git+https://github.com/RazrFalcon/pangocairo-rs)" = "<none>"
+"checksum pangocairo 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "1994752fcd20dbefd084a3c231bbcd79ebe67ca2e7f9cd11db0243b64f155c35"
+"checksum pangocairo-sys 0.3.4 (git+https://github.com/RazrFalcon/pangocairo-rs)" = "<none>"
 "checksum pkg-config 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)" = "3a8b4c6b8165cd1a1cd4b9b120978131389f64bdaf456435caa41e630edba903"
 "checksum redox_syscall 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)" = "3041aeb6000db123d2c9c751433f526e1f404b23213bd733167ab770c3989b4d"
 "checksum regex 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "1731164734096285ec2a5ec7fea5248ae2f5485b3feeb0115af4fda2183b2d1b"
@@ -572,3 +612,6 @@ dependencies = [
 "checksum winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "167dc9d6949a9b857f3451275e911c3f44255842c1f7a76f33c55103a909087a"
 "checksum winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
 "checksum ws2_32-sys 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d59cefebd0c892fa2dd6de581e937301d8552cb44489cdff035c6187cb63fa5e"
+"checksum xcb 0.7.6 (git+https://github.com/mjkillough/rust-xcb.git?branch=error_trait)" = "<none>"
+"checksum xcb 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)" = "63e3a849b73e4e1905e4f4d48f1750429bc86ea9f473632ab382a6f69ecb6b33"
+"checksum xcb-util 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "b5ac8b9105afb0e0fe7dc4f3b9e76d47fd54395f75708032df7c7d2fadfc9e27"

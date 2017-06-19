@@ -18,38 +18,30 @@ name = "cnx"
 
 [dependencies]
 alsa = "0.1"
+cairo-rs = { version = "0.1.3", default-features = false, features = ["xcb"] }
+cairo-sys-rs = "0.3.4"
 chrono = "0.3"
 error-chain = "0.10"
 futures = "0.1"
 lazy_static = "0.2"
 libc = "0.2"
 mio = "0.6"
+pango = "0.1.3"
+pangocairo = "0.1.3"
 regex = "0.2"
 tokio-core = "0.1"
 tokio-timer = "0.1"
-xcb = { version = "0.7.6", path = "./xcb", features = ["thread"] }
+xcb = { version = "0.7.6", features = ["thread"] }
+xcb-util = { version = "0.1", features = ["ewmh"] }
 
-[dependencies.xcb-util]
-version = "0.1.8"
-path = "./xcb-util"
-features = ["ewmh"]
+[replace]
+# Custom patch, not yet upstreamed:
+"xcb:0.7.6" = { git = "https://github.com/mjkillough/rust-xcb.git", branch = "error_trait" }
 
-# We need the git version of gtk-rs packages so that we can have the fix for
-# gtk-rs/cairo#130.
-[dependencies.cairo-rs]
-git = "https://github.com/gtk-rs/cairo"
-default-features = false
-features = ["xcb"]
+# Need gtk-rs/cairo#130:
+"cairo-rs:0.1.3" = { git = "https://github.com/gtk-rs/cairo" }
+"cairo-sys-rs:0.3.4" = { git = "https://github.com/gtk-rs/cairo" }
+"pango:0.1.3" = { git = "https://github.com/gtk-rs/pango" }
 
-[dependencies.cairo-sys-rs]
-git = "https://github.com/gtk-rs/cairo"
-
-[dependencies.pango]
-git = "https://github.com/gtk-rs/pango"
-
-
-# We include pangocairo as a submodule so that we can modify it to also use
-# the git version of gtk-rs packages.
-[dependencies.pangocairo]
-version = "0.1.3"
-path = "./pangocairo"
+# Need RazrFalcon/pangocairo-rs#9
+"pangocairo:0.1.3" = { git = "https://github.com/RazrFalcon/pangocairo-rs" }
