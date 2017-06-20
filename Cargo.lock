@@ -528,7 +528,7 @@ dependencies = [
 [[package]]
 name = "xcb"
 version = "0.7.6"
-source = "git+https://github.com/mjkillough/rust-xcb.git?branch=error_trait#d26e637a99151bc303fa2882d2c042adca271eb4"
+source = "git+https://github.com/mjkillough/rust-xcb.git?branch=error_trait#5d91eab0d5bf2c91092a41b06a30c1e535127e1c"
 dependencies = [
  "libc 0.2.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
