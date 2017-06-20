@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::process::Command;
-use std::rc::Rc;
 use std::time::Duration;
 
 use regex::Regex;
@@ -42,7 +41,7 @@ fn parse_sensors_output(output: &str) -> Result<HashMap<&str, Value>> {
 
 
 pub struct Sensors {
-    timer: Rc<Timer>,
+    timer: Timer,
     update_interval: Duration,
     attr: Attributes,
     sensors: Vec<String>,

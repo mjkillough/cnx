@@ -16,8 +16,6 @@ extern crate tokio_timer;
 extern crate xcb_util;
 extern crate xcb;
 
-use std::rc::Rc;
-
 use tokio_core::reactor::{Core, Handle};
 use tokio_timer::Timer;
 
@@ -36,7 +34,7 @@ use widgets::Widget;
 
 pub struct Cnx {
     core: Core,
-    timer: Rc<Timer>,
+    timer: Timer,
     bar: Bar,
     widgets: Vec<Box<Widget>>,
 }
@@ -45,7 +43,7 @@ impl Cnx {
     pub fn new(position: Position) -> Result<Cnx> {
         Ok(Cnx {
             core: Core::new().chain_err(|| "Could not create Tokio Core")?,
-            timer: Rc::default(),
+            timer: Timer::default(),
             bar: Bar::new(position)?,
             widgets: Vec::new(),
         })
@@ -55,7 +53,7 @@ impl Cnx {
         self.core.handle()
     }
 
-    fn timer(&self) -> Rc<Timer> {
+    fn timer(&self) -> Timer {
         self.timer.clone()
     }
 

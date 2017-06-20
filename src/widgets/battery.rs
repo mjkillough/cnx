@@ -2,7 +2,6 @@ use std::error;
 use std::f64;
 use std::fs::File;
 use std::io::Read;
-use std::rc::Rc;
 use std::result;
 use std::str::FromStr;
 use std::time::Duration;
@@ -37,7 +36,7 @@ impl FromStr for Status {
 
 
 pub struct Battery {
-    timer: Rc<Timer>,
+    timer: Timer,
     update_interval: Duration,
     battery: String,
     attr: Attributes,

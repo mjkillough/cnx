@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use std::time::Duration;
 
 use chrono::prelude::*;
@@ -12,7 +11,7 @@ use super::{Widget, WidgetStream};
 
 
 pub struct Clock {
-    timer: Rc<Timer>,
+    timer: Timer,
     attr: Attributes,
 }
 
