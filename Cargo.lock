@@ -543,11 +543,17 @@ replace = "xcb 0.7.6 (git+https://github.com/mjkillough/rust-xcb.git?branch=erro
 [[package]]
 name = "xcb-util"
 version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/meh/rust-xcb-util.git#865788fab5207841b89430141b3b023a091576f7"
 dependencies = [
  "libc 0.2.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "xcb 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "xcb-util"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+replace = "xcb-util 0.1.8 (git+https://github.com/meh/rust-xcb-util.git)"
 
 [metadata]
 "checksum aho-corasick 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)" = "500909c4f87a9e52355b26626d890833e9e1d53ac566db76c36faa984b889699"
@@ -614,4 +620,5 @@ dependencies = [
 "checksum ws2_32-sys 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d59cefebd0c892fa2dd6de581e937301d8552cb44489cdff035c6187cb63fa5e"
 "checksum xcb 0.7.6 (git+https://github.com/mjkillough/rust-xcb.git?branch=error_trait)" = "<none>"
 "checksum xcb 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)" = "63e3a849b73e4e1905e4f4d48f1750429bc86ea9f473632ab382a6f69ecb6b33"
+"checksum xcb-util 0.1.8 (git+https://github.com/meh/rust-xcb-util.git)" = "<none>"
 "checksum xcb-util 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "b5ac8b9105afb0e0fe7dc4f3b9e76d47fd54395f75708032df7c7d2fadfc9e27"

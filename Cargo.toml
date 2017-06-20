@@ -38,6 +38,9 @@ xcb-util = { version = "0.1", features = ["ewmh"] }
 # Custom patch, not yet upstreamed:
 "xcb:0.7.6" = { git = "https://github.com/mjkillough/rust-xcb.git", branch = "error_trait" }
 
+# Need meh/rust-xcb-util#9:
+"xcb-util:0.1.8" = { git = "https://github.com/meh/rust-xcb-util.git" }
+
 # Need gtk-rs/cairo#130:
 "cairo-rs:0.1.3" = { git = "https://github.com/gtk-rs/cairo" }
 "cairo-sys-rs:0.3.4" = { git = "https://github.com/gtk-rs/cairo" }
