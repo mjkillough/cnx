@@ -31,15 +31,12 @@ pangocairo = "0.1.3"
 regex = "0.2"
 tokio-core = "0.1"
 tokio-timer = "0.1"
-xcb = { version = "0.7.6", features = ["thread"] }
-xcb-util = { version = "0.1", features = ["ewmh"] }
+xcb = "0.8"
+xcb-util = { version = "0.1.8", features = ["ewmh"] }
 
 [replace]
-# Custom patch, not yet upstreamed:
-"xcb:0.7.6" = { git = "https://github.com/mjkillough/rust-xcb.git", branch = "error_trait" }
-
-# Need meh/rust-xcb-util#9:
-"xcb-util:0.1.8" = { git = "https://github.com/meh/rust-xcb-util.git" }
+# Need meh/rust-xcb-util#9 and meg/rust-xcb-util#10:
+"xcb-util:0.1.8" = { git = "https://github.com/mjkillough/rust-xcb-util.git", branch = "temp" }
 
 # Need gtk-rs/cairo#130:
 "cairo-rs:0.1.3" = { git = "https://github.com/gtk-rs/cairo" }

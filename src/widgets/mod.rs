@@ -79,7 +79,7 @@ macro_rules! x_properties_widget {
                 let xcb_stream = XcbEventStream::new(conn.clone(), &self.$handle)?;
                 let text_stream = xcb_stream.filter_map(move |event| {
                     if event.response_type() == PROPERTY_NOTIFY {
-                        let event: &PropertyNotifyEvent = xcb::cast_event(&event);
+                        let event: &PropertyNotifyEvent = unsafe { xcb::cast_event(&event) };
                         if properties.iter().any(|p| *p == event.atom()) {
                             // We don't actually care about the event, just that
                             // it occurred.

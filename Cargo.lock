@@ -16,7 +16,7 @@ dependencies = [
  "regex 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-core 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-timer 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "xcb 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xcb 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "xcb-util 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -527,33 +527,27 @@ dependencies = [
 
 [[package]]
 name = "xcb"
-version = "0.7.6"
-source = "git+https://github.com/mjkillough/rust-xcb.git?branch=error_trait#5d91eab0d5bf2c91092a41b06a30c1e535127e1c"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "xcb"
-version = "0.7.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-replace = "xcb 0.7.6 (git+https://github.com/mjkillough/rust-xcb.git?branch=error_trait)"
-
-[[package]]
 name = "xcb-util"
 version = "0.1.8"
-source = "git+https://github.com/meh/rust-xcb-util.git#865788fab5207841b89430141b3b023a091576f7"
+source = "git+https://github.com/mjkillough/rust-xcb-util.git?branch=temp#c1735c79ec6dd25462103648bcfd40a13daa08f0"
 dependencies = [
  "libc 0.2.24 (registry+https://github.com/rust-lang/crates.io-index)",
- "xcb 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "xcb 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "xcb-util"
 version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-replace = "xcb-util 0.1.8 (git+https://github.com/meh/rust-xcb-util.git)"
+replace = "xcb-util 0.1.8 (git+https://github.com/mjkillough/rust-xcb-util.git?branch=temp)"
 
 [metadata]
 "checksum aho-corasick 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)" = "500909c4f87a9e52355b26626d890833e9e1d53ac566db76c36faa984b889699"
@@ -618,7 +612,6 @@ replace = "xcb-util 0.1.8 (git+https://github.com/meh/rust-xcb-util.git)"
 "checksum winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "167dc9d6949a9b857f3451275e911c3f44255842c1f7a76f33c55103a909087a"
 "checksum winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
 "checksum ws2_32-sys 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d59cefebd0c892fa2dd6de581e937301d8552cb44489cdff035c6187cb63fa5e"
-"checksum xcb 0.7.6 (git+https://github.com/mjkillough/rust-xcb.git?branch=error_trait)" = "<none>"
-"checksum xcb 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)" = "63e3a849b73e4e1905e4f4d48f1750429bc86ea9f473632ab382a6f69ecb6b33"
-"checksum xcb-util 0.1.8 (git+https://github.com/meh/rust-xcb-util.git)" = "<none>"
+"checksum xcb 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d8dd1956bb70f353f992a5fa78a9c6076be89081d24651eac3b283cacf3383d2"
+"checksum xcb-util 0.1.8 (git+https://github.com/mjkillough/rust-xcb-util.git?branch=temp)" = "<none>"
 "checksum xcb-util 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "b5ac8b9105afb0e0fe7dc4f3b9e76d47fd54395f75708032df7c7d2fadfc9e27"
