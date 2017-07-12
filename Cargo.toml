@@ -15,6 +15,7 @@ travis-ci = { repository = "mjkillough/cnx", branch = "master" }
 
 [[bin]]
 name = "cnx"
+doc = false
 
 [dependencies]
 alsa = "0.1"
