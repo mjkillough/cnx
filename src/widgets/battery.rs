@@ -10,9 +10,10 @@ use tokio_timer::Timer;
 
 use Cnx;
 use errors::*;
-use text::{Attributes, Text};
+use text::{Attributes, Color, Text};
 
 
+#[derive(Clone, Debug, Eq, PartialEq)]
 enum Status {
     Full,
     Charging,
@@ -40,15 +41,17 @@ pub struct Battery {
     update_interval: Duration,
     battery: String,
     attr: Attributes,
+    warning_color: Color,
 }
 
 impl Battery {
-    pub fn new(hue: &Cnx, attr: Attributes) -> Battery {
+    pub fn new(hue: &Cnx, attr: Attributes, warning_color: Color) -> Battery {
         Battery {
             timer: hue.timer(),
             update_interval: Duration::from_secs(60),
             battery: "BAT0".to_owned(),
             attr,
+            warning_color
         }
     }
 
@@ -91,7 +94,6 @@ impl Battery {
         let hours = time as u64;
         let minutes = (time * 60.0) as u64 % 60;
 
-
         let text = format!(
             "({percentage:.0}% - {hours}:{minutes:02})",
             percentage = percentage,
@@ -99,10 +101,17 @@ impl Battery {
             minutes = minutes
         );
 
+        // If we're discharging and have <=10% left, then render with a
+        // special warning color.
+        let mut attr = self.attr.clone();
+        if status == Status::Discharging && percentage <= 10.0 {
+            attr.fg_color = self.warning_color.clone()
+        }
+
         Ok(vec![
             Text {
-                attr: self.attr.clone(),
-                text: text,
+                attr,
+                text,
                 stretch: false,
             },
         ])

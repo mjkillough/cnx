@@ -26,7 +26,7 @@ fn run() -> Result<()> {
         Sensors::new(&cnx, attr.clone(), vec!["Core 0", "Core 1"])
     );
     cnx_add_widget!(cnx, Volume::new(&cnx, attr.clone()));
-    cnx_add_widget!(cnx, Battery::new(&cnx, attr.clone()));
+    cnx_add_widget!(cnx, Battery::new(&cnx, attr.clone(), Color::red()));
     cnx_add_widget!(cnx, Clock::new(&cnx, attr.clone()));
 
     cnx.run()
