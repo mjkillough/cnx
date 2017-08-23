@@ -3,7 +3,6 @@ name = "cnx"
 version = "0.1.0"
 authors = ["Michael Killough <michaeljkillough@gmail.com>"]
 description = "A simple X11 status bar"
-homepage = "https://github.com/mjkillough/cnx"
 repository = "https://github.com/mjkillough/cnx"
 readme = "README.md"
 keywords = ["x11", "status", "bar"]
