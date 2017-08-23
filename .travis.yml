@@ -8,9 +8,13 @@ rust:
   - beta
   - nightly
 
-matrix:
-  allow_failures:
-    - rust: nightly
+before_script:
+  - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then cargo install --force clippy ; fi
+
+script:
+  - RUSTFLAGS="-D warnings" cargo build --verbose
+  - RUSTFLAGS="-D warnings" cargo test --verbose
+  - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then RUSTFLAGS="-D warnings" cargo clippy ; fi
 
 addons:
   apt:
