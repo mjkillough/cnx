@@ -14,7 +14,6 @@ pub trait Widget {
 macro_rules! timer_widget {
     ($widget:ty, $timer:ident, $interval:ident, $tick:ident) => {
         impl ::widgets::Widget for $widget {
-            #[allow(boxed_local)]
             fn stream(self: Box<Self>) -> ::errors::Result<::widgets::WidgetStream> {
                 use futures::{stream, Stream};
 
@@ -39,7 +38,6 @@ macro_rules! timer_widget {
 macro_rules! x_properties_widget {
     ($widget:ty, $handle:ident, $on_change:ident; [ $( $property:ident ),+ ])  => {
         impl ::widgets::Widget for $widget {
-            #[allow(boxed_local)]
             fn stream(self: Box<Self>) -> ::errors::Result<::widgets::WidgetStream> {
                 use std::rc::Rc;
 

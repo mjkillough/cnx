@@ -1,4 +1,7 @@
-#![allow(unknown_lints)]
+#![allow(
+    unknown_lints, // Allowing clippy lints shouldn't cause rustc warnings.
+    boxed_local, // Widget::stream(Box<Self>) causes spurious warning.
+)]
 
 extern crate alsa;
 extern crate cairo_sys;

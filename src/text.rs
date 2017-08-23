@@ -153,7 +153,7 @@ impl ComputedText {
         layout.set_width(text_width as i32 * pango::SCALE);
         layout.set_height(text_height as i32 * pango::SCALE);
 
-        let bg_color = &self.attr.bg_color.clone().unwrap_or_else(|| Color::black());
+        let bg_color = &self.attr.bg_color.clone().unwrap_or_else(Color::black);
         bg_color.apply_to_context(&context);
         // FIXME: The use of `height` isnt' right here: we want to do the
         // full height of the bar, not the full height of the text. It

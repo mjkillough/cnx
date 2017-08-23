@@ -123,6 +123,7 @@ impl Bar {
             .map_err(|(e, _)| e)
             .chain_err(|| "Failed to wrap xcb::Connection in ewmh::Connection")?;
 
+        #[allow(blacklisted_name)]
         let bar = Bar {
             conn: Rc::new(ewmh_conn),
             window_id: id,
@@ -276,8 +277,10 @@ impl Bar {
             let length_different = new_texts.len() != old_texts.len();
             redraw_entire_bar = redraw_entire_bar || length_different ||
                 new_texts.iter().zip(old_texts.iter()).any(|(new, old)| {
-                    (!new.stretch && !old.stretch && new.width != old.width) ||
-                        old.height != new.height
+                    let not_stretch = !new.stretch && !old.stretch;
+                    let diff_width = (new.width - old.width).abs().round() >= 1.0;
+                    let diff_height = (new.height - old.height).abs().round() >= 1.0;
+                    (not_stretch && diff_width) || diff_height
                 });
 
             // Where possible, re-use the position of the widget's previous
@@ -344,7 +347,7 @@ impl Bar {
             .iter()
             .flat_map(|v| v)
             .fold(f64::NEG_INFINITY, |acc, text| text.height.max(acc));
-        if let Err(_) = self.update_bar_height(height as u16) {
+        if self.update_bar_height(height as u16).is_err() {
             // Log and continue - the bar is hopefully still useful.
             // TODO: Add log dependency.
             // error!("Failed to update bar height to {}: {}", height, e);
