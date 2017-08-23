@@ -13,9 +13,9 @@ pub struct ActiveWindowTitle {
 }
 
 impl ActiveWindowTitle {
-    pub fn new(hue: &Cnx, attr: Attributes) -> ActiveWindowTitle {
+    pub fn new(cnx: &Cnx, attr: Attributes) -> ActiveWindowTitle {
         ActiveWindowTitle {
-            tokio_handle: hue.handle(),
+            tokio_handle: cnx.handle(),
             attr,
         }
     }

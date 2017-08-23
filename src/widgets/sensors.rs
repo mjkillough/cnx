@@ -48,9 +48,9 @@ pub struct Sensors {
 }
 
 impl Sensors {
-    pub fn new<S: Into<String>>(hue: &Cnx, attr: Attributes, sensors: Vec<S>) -> Sensors {
+    pub fn new<S: Into<String>>(cnx: &Cnx, attr: Attributes, sensors: Vec<S>) -> Sensors {
         Sensors {
-            timer: hue.timer(),
+            timer: cnx.timer(),
             update_interval: Duration::from_secs(60),
             attr,
             sensors: sensors.into_iter().map(Into::into).collect(),

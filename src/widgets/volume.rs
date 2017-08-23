@@ -21,9 +21,9 @@ pub struct Volume {
 }
 
 impl Volume {
-    pub fn new(hue: &Cnx, attr: Attributes) -> Volume {
+    pub fn new(cnx: &Cnx, attr: Attributes) -> Volume {
         Volume {
-            handle: hue.handle(),
+            handle: cnx.handle(),
             attr,
         }
     }

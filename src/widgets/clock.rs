@@ -16,9 +16,9 @@ pub struct Clock {
 }
 
 impl Clock {
-    pub fn new(hue: &Cnx, attr: Attributes) -> Clock {
+    pub fn new(cnx: &Cnx, attr: Attributes) -> Clock {
         Clock {
-            timer: hue.timer(),
+            timer: cnx.timer(),
             attr,
         }
     }

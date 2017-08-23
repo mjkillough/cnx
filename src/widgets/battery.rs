@@ -45,9 +45,9 @@ pub struct Battery {
 }
 
 impl Battery {
-    pub fn new(hue: &Cnx, attr: Attributes, warning_color: Color) -> Battery {
+    pub fn new(cnx: &Cnx, attr: Attributes, warning_color: Color) -> Battery {
         Battery {
-            timer: hue.timer(),
+            timer: cnx.timer(),
             update_interval: Duration::from_secs(60),
             battery: "BAT0".to_owned(),
             attr,

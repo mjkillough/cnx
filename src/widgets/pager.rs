@@ -13,9 +13,9 @@ pub struct Pager {
 }
 
 impl Pager {
-    pub fn new(hue: &Cnx, active_attr: Attributes, inactive_attr: Attributes) -> Pager {
+    pub fn new(cnx: &Cnx, active_attr: Attributes, inactive_attr: Attributes) -> Pager {
         Pager {
-            tokio_handle: hue.handle(),
+            tokio_handle: cnx.handle(),
             active_attr,
             inactive_attr,
         }
