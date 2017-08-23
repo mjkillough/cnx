@@ -1,3 +1,5 @@
+#![allow(unknown_lints)]
+
 extern crate alsa;
 extern crate cairo_sys;
 extern crate cairo;

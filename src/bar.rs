@@ -227,7 +227,7 @@ impl Bar {
         // Borrow these here, as otherwise our closures will try to borrow
         // self as both immutable/mutable.
         let surface = &self.surface;
-        let mut contents = &mut self.contents;
+        let contents = &mut self.contents;
 
         // We match up the new Vec<Text> for each widget with the Vec<> we
         // already had from the last time we rendered it. We filter out any
