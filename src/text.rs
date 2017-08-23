@@ -93,7 +93,7 @@ impl Text {
         let (width, height) = {
             let context = Context::new(&surface);
             let layout = context.create_pango_layout();
-            layout.set_text(&self.text, self.text.len() as i32);
+            layout.set_text(&self.text);
             layout.set_font_description(Some(&self.attr.font.0));
 
             let padding = &self.attr.padding;
@@ -140,7 +140,7 @@ impl ComputedText {
     pub fn render(&self, surface: &Surface) {
         let context = Context::new(&surface);
         let layout = context.create_pango_layout();
-        layout.set_text(&self.text, self.text.len() as i32);
+        layout.set_text(&self.text);
         layout.set_font_description(Some(&self.attr.font.0));
 
         context.translate(self.x, self.y);
