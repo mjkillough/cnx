@@ -1,4 +1,4 @@
-# Cnx — [![Build Status](https://travis-ci.org/mjkillough/hue.svg?branch=master)](https://travis-ci.org/mjkillough/hue)
+# Cnx — [![Build Status](https://travis-ci.org/mjkillough/cnx.svg?branch=master)](https://travis-ci.org/mjkillough/cnx)
 
 A simple bar for use with simple WMs.
 
