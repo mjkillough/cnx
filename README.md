@@ -14,10 +14,10 @@ Where possible, it prefers to asynchronously wait for changes in the underlying 
 There are currently these widgets available:
  - Active Window Title — Shows the title (EWMH's `_NET_WM_NAME`) for the currently focused window (EWMH's `_NEW_ACTIVE_WINDOW`).
  - Pager — Shows the WM's workspaces/groups, highlighting whichever is currently active. (Uses EWMH's `_NET_DESKTOP_NAMES`/`_NET_NUMBER_OF_DESKTOPS`/`_NET_CURRENT_DESKTOP`).
- - Sensors - Periodically parses and displays the output of the `sensors` utility, allowing CPU temperature to be displayed.
- - Volume - Uses `alsa-lib` to show the current volume/mute status of the default output device.
- - Battery - Uses `/sys/class/power_supply/` to show details on the remaining battery and charge status.
- - Clock - Shows the time.
+ - Sensors — Periodically parses and displays the output of the `sensors` utility, allowing CPU temperature to be displayed.
+ - Volume — Uses `alsa-lib` to show the current volume/mute status of the default output device.
+ - Battery — Uses `/sys/class/power_supply/` to show details on the remaining battery and charge status.
+ - Clock — Shows the time.
 
 
 ## Installing
@@ -49,8 +49,6 @@ The following Ubuntu packages should allow your system to meet these requirement
 ```
 apt-get install libx11-xcb-dev libxcb-ewmh-dev libasound2-dev libpango1.0-dev libcairo2-dev libpangocairo-1.0-0
 ```
-
-Cnx currently depends on some unreleased/custom patches in the following Rust projects: `xcb`, `xcb-util`, `cairo` and `pangocairo`. This won't be the case forever.
 
 
 ## Tests
