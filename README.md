@@ -47,7 +47,7 @@ In addition to the Rust dependencies in `Cargo.toml`, Cnx also depends on these 
 The following Ubuntu packages should allow your system to meet these requirements:
 
 ```
-apt-get install libx11-xcb-dev libxcb-ewmh-dev libasound2-dev libpango1.0-dev libcairo2-dev libpangocairo-1.0-0
+apt-get install libx11-xcb-dev libxcb-ewmh-dev libasound2-dev libpango1.0-dev libcairo2-dev
 ```
 
 
