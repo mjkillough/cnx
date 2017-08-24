@@ -15,7 +15,7 @@ There are currently these widgets available:
  - Active Window Title — Shows the title (EWMH's `_NET_WM_NAME`) for the currently focused window (EWMH's `_NEW_ACTIVE_WINDOW`).
  - Pager — Shows the WM's workspaces/groups, highlighting whichever is currently active. (Uses EWMH's `_NET_DESKTOP_NAMES`/`_NET_NUMBER_OF_DESKTOPS`/`_NET_CURRENT_DESKTOP`).
  - Sensors — Periodically parses and displays the output of the `sensors` utility, allowing CPU temperature to be displayed.
- - Volume — Uses `alsa-lib` to show the current volume/mute status of the default output device.
+ - Volume — Uses `alsa-lib` to show the current volume/mute status of the default output device. (Disable by removing default feature `volume-control`).
  - Battery — Uses `/sys/class/power_supply/` to show details on the remaining battery and charge status.
  - Clock — Shows the time.
 
@@ -39,7 +39,6 @@ However, this is probably not what you want. You should either clone this reposi
 In addition to the Rust dependencies in `Cargo.toml`, Cnx also depends on these system libraries:
  - `x11-xcb`
  - `xcb-util`: `xcb-ewmh` / `xcb-icccm` / `xcb-keysyms`
- - `alsa-lib`
  - `pango`
  - `cairo`
  - `pangocairo`
@@ -47,7 +46,13 @@ In addition to the Rust dependencies in `Cargo.toml`, Cnx also depends on these 
 The following Ubuntu packages should allow your system to meet these requirements:
 
 ```
-apt-get install libx11-xcb-dev libxcb-ewmh-dev libasound2-dev libpango1.0-dev libcairo2-dev
+apt-get install libx11-xcb-dev libxcb-ewmh-dev libpango1.0-dev libcairo2-dev
+```
+
+If the `volume-widget` is enabled (and it is by default), you will also need `alsa-lib`:
+
+```
+apt-get install libasound2-dev
 ```
 
 
