@@ -16,8 +16,12 @@ travis-ci = { repository = "mjkillough/cnx", branch = "master" }
 name = "cnx"
 doc = false
 
+[features]
+default = ["volume-widget"]
+volume-widget = ["alsa"]
+
 [dependencies]
-alsa = "0.1"
+alsa = { version = "0.1", optional = true }
 cairo-rs = { version = "0.2", features = ["xcb"] }
 cairo-sys-rs = "0.4"
 chrono = "0.4"

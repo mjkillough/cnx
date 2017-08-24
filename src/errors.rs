@@ -4,6 +4,6 @@
 error_chain!{
     foreign_links {
         Io(::std::io::Error);
-        Alsa(::alsa::Error);
+        Alsa(::alsa::Error) #[cfg(feature = "volume-widget")];
     }
 }

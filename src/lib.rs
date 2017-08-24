@@ -3,6 +3,7 @@
     boxed_local, // Widget::stream(Box<Self>) causes spurious warning.
 )]
 
+#[cfg(feature = "volume-widget")]
 extern crate alsa;
 extern crate cairo_sys;
 extern crate cairo;

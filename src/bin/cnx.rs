@@ -57,6 +57,7 @@ fn run() -> errors::Result<()> {
         cnx,
         Sensors::new(&cnx, attr.clone(), vec!["Core 0", "Core 1"])
     );
+    #[cfg(feature = "volume-widget")]
     cnx_add_widget!(cnx, Volume::new(&cnx, attr.clone()));
     cnx_add_widget!(cnx, Battery::new(&cnx, attr.clone(), Color::red()));
     cnx_add_widget!(cnx, Clock::new(&cnx, attr.clone()));

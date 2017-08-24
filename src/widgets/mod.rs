@@ -102,6 +102,7 @@ mod battery;
 mod clock;
 mod pager;
 mod sensors;
+#[cfg(feature = "volume-widget")]
 mod volume;
 
 pub use self::active_window_title::ActiveWindowTitle;
@@ -109,6 +110,7 @@ pub use self::battery::Battery;
 pub use self::clock::Clock;
 pub use self::pager::Pager;
 pub use self::sensors::Sensors;
+#[cfg(feature = "volume-widget")]
 pub use self::volume::Volume;
 
 
