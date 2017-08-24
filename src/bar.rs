@@ -307,7 +307,7 @@ impl Bar {
                     .filter(|&(n, o)| n != o)
                     .map(|(n, _)| n);
                 for text in changed {
-                    println!("Redrawing one");
+                    trace!("Redrawing one");
                     text.render(surface);
                 }
             }
@@ -319,7 +319,7 @@ impl Bar {
     }
 
     fn redraw_entire_bar(&mut self) -> Result<()> {
-        println!("Redraw entire bar");
+        trace!("Redraw entire bar");
 
         // Calculate how much free space we have after laying out all the
         // non-stretch blocks. Split the remaining space (if any) between the
@@ -347,10 +347,9 @@ impl Bar {
             .iter()
             .flat_map(|v| v)
             .fold(f64::NEG_INFINITY, |acc, text| text.height.max(acc));
-        if self.update_bar_height(height as u16).is_err() {
+        if let Err(e) = self.update_bar_height(height as u16) {
             // Log and continue - the bar is hopefully still useful.
-            // TODO: Add log dependency.
-            // error!("Failed to update bar height to {}: {}", height, e);
+            error!("Failed to update bar height to {}: {}", height, e);
         }
 
         // Render each Text in turn. If it's a stretch block, override its width
@@ -400,6 +399,7 @@ impl Bar {
             }
             if redraw_entire_bar {
                 if let Err(e) = self.redraw_entire_bar() {
+                    error!("Error redrawing bar: {}", e);
                     return future::err(e);
                 }
             }

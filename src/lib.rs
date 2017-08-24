@@ -12,6 +12,8 @@ extern crate error_chain;
 extern crate futures;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate log;
 extern crate mio;
 extern crate pango;
 extern crate pangocairo;
