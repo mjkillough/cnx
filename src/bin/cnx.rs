@@ -15,7 +15,7 @@ use cnx::widgets::*;
 
 
 // This will not be needed in error-chain 0.11:
-#[allow(unused_doc_comment)]
+#[allow(unknown_lints, unused_doc_comment)]
 mod errors {
     error_chain! {
         links {
