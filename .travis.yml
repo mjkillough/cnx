@@ -12,8 +12,8 @@ before_script:
   - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then cargo install --force clippy ; fi
 
 script:
-  - RUSTFLAGS="-D warnings" cargo build --verbose
-  - RUSTFLAGS="-D warnings" cargo test --verbose
+  - RUSTFLAGS="-D warnings" cargo build
+  - RUSTFLAGS="-D warnings" cargo test
   - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then RUSTFLAGS="-D warnings" cargo clippy ; fi
 
 addons:
