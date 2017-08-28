@@ -449,7 +449,7 @@ impl Evented for XcbEvented {
 }
 
 
-pub struct XcbEventStream {
+pub(crate) struct XcbEventStream {
     conn: Rc<ewmh::Connection>,
     poll: PollEvented<XcbEvented>,
     would_block: bool,

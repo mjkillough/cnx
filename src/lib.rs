@@ -30,14 +30,13 @@ use tokio_timer::Timer;
 pub mod errors;
 pub mod text;
 pub mod widgets;
-pub mod bar;
+mod bar;
 
 pub use bar::Position;
-pub use errors::*;
-pub use text::*;
+use errors::*;
 
 use bar::Bar;
-use widgets::Widget;
+pub use widgets::Widget;
 
 
 pub struct Cnx {

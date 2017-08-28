@@ -11,6 +11,7 @@ use env_logger::LogBuilder;
 use log::LogLevelFilter;
 
 use cnx::*;
+use cnx::text::*;
 use cnx::widgets::*;
 
 

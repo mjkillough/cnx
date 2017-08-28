@@ -89,7 +89,7 @@ pub struct Text {
 }
 
 impl Text {
-    pub fn compute(self, surface: &Surface) -> ComputedText {
+    pub(crate) fn compute(self, surface: &Surface) -> ComputedText {
         let (width, height) = {
             let context = Context::new(&surface);
             let layout = context.create_pango_layout();
@@ -125,7 +125,7 @@ impl PartialEq<ComputedText> for Text {
 
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct ComputedText {
+pub(crate) struct ComputedText {
     pub attr: Attributes,
     pub text: String,
     pub stretch: bool,
