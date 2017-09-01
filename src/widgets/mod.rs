@@ -1,12 +1,32 @@
+//! Built-in widgets
+
 use futures::{Async, Stream, Poll};
 
 use errors::*;
 use text::Text;
 
 
+/// The stream of `Vec<Text>` returned by each widget.
+///
+/// This simple type alias makes referring to this stream a little easier. For
+/// more information on the stream (and how widgets are structured), please
+/// refer to the documentation on the [`Widget`] trait.
+///
+/// [`Widget`]: trait.Widget.html
 pub type WidgetStream = Box<Stream<Item = Vec<Text>, Error = Error>>;
 
+/// The main trait implemented by all widgets.
+///
+/// This simple trait defines a widget. A widget is essentially just a
+/// [`futures::Stream<Item = Vec<Text>, ...>`][widget-stream] and this trait
+/// just defines a standard way to get at that stream.
+///
+/// Please note that this is currently considered **unstable**. This trait is
+/// very likely to change in the future.
+///
+/// [widget-stream]: https://docs.rs/futures/0.1.15/futures/stream/trait.Stream.html
 pub trait Widget {
+    ///
     fn stream(self: Box<Self>) -> Result<WidgetStream>;
 }
 
@@ -114,7 +134,7 @@ pub use self::sensors::Sensors;
 pub use self::volume::Volume;
 
 
-pub struct WidgetList {
+pub(crate) struct WidgetList {
     vec: Vec<Box<Stream<Item = Vec<Text>, Error = Error>>>,
 }
 

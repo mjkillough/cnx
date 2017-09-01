@@ -16,6 +16,7 @@ struct Value<'a> {
     units: &'a str,
 }
 
+/// Parses the output of the `sensors` executable from `lm_sensors`.
 fn parse_sensors_output(output: &str) -> Result<HashMap<&str, Value>> {
     lazy_static! {
         static ref RE: Regex = Regex::new(
@@ -40,6 +41,15 @@ fn parse_sensors_output(output: &str) -> Result<HashMap<&str, Value>> {
 }
 
 
+/// Shows the temperature from one or more sensors.
+///
+/// This widget shows the temperature reported by one or more sensors from the
+/// output of the `sensors` command, which is part of the [`lm_sensors`]
+/// package.
+///
+/// It expects the `sensors` executable to be available in the `PATH`.
+///
+/// [`lm_sensors`]: https://wiki.archlinux.org/index.php/lm_sensors
 pub struct Sensors {
     timer: Timer,
     update_interval: Duration,
@@ -48,6 +58,50 @@ pub struct Sensors {
 }
 
 impl Sensors {
+    /// Creates a new Sensors widget.
+    ///
+    /// Creates a new `Sensors` widget, whose text will be displayed with the
+    /// given [`Attributes`].
+    ///
+    /// A list of sensor names should be passed as the `sensors` argument. (You
+    /// can discover the names by running the `sensors` utility in a terminal).
+    ///
+    /// The [`Cnx`] instance is borrowed during construction in order to get
+    /// access to handles of its event loop. However, it is not borrowed for the
+    /// lifetime of the widget. See the [`cnx_add_widget!()`] for more discussion
+    /// about the lifetime of the borrow.
+    ///
+    /// [`Attributes`]: ../text/struct.Attributes.html
+    /// [`Cnx`]: ../struct.Cnx.html
+    /// [`cnx_add_widget!()`]: ../macro.cnx_add_widget.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[macro_use]
+    /// # extern crate cnx;
+    /// #
+    /// # use cnx::*;
+    /// # use cnx::text::*;
+    /// # use cnx::widgets::*;
+    /// #
+    /// # fn run() -> ::cnx::errors::Result<()> {
+    /// let attr = Attributes {
+    ///     font: Font::new("SourceCodePro 21"),
+    ///     fg_color: Color::white(),
+    ///     bg_color: None,
+    ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
+    /// };
+    ///
+    /// let mut cnx = Cnx::new(Position::Top)?;
+    /// cnx_add_widget!(
+    ///     cnx,
+    ///     Sensors::new(&cnx, attr.clone(), vec!["Core 0", "Core 1"])
+    /// );
+    /// # Ok(())
+    /// # }
+    /// # fn main() { run().unwrap(); }
+    /// ```
     pub fn new<S: Into<String>>(cnx: &Cnx, attr: Attributes, sensors: Vec<S>) -> Sensors {
         Sensors {
             timer: cnx.timer(),

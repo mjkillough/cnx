@@ -9,13 +9,54 @@ use errors::*;
 use text::{Attributes, Text};
 use super::{Widget, WidgetStream};
 
-
+/// Shows the current time and date.
+///
+/// This widget shows the current time and date, in the form `%Y-%m-%d %a %I:%M
+/// %p`, e.g. `2017-09-01 Fri 12:51 PM`.
 pub struct Clock {
     timer: Timer,
     attr: Attributes,
 }
 
 impl Clock {
+    /// Creates a new Clock widget.
+    ///
+    /// Creates a new `Clock` widget, whose text will be displayed with the
+    /// given [`Attributes`].
+    ///
+    /// The [`Cnx`] instance is borrowed during construction in order to get
+    /// access to handles of its event loop. However, it is not borrowed for the
+    /// lifetime of the widget. See the [`cnx_add_widget!()`] for more
+    /// discussion about the lifetime of the borrow.
+    ///
+    /// [`Attributes`]: ../text/struct.Attributes.html
+    /// [`Cnx`]: ../struct.Cnx.html
+    /// [`cnx_add_widget!()`]: ../macro.cnx_add_widget.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[macro_use]
+    /// # extern crate cnx;
+    /// #
+    /// # use cnx::*;
+    /// # use cnx::text::*;
+    /// # use cnx::widgets::*;
+    /// #
+    /// # fn run() -> ::cnx::errors::Result<()> {
+    /// let attr = Attributes {
+    ///     font: Font::new("SourceCodePro 21"),
+    ///     fg_color: Color::white(),
+    ///     bg_color: None,
+    ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
+    /// };
+    ///
+    /// let mut cnx = Cnx::new(Position::Top)?;
+    /// cnx_add_widget!(cnx, Clock::new(&cnx, attr.clone()));
+    /// # Ok(())
+    /// # }
+    /// # fn main() { run().unwrap(); }
+    /// ```
     pub fn new(cnx: &Cnx, attr: Attributes) -> Clock {
         Clock {
             timer: cnx.timer(),

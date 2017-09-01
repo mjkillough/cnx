@@ -56,9 +56,24 @@ fn cairo_surface_for_xcb_window(
 }
 
 
+/// An enum specifying the position of the Cnx bar.
+///
+/// Passed to [`Cnx::new()`] when constructing a [`Cnx`] instance.
+///
+/// [`Cnx::new()`]: struct.Cnx.html#method.new
+/// [`Cnx`]: struct.Cnx.html
+///
+/// # Examples
+///
+/// ```
+/// # use cnx::{Cnx, Position};
+/// let mut cnx = Cnx::new(Position::Top);
+/// ```
 #[derive(Clone, Debug)]
 pub enum Position {
+    /// Position the Cnx bar at the top of the screen.
     Top,
+    /// Position the Cnx bar at the bottom of the screen.
     Bottom,
 }
 

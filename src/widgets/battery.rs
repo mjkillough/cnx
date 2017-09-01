@@ -35,7 +35,18 @@ impl FromStr for Status {
     }
 }
 
-
+/// Shows battery charge percentage and (dis)charge time.
+///
+/// This widget shows the battery's current charge percentage and the amount of
+/// remaining (dis)charge time, depending on whether the battery is charging or
+/// discharging. The format of the output is `(PP% HH:MM)`.
+///
+/// When the battery has less than 10% charge remaining, the widget's text will
+/// change to the specified `warning_color`.
+///
+/// Battery charge information is read from [`/sys/class/power_supply/BAT0/`].
+///
+/// [`/sys/class/power_supply/BAT0/`]: https://www.kernel.org/doc/Documentation/power/power_supply_class.txt
 pub struct Battery {
     timer: Timer,
     update_interval: Duration,
@@ -45,6 +56,47 @@ pub struct Battery {
 }
 
 impl Battery {
+    ///  Creates a new Battery widget.
+    ///
+    ///  Creates a new `Battery` widget, whose text will be displayed with the
+    ///  given [`Attributes`]. The caller can provide use the `warning_color`
+    ///  argument, to control the [`Color`] of the text once the battery has
+    ///  less than 10% charge remaining.
+    ///
+    ///  The [`Cnx`] instance is borrowed during construction in order to get
+    ///  access to handles of its event loop. However, it is not borrowed for
+    ///  the lifetime of the widget. See the [`cnx_add_widget!()`] for more
+    ///  discussion about the lifetime of the borrow.
+    ///
+    /// [`Attributes`]: ../text/struct.Attributes.html
+    /// [`Color`]: ../text/struct.Color.html
+    /// [`Cnx`]: ../struct.Cnx.html
+    /// [`cnx_add_widget!()`]: ../macro.cnx_add_widget.html
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[macro_use]
+    /// # extern crate cnx;
+    /// #
+    /// # use cnx::*;
+    /// # use cnx::text::*;
+    /// # use cnx::widgets::*;
+    /// #
+    /// # fn run() -> ::cnx::errors::Result<()> {
+    /// let attr = Attributes {
+    ///     font: Font::new("SourceCodePro 21"),
+    ///     fg_color: Color::white(),
+    ///     bg_color: None,
+    ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
+    /// };
+    ///
+    /// let mut cnx = Cnx::new(Position::Top)?;
+    /// cnx_add_widget!(cnx, Battery::new(&cnx, attr.clone(), Color::red()));
+    /// # Ok(())
+    /// # }
+    /// # fn main() { run().unwrap(); }
+    /// ```
     pub fn new(cnx: &Cnx, attr: Attributes, warning_color: Color) -> Battery {
         Battery {
             timer: cnx.timer(),
