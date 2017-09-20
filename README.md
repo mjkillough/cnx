@@ -48,7 +48,7 @@ configuration handling).
 
 An simple example of a binary using Cnx is:
 
-```no_run
+```rust
 #[macro_use]
 extern crate cnx;
 #[macro_use]
