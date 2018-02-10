@@ -22,8 +22,8 @@ volume-widget = ["alsa"]
 
 [dependencies]
 alsa = { version = "0.1", optional = true }
-cairo-rs = { version = "0.2", features = ["xcb"] }
-cairo-sys-rs = "0.4"
+cairo-rs = { version = "0.3", features = ["xcb"] }
+cairo-sys-rs = "0.5"
 chrono = "0.4"
 env_logger = "0.5"
 error-chain = "0.10"
@@ -33,8 +33,8 @@ lazy_static = "0.2"
 libc = "0.2"
 log = "0.4"
 mio = "0.6"
-pango = "0.2"
-pangocairo = "0.2"
+pango = "0.3"
+pangocairo = "0.4"
 regex = "0.2"
 tokio-core = "0.1"
 tokio-timer = "0.1"

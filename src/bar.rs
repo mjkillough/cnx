@@ -231,7 +231,7 @@ impl Bar {
         Ok(())
     }
 
-    fn update_widget_contents(&mut self, new_contents: Vec<Option<Vec<Text>>>) -> bool {
+    fn update_widget_contents(&mut self, new_contents: Vec<Option<Vec<Text>>>) -> Result<bool> {
         // For each widget's texts:
         //  - If they're equal to the previous texts we had for it, do nothing.
         //  - If there are new texts or any non-stretch texts changed size, redraw
@@ -244,12 +244,6 @@ impl Bar {
         let surface = &self.surface;
         let contents = &mut self.contents;
 
-        // We match up the new Vec<Text> for each widget with the Vec<> we
-        // already had from the last time we rendered it. We filter out any
-        // that haven't changed using the call to filter_map(). For each widget
-        // which has given us an update, we then call .compute() on each of its
-        // texts to lay it out and allow us to figure out if its width/height
-        // has changed in our loop.
         let it = new_contents
             .into_iter()
             .zip(contents.iter_mut())
@@ -273,15 +267,13 @@ impl Bar {
             // Call .compute() on each of the new texts so that we can get
             // layout information.
             .map(|(new, old)| {
-                (
-                    new.into_iter()
-                        .map(|text| text.compute(surface))
-                        .collect::<Vec<_>>(),
-                    old,
-                )
-            });
+                new.into_iter()
+                    .map(|text| text.compute(surface))
+                    .collect::<Result<Vec<ComputedText>>>()
+                    .map(|computeds| (computeds, old))
+            }).collect::<Result<Vec<_>>>()?;
 
-        for (mut new_texts, old_texts) in it {
+        for (mut new_texts, old_texts) in it.into_iter() {
             // Redraw the entire bar if any of widget's non-stretch texts
             // have changed size, or if the number of texts for this widget
             // has changed. (Both of these would affect the size of other
@@ -322,14 +314,14 @@ impl Bar {
                     .map(|(n, _)| n);
                 for text in changed {
                     trace!("Redrawing one");
-                    text.render(surface);
+                    text.render(surface)?;
                 }
             }
 
             mem::swap(&mut new_texts, old_texts);
         }
 
-        redraw_entire_bar
+        Ok(redraw_entire_bar)
     }
 
     fn redraw_entire_bar(&mut self) -> Result<()> {
@@ -379,7 +371,7 @@ impl Bar {
             }
             text.x = x;
             text.y = 0.0;
-            text.render(&self.surface);
+            text.render(&self.surface)?;
             x += text.width;
         }
 
@@ -404,7 +396,12 @@ impl Bar {
 
         let fut = event_loop.for_each(move |event| {
             let redraw_entire_bar = match event {
-                Event::Widget(update) => self.update_widget_contents(update),
+                Event::Widget(update) => {
+                    match self.update_widget_contents(update) {
+                        Ok(b) => b,
+                        Err(e) => return future::err(e),
+                    }
+                },
                 Event::Xcb(event) => event.response_type() & !0x80 == xcb::EXPOSE,
             };
 

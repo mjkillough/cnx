@@ -1,8 +1,10 @@
 use std::fmt;
 
-use cairo::{Context, Surface};
+use cairo::{self, Context, Surface};
 use pango::{self, EllipsizeMode, FontDescription, LayoutExt};
-use pangocairo::CairoContextExt;
+use pangocairo;
+
+use errors::*;
 
 
 #[derive(Clone, Debug, PartialEq)]
@@ -81,6 +83,16 @@ pub struct Attributes {
 }
 
 
+fn create_pango_layout(cairo_context: &cairo::Context) -> Result<pango::Layout> {
+    pangocairo::functions::create_layout(cairo_context)
+        .ok_or_else(|| "Failed to create Pango layout".into())
+}
+
+fn show_pango_layout(cairo_context: &cairo::Context, layout: &pango::Layout) {
+    pangocairo::functions::show_layout(cairo_context, layout);
+}
+
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Text {
     pub attr: Attributes,
@@ -89,10 +101,10 @@ pub struct Text {
 }
 
 impl Text {
-    pub(crate) fn compute(self, surface: &Surface) -> ComputedText {
+    pub(crate) fn compute(self, surface: &Surface) -> Result<ComputedText> {
         let (width, height) = {
             let context = Context::new(&surface);
-            let layout = context.create_pango_layout();
+            let layout = create_pango_layout(&context)?;
             layout.set_text(&self.text);
             layout.set_font_description(Some(&self.attr.font.0));
 
@@ -103,7 +115,7 @@ impl Text {
             (width, height)
         };
 
-        ComputedText {
+        Ok(ComputedText {
             attr: self.attr,
             text: self.text,
             stretch: self.stretch,
@@ -111,7 +123,7 @@ impl Text {
             y: 0.0,
             width,
             height,
-        }
+        })
     }
 }
 
@@ -137,9 +149,9 @@ pub(crate) struct ComputedText {
 }
 
 impl ComputedText {
-    pub fn render(&self, surface: &Surface) {
+    pub fn render(&self, surface: &Surface) -> Result<()> {
         let context = Context::new(&surface);
-        let layout = context.create_pango_layout();
+        let layout = create_pango_layout(&context)?;
         layout.set_text(&self.text);
         layout.set_font_description(Some(&self.attr.font.0));
 
@@ -164,6 +176,8 @@ impl ComputedText {
 
         self.attr.fg_color.apply_to_context(&context);
         context.translate(padding.left, padding.top);
-        context.show_pango_layout(&layout);
+        show_pango_layout(&context, &layout);
+
+        Ok(())
     }
 }
