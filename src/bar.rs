@@ -396,11 +396,9 @@ impl Bar {
 
         let fut = event_loop.for_each(move |event| {
             let redraw_entire_bar = match event {
-                Event::Widget(update) => {
-                    match self.update_widget_contents(update) {
-                        Ok(b) => b,
-                        Err(e) => return future::err(e),
-                    }
+                Event::Widget(update) => match self.update_widget_contents(update) {
+                    Ok(b) => b,
+                    Err(e) => return future::err(e),
                 },
                 Event::Xcb(event) => event.response_type() & !0x80 == xcb::EXPOSE,
             };
