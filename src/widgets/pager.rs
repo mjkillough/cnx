@@ -92,24 +92,22 @@ impl Pager {
             names.extend(vec!["?"; num_unnamed]);
         }
 
-        Ok(
-            names
-                .into_iter()
-                .enumerate()
-                .map(|(i, name)| {
-                    let attr = if i == current {
-                        self.active_attr.clone()
-                    } else {
-                        self.inactive_attr.clone()
-                    };
-                    Text {
-                        attr: attr,
-                        text: name.to_owned(),
-                        stretch: false,
-                    }
-                })
-                .collect(),
-        )
+        Ok(names
+            .into_iter()
+            .enumerate()
+            .map(|(i, name)| {
+                let attr = if i == current {
+                    self.active_attr.clone()
+                } else {
+                    self.inactive_attr.clone()
+                };
+                Text {
+                    attr: attr,
+                    text: name.to_owned(),
+                    stretch: false,
+                }
+            })
+            .collect())
     }
 }
 

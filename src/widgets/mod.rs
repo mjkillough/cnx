@@ -1,6 +1,6 @@
 //! Built-in widgets
 
-use futures::{Async, Stream, Poll};
+use futures::{Async, Poll, Stream};
 
 use errors::*;
 use text::Text;

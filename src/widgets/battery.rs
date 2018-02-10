@@ -103,7 +103,7 @@ impl Battery {
             update_interval: Duration::from_secs(60),
             battery: "BAT0".to_owned(),
             attr,
-            warning_color
+            warning_color,
         }
     }
 
@@ -124,9 +124,8 @@ impl Battery {
         T: FromStr,
         <T as FromStr>::Err: error::Error + Send + 'static,
     {
-        self.load_value_inner(file).chain_err(|| {
-            format!("Could not load value from battery status file: {}", file)
-        })
+        self.load_value_inner(file)
+            .chain_err(|| format!("Could not load value from battery status file: {}", file))
     }
 
     fn tick(&self) -> Result<Vec<Text>> {

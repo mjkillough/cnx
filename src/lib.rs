@@ -130,8 +130,8 @@
 
 #[cfg(feature = "volume-widget")]
 extern crate alsa;
-extern crate cairo_sys;
 extern crate cairo;
+extern crate cairo_sys;
 extern crate chrono;
 #[macro_use]
 extern crate error_chain;
@@ -146,8 +146,8 @@ extern crate pangocairo;
 extern crate regex;
 extern crate tokio_core;
 extern crate tokio_timer;
-extern crate xcb_util;
 extern crate xcb;
+extern crate xcb_util;
 
 use tokio_core::reactor::{Core, Handle};
 use tokio_timer::Timer;

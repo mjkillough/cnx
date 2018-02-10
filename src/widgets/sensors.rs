@@ -115,17 +115,18 @@ impl Sensors {
         let output = Command::new("sensors")
             .output()
             .chain_err(|| "Failed to run `sensors`")?;
-        let string = String::from_utf8(output.stdout)
-            .chain_err(|| "Invalid UTF-8 in sensors output")?;
-        let parsed = parse_sensors_output(&string)
-            .chain_err(|| "Failed to parse `sensors` output")?;
+        let string =
+            String::from_utf8(output.stdout).chain_err(|| "Invalid UTF-8 in sensors output")?;
+        let parsed =
+            parse_sensors_output(&string).chain_err(|| "Failed to parse `sensors` output")?;
         self.sensors
             .iter()
             .map(|sensor_name| {
-                let text = parsed.get::<str>(sensor_name).map_or(
-                    "?".to_owned(),
-                    |&Value { temp, units }| format!("{}°{}", temp, units),
-                );
+                let text = parsed
+                    .get::<str>(sensor_name)
+                    .map_or("?".to_owned(), |&Value { temp, units }| {
+                        format!("{}°{}", temp, units)
+                    });
                 Ok(Text {
                     attr: self.attr.clone(),
                     text: text,

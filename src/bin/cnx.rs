@@ -33,7 +33,7 @@ fn init_log() -> errors::Result<()> {
     let mut builder = LogBuilder::new();
     builder.filter(Some("cnx"), LogLevelFilter::Trace);
     if let Ok(rust_log) = env::var("RUST_LOG") {
-       builder.parse(&rust_log);
+        builder.parse(&rust_log);
     }
     Ok(builder.init()?)
 }

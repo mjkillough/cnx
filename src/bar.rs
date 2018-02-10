@@ -15,9 +15,8 @@ use xcb;
 use xcb_util::ewmh;
 
 use errors::*;
-use text::{Text, ComputedText};
-use widgets::{WidgetList, Widget};
-
+use text::{ComputedText, Text};
+use widgets::{Widget, WidgetList};
 
 fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Visualtype {
     for root in conn.get_setup().roots() {
@@ -46,8 +45,8 @@ fn cairo_surface_for_xcb_window(
     };
     let visual = unsafe {
         cairo::XCBVisualType::from_raw_none(
-            &mut get_root_visual_type(conn, screen).base as *mut xcb::ffi::xcb_visualtype_t as
-                *mut cairo_sys::xcb_visualtype_t,
+            &mut get_root_visual_type(conn, screen).base as *mut xcb::ffi::xcb_visualtype_t
+                as *mut cairo_sys::xcb_visualtype_t,
         )
     };
     let drawable = cairo::XCBDrawable(id);
@@ -90,8 +89,8 @@ pub struct Bar {
 
 impl Bar {
     pub fn new(position: Position) -> Result<Bar> {
-        let (conn, screen_idx) = xcb::Connection::connect(None)
-            .chain_err(|| "Failed to connect to X server")?;
+        let (conn, screen_idx) =
+            xcb::Connection::connect(None).chain_err(|| "Failed to connect to X server")?;
         let screen_idx = screen_idx as usize;
         let id = conn.generate_id();
 
@@ -289,8 +288,8 @@ impl Bar {
             // height. (It would be better to do this only if this changes
             // the height of the bar).
             let length_different = new_texts.len() != old_texts.len();
-            redraw_entire_bar = redraw_entire_bar || length_different ||
-                new_texts.iter().zip(old_texts.iter()).any(|(new, old)| {
+            redraw_entire_bar = redraw_entire_bar || length_different
+                || new_texts.iter().zip(old_texts.iter()).any(|(new, old)| {
                     let not_stretch = !new.stretch && !old.stretch;
                     let diff_width = (new.width - old.width).abs().round() >= 1.0;
                     let diff_height = (new.height - old.height).abs().round() >= 1.0;
@@ -346,10 +345,12 @@ impl Bar {
         let width_per_stretched = {
             let texts = self.contents.iter().flat_map(|v| v);
             let (stretched, non_stretched): (Vec<_>, Vec<_>) = texts.partition(|text| text.stretch);
-            let width = non_stretched.iter().fold(0.0, |acc, text| if text.stretch {
-                0.0
-            } else {
-                acc + text.width
+            let width = non_stretched.iter().fold(0.0, |acc, text| {
+                if text.stretch {
+                    0.0
+                } else {
+                    acc + text.width
+                }
             });
             let remaining_width = (screen_width - width).max(0.0);
             remaining_width / (stretched.len() as f64)

@@ -74,21 +74,20 @@ impl Widget for Clock {
         let stream = stream::unfold(sleep_for, move |sleep_for| {
             // Avoid having to move self into the .map() closure.
             let attr = self.attr.clone();
-            Some(self.timer.sleep(sleep_for)
-                .map(move |()| {
-                    let now = Local::now();
-                    let formatted = now.format("%Y-%m-%d %a %I:%M %p").to_string();
-                    let texts = vec![
-                        Text {
-                            attr: attr,
-                            text: formatted,
-                            stretch: false,
-                        },
-                    ];
+            Some(self.timer.sleep(sleep_for).map(move |()| {
+                let now = Local::now();
+                let formatted = now.format("%Y-%m-%d %a %I:%M %p").to_string();
+                let texts = vec![
+                    Text {
+                        attr: attr,
+                        text: formatted,
+                        stretch: false,
+                    },
+                ];
 
-                    let sleep_for = Duration::from_secs(60 - now.second() as u64);
-                    (texts, sleep_for)
-                }))
+                let sleep_for = Duration::from_secs(60 - now.second() as u64);
+                (texts, sleep_for)
+            }))
         }).then(|r| r.chain_err(|| "Error in tokio_timer stream"));
 
         Ok(Box::new(stream))

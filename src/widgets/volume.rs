@@ -92,7 +92,8 @@ impl Widget for Volume {
                 let channel = SelemChannelId::FrontLeft;
 
                 let mixer = Mixer::new(mixer_name, true)?;
-                let master = mixer.find_selem(&SelemId::new("Master", 0))
+                let master = mixer
+                    .find_selem(&SelemId::new("Master", 0))
                     .ok_or("Couldn't open Master channel")?;
 
                 let mute = master.get_playback_switch(channel)? == 0;
@@ -106,11 +107,13 @@ impl Widget for Volume {
                     "M".to_owned()
                 };
 
-                Ok(vec![Text{
-                    attr: self.attr.clone(),
-                    text: text,
-                    stretch: false,
-                }])
+                Ok(vec![
+                    Text {
+                        attr: self.attr.clone(),
+                        text: text,
+                        stretch: false,
+                    },
+                ])
             })
             .then(|r| r.chain_err(|| "Error getting ALSA volume information"));
 
