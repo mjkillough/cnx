@@ -128,7 +128,7 @@ impl Bar {
             );
 
             let surface =
-                cairo_surface_for_xcb_window(&conn, &screen, id, width as i32, height as i32);
+                cairo_surface_for_xcb_window(&conn, &screen, id, i32::from(width), i32::from(height));
 
             (width, surface)
         };
@@ -189,8 +189,8 @@ impl Bar {
             bottom_end_x: 0,
         };
         match self.position {
-            Position::Top => strut_partial.top = self.height as u32,
-            Position::Bottom => strut_partial.bottom = self.height as u32,
+            Position::Top => strut_partial.top = u32::from(self.height),
+            Position::Bottom => strut_partial.bottom = u32::from(self.height),
         }
         ewmh::set_wm_strut_partial(&self.conn, self.window_id, strut_partial);
     }
@@ -216,13 +216,13 @@ impl Bar {
 
             // Update the height/position of the XCB window and the height of the Cairo surface.
             let values = [
-                (xcb::CONFIG_WINDOW_Y as u16, y as u32),
-                (xcb::CONFIG_WINDOW_HEIGHT as u16, self.height as u32),
+                (xcb::CONFIG_WINDOW_Y as u16, u32::from(y)),
+                (xcb::CONFIG_WINDOW_HEIGHT as u16, u32::from(self.height)),
                 (xcb::CONFIG_WINDOW_STACK_MODE as u16, xcb::STACK_MODE_ABOVE),
             ];
             xcb::configure_window(&self.conn, self.window_id, &values);
             self.map_window();
-            self.surface.set_size(self.width as i32, self.height as i32);
+            self.surface.set_size(i32::from(self.width), i32::from(self.height));
 
             // Update EWMH properties - we might need to reserve more or less space.
             self.set_ewmh_properties();
@@ -273,7 +273,7 @@ impl Bar {
                     .map(|computeds| (computeds, old))
             }).collect::<Result<Vec<_>>>()?;
 
-        for (mut new_texts, old_texts) in it.into_iter() {
+        for (mut new_texts, old_texts) in it {
             // Redraw the entire bar if any of widget's non-stretch texts
             // have changed size, or if the number of texts for this widget
             // has changed. (Both of these would affect the size of other
@@ -332,9 +332,9 @@ impl Bar {
         // stretch blocks. If there isn't enough space for the non-stretch blocks
         // do nothing and allow it to overflow.
         // While we're at it, we also calculate how
-        let screen_width = self.screen()
+        let screen_width = f64::from(self.screen()
             .chain_err(|| "Could not get screen width")?
-            .width_in_pixels() as f64;
+            .width_in_pixels());
         let width_per_stretched = {
             let texts = self.contents.iter().flatten();
             let (stretched, non_stretched): (Vec<_>, Vec<_>) = texts.partition(|text| text.stretch);

@@ -110,8 +110,8 @@ impl Text {
 
             let padding = &self.attr.padding;
             let (text_width, text_height) = layout.get_pixel_size();
-            let width = text_width as f64 + padding.left + padding.right;
-            let height = text_height as f64 + padding.top + padding.bottom;
+            let width = f64::from(text_width) + padding.left + padding.right;
+            let height = f64::from(text_height) + padding.top + padding.bottom;
             (width, height)
         };
 

@@ -85,7 +85,7 @@ impl Widget for Volume {
         // create a new mixer each time we get an event though.
         let mixer = Mixer::new(mixer_name, true)
             .chain_err(|| format!("Failed to open ALSA mixer: {}", mixer_name))?;
-        let stream = AlsaEventStream::new(self.handle.clone(), mixer)?
+        let stream = AlsaEventStream::new(&self.handle, mixer)?
             .and_then(move |()| {
                 // FrontLeft has special meaning in ALSA and is the channel
                 // that's used when the mixer is mono.
@@ -183,9 +183,9 @@ struct AlsaEventStream {
 }
 
 impl AlsaEventStream {
-    fn new(handle: Handle, mixer: Mixer) -> Result<AlsaEventStream> {
+    fn new(handle: &Handle, mixer: Mixer) -> Result<AlsaEventStream> {
         Ok(AlsaEventStream {
-            poll: PollEvented::new(AlsaEvented(mixer), &handle)?,
+            poll: PollEvented::new(AlsaEvented(mixer), handle)?,
             // The first few calls to poll() need to process any existing events.
             // We don't know what state the fds are in when we give them to tokio
             // and it's edge-triggered.

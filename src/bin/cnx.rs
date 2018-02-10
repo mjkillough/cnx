@@ -62,7 +62,9 @@ fn run() -> errors::Result<()> {
     cnx_add_widget!(cnx, Battery::new(&cnx, attr.clone(), Color::red()));
     cnx_add_widget!(cnx, Clock::new(&cnx, attr.clone()));
 
-    Ok(cnx.run()?)
+    cnx.run()?;
+
+    Ok(())
 }
 
 quick_main!(run);

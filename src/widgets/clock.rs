@@ -85,7 +85,7 @@ impl Widget for Clock {
                     },
                 ];
 
-                let sleep_for = Duration::from_secs(60 - now.second() as u64);
+                let sleep_for = Duration::from_secs(60 - u64::from(now.second()));
                 (texts, sleep_for)
             }))
         }).then(|r| r.chain_err(|| "Error in tokio_timer stream"));
