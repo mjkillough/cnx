@@ -7,6 +7,7 @@ use std::rc::Rc;
 use cairo_sys;
 use cairo::{self, XCBSurface};
 use futures::{future, Async, Future, Poll, Stream};
+use itertools::Itertools;
 use mio::{self, PollOpt, Ready, Token};
 use mio::event::Evented;
 use mio::unix::EventedFd;
@@ -343,7 +344,7 @@ impl Bar {
             .chain_err(|| "Could not get screen width")?
             .width_in_pixels() as f64;
         let width_per_stretched = {
-            let texts = self.contents.iter().flat_map(|v| v);
+            let texts = self.contents.iter().flatten();
             let (stretched, non_stretched): (Vec<_>, Vec<_>) = texts.partition(|text| text.stretch);
             let width = non_stretched.iter().fold(0.0, |acc, text| {
                 if text.stretch {
@@ -360,7 +361,7 @@ impl Bar {
         // TODO: Update all the Layouts so they all render that big too?
         let height = self.contents
             .iter()
-            .flat_map(|v| v)
+            .flatten()
             .fold(f64::NEG_INFINITY, |acc, text| text.height.max(acc));
         if let Err(e) = self.update_bar_height(height as u16) {
             // Log and continue - the bar is hopefully still useful.
@@ -370,7 +371,7 @@ impl Bar {
         // Render each Text in turn. If it's a stretch block, override its width
         // with the width we've just computed. Regardless of whether it's a stretch
         // block, override its height - everything should be as big as the biggest item.
-        let texts = self.contents.iter_mut().flat_map(|v| v);
+        let texts = self.contents.iter_mut().flatten();
         let mut x = 0.0;
         for text in texts {
             if text.stretch {

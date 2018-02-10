@@ -136,6 +136,7 @@ extern crate chrono;
 #[macro_use]
 extern crate error_chain;
 extern crate futures;
+extern crate itertools;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
