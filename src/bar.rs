@@ -7,7 +7,6 @@ use std::rc::Rc;
 use cairo_sys;
 use cairo::{self, XCBSurface};
 use futures::{future, Async, Future, Poll, Stream};
-use futures::stream::MergedItem;
 use mio::{self, PollOpt, Ready, Token};
 use mio::event::Evented;
 use mio::unix::EventedFd;
@@ -392,26 +391,21 @@ impl Bar {
     ) -> Result<Box<Future<Item = (), Error = Error>>> {
         self.contents = vec![Vec::new(); widgets.len()];
 
-        let events_stream = XcbEventStream::new(self.conn.clone(), handle)?;
-        let widget_updates_stream = WidgetList::new(widgets)?;
+        enum Event {
+            Xcb(<XcbEventStream as Stream>::Item),
+            Widget(<WidgetList as Stream>::Item),
+        };
 
-        let event_loop = events_stream.merge(widget_updates_stream);
-        let fut = event_loop.for_each(move |item| {
-            let (xcb_event, widget_update) = match item {
-                MergedItem::First(e) => (Some(e), None),
-                MergedItem::Second(u) => (None, Some(u)),
-                MergedItem::Both(e, u) => (Some(e), Some(u)),
+        let events_stream = XcbEventStream::new(self.conn.clone(), handle)?.map(Event::Xcb);
+        let widget_updates_stream = WidgetList::new(widgets)?.map(Event::Widget);
+        let event_loop = events_stream.select(widget_updates_stream);
+
+        let fut = event_loop.for_each(move |event| {
+            let redraw_entire_bar = match event {
+                Event::Widget(update) => self.update_widget_contents(update),
+                Event::Xcb(event) => event.response_type() & !0x80 == xcb::EXPOSE,
             };
 
-            let mut redraw_entire_bar = false;
-            if let Some(update) = widget_update {
-                redraw_entire_bar = self.update_widget_contents(update);
-            }
-            if let Some(event) = xcb_event {
-                if let xcb::EXPOSE = event.response_type() & !0x80 {
-                    redraw_entire_bar = true;
-                }
-            }
             if redraw_entire_bar {
                 if let Err(e) = self.redraw_entire_bar() {
                     error!("Error redrawing bar: {}", e);
