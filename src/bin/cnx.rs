@@ -7,8 +7,8 @@ extern crate log;
 
 use std::env;
 
-use env_logger::LogBuilder;
-use log::LogLevelFilter;
+use env_logger::Builder;
+use log::LevelFilter;
 
 use cnx::*;
 use cnx::text::*;
@@ -30,12 +30,13 @@ mod errors {
 
 
 fn init_log() -> errors::Result<()> {
-    let mut builder = LogBuilder::new();
-    builder.filter(Some("cnx"), LogLevelFilter::Trace);
+    let mut builder = Builder::new();
+    builder.filter(Some("cnx"), LevelFilter::Trace);
     if let Ok(rust_log) = env::var("RUST_LOG") {
         builder.parse(&rust_log);
     }
-    Ok(builder.init()?)
+    builder.try_init()?;
+    Ok(())
 }
 
 fn run() -> errors::Result<()> {
