@@ -10,9 +10,6 @@
 //! [`error-chain`]: https://docs.rs/error-chain
 //! [`src/bin/cnx.rs`]: https://github.com/mjkillough/cnx/blob/master/src/bin/cnx.rs
 
-// This will not be needed in error-chain 0.11:
-#![allow(unused_doc_comment)]
-
 error_chain!{
     foreign_links {
         Io(::std::io::Error);
