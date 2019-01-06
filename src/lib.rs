@@ -135,12 +135,6 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 
-use cairo;
-use cairo_sys;
-use mio;
-use pango;
-use pangocairo;
-use xcb;
 use tokio_core::reactor::{Core, Handle};
 use tokio_timer::Timer;
 
