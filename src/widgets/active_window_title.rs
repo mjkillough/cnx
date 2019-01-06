@@ -2,10 +2,9 @@ use tokio_core::reactor::Handle;
 use xcb;
 use xcb_util::ewmh;
 
-use Cnx;
 use errors::*;
 use text::{Attributes, Text};
-
+use Cnx;
 
 /// Shows the title of the currently focused window.
 ///
@@ -87,13 +86,11 @@ impl ActiveWindowTitle {
             .map(|reply| reply.string().to_owned())
             .unwrap_or_else(|_| "".to_owned());
 
-        Ok(vec![
-            Text {
-                attr: self.attr.clone(),
-                text: title,
-                stretch: true,
-            },
-        ])
+        Ok(vec![Text {
+            attr: self.attr.clone(),
+            text: title,
+            stretch: true,
+        }])
     }
 }
 

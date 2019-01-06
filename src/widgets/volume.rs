@@ -1,19 +1,18 @@
 use std::io;
 use std::os::unix::io::RawFd;
 
-use alsa::{self, Mixer, PollDescriptors};
 use alsa::mixer::{SelemChannelId, SelemId};
+use alsa::{self, Mixer, PollDescriptors};
 use futures::{Async, Poll, Stream};
-use mio::{self, PollOpt, Ready, Token};
 use mio::event::Evented;
 use mio::unix::EventedFd;
+use mio::{self, PollOpt, Ready, Token};
 use tokio_core::reactor::{Handle, PollEvented};
 
-use Cnx;
 use super::{Widget, WidgetStream};
 use errors::*;
 use text::{Attributes, Text};
-
+use Cnx;
 
 /// Shows the current volume of the default ALSA output.
 ///
@@ -107,20 +106,17 @@ impl Widget for Volume {
                     "M".to_owned()
                 };
 
-                Ok(vec![
-                    Text {
-                        attr: self.attr.clone(),
-                        text: text,
-                        stretch: false,
-                    },
-                ])
+                Ok(vec![Text {
+                    attr: self.attr.clone(),
+                    text: text,
+                    stretch: false,
+                }])
             })
             .then(|r| r.chain_err(|| "Error getting ALSA volume information"));
 
         Ok(Box::new(stream))
     }
 }
-
 
 struct AlsaEvented(Mixer);
 
@@ -175,7 +171,6 @@ impl Evented for AlsaEvented {
         Ok(())
     }
 }
-
 
 struct AlsaEventStream {
     poll: PollEvented<AlsaEvented>,

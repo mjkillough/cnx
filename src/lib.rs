@@ -153,17 +153,16 @@ extern crate xcb_util;
 use tokio_core::reactor::{Core, Handle};
 use tokio_timer::Timer;
 
+mod bar;
 pub mod errors;
 pub mod text;
 pub mod widgets;
-mod bar;
 
 pub use bar::Position;
 use errors::*;
 
 use bar::Bar;
 pub use widgets::Widget;
-
 
 /// The main object, used to instantiate an instance of Cnx.
 ///
@@ -271,7 +270,6 @@ impl Cnx {
     }
 }
 
-
 /// Adds a `Widget` to a `Cnx` instance.
 ///
 /// This macro adds a [`Widget`] to a [`Cnx`] instance, placing it to the right
@@ -307,5 +305,5 @@ macro_rules! cnx_add_widget {
     ($cnx:ident, $widget:expr) => {
         let widget = $widget;
         $cnx.add_widget(widget);
-    }
+    };
 }

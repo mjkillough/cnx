@@ -10,9 +10,9 @@ use std::env;
 use env_logger::Builder;
 use log::LevelFilter;
 
-use cnx::*;
 use cnx::text::*;
 use cnx::widgets::*;
+use cnx::*;
 
 mod errors {
     error_chain! {

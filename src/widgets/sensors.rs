@@ -5,10 +5,9 @@ use std::time::Duration;
 use regex::Regex;
 use tokio_timer::Timer;
 
-use Cnx;
 use errors::*;
 use text::{Attributes, Text};
-
+use Cnx;
 
 #[derive(Debug, PartialEq)]
 struct Value<'a> {
@@ -39,7 +38,6 @@ fn parse_sensors_output(output: &str) -> Result<HashMap<&str, Value>> {
 
     Ok(map)
 }
-
 
 /// Shows the temperature from one or more sensors.
 ///
@@ -138,7 +136,6 @@ impl Sensors {
 }
 
 timer_widget!(Sensors, timer, update_interval, tick);
-
 
 #[cfg(test)]
 mod test {

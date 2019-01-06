@@ -1,9 +1,9 @@
 use tokio_core::reactor::Handle;
 use xcb_util::ewmh;
 
-use Cnx;
 use errors::*;
 use text::{Attributes, Text};
+use Cnx;
 
 /// Shows the WM's workspaces/groups, highlighting whichever is currently
 /// active.

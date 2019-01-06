@@ -4,13 +4,13 @@ use std::mem;
 use std::os::unix::io::RawFd;
 use std::rc::Rc;
 
-use cairo_sys;
 use cairo::{self, XCBSurface};
+use cairo_sys;
 use futures::{future, Async, Future, Poll, Stream};
 use itertools::Itertools;
-use mio::{self, PollOpt, Ready, Token};
 use mio::event::Evented;
 use mio::unix::EventedFd;
+use mio::{self, PollOpt, Ready, Token};
 use tokio_core::reactor::{Handle, PollEvented};
 use xcb;
 use xcb_util::ewmh;
@@ -31,7 +31,6 @@ fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Vi
     }
     panic!("No visual type found");
 }
-
 
 /// Creates a `cairo::Surface` for the XCB window with the given `id`.
 fn cairo_surface_for_xcb_window(
@@ -54,7 +53,6 @@ fn cairo_surface_for_xcb_window(
     cairo::Surface::create(&cairo_conn, &drawable, &visual, width, height)
 }
 
-
 /// An enum specifying the position of the Cnx bar.
 ///
 /// Passed to [`Cnx::new()`] when constructing a [`Cnx`] instance.
@@ -75,7 +73,6 @@ pub enum Position {
     /// Position the Cnx bar at the bottom of the screen.
     Bottom,
 }
-
 
 pub struct Bar {
     conn: Rc<ewmh::Connection>,
@@ -101,7 +98,8 @@ impl Bar {
         let height = 1;
 
         let (width, surface) = {
-            let screen = conn.get_setup()
+            let screen = conn
+                .get_setup()
                 .roots()
                 .nth(screen_idx)
                 .ok_or("Invalid screen")?;
@@ -127,8 +125,13 @@ impl Bar {
                 &values,
             );
 
-            let surface =
-                cairo_surface_for_xcb_window(&conn, &screen, id, i32::from(width), i32::from(height));
+            let surface = cairo_surface_for_xcb_window(
+                &conn,
+                &screen,
+                id,
+                i32::from(width),
+                i32::from(height),
+            );
 
             (width, surface)
         };
@@ -222,7 +225,8 @@ impl Bar {
             ];
             xcb::configure_window(&self.conn, self.window_id, &values);
             self.map_window();
-            self.surface.set_size(i32::from(self.width), i32::from(self.height));
+            self.surface
+                .set_size(i32::from(self.width), i32::from(self.height));
 
             // Update EWMH properties - we might need to reserve more or less space.
             self.set_ewmh_properties();
@@ -332,9 +336,11 @@ impl Bar {
         // stretch blocks. If there isn't enough space for the non-stretch blocks
         // do nothing and allow it to overflow.
         // While we're at it, we also calculate how
-        let screen_width = f64::from(self.screen()
-            .chain_err(|| "Could not get screen width")?
-            .width_in_pixels());
+        let screen_width = f64::from(
+            self.screen()
+                .chain_err(|| "Could not get screen width")?
+                .width_in_pixels(),
+        );
         let width_per_stretched = {
             let texts = self.contents.iter().flatten();
             let (stretched, non_stretched): (Vec<_>, Vec<_>) = texts.partition(|text| text.stretch);
@@ -351,7 +357,8 @@ impl Bar {
 
         // Get the height of the biggest Text and set the bar to be that big.
         // TODO: Update all the Layouts so they all render that big too?
-        let height = self.contents
+        let height = self
+            .contents
             .iter()
             .flatten()
             .fold(f64::NEG_INFINITY, |acc, text| text.height.max(acc));
@@ -418,7 +425,6 @@ impl Bar {
     }
 }
 
-
 struct XcbEvented(Rc<ewmh::Connection>);
 
 impl XcbEvented {
@@ -453,7 +459,6 @@ impl Evented for XcbEvented {
         EventedFd(&self.fd()).deregister(poll)
     }
 }
-
 
 pub(crate) struct XcbEventStream {
     conn: Rc<ewmh::Connection>,

@@ -8,10 +8,9 @@ use std::time::Duration;
 
 use tokio_timer::Timer;
 
-use Cnx;
 use errors::*;
 use text::{Attributes, Color, Text};
-
+use Cnx;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum Status {
@@ -159,13 +158,11 @@ impl Battery {
             attr.fg_color = self.warning_color.clone()
         }
 
-        Ok(vec![
-            Text {
-                attr,
-                text,
-                stretch: false,
-            },
-        ])
+        Ok(vec![Text {
+            attr,
+            text,
+            stretch: false,
+        }])
     }
 }
 

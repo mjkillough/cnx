@@ -4,10 +4,10 @@ use chrono::prelude::*;
 use futures::{stream, Future, Stream};
 use tokio_timer::Timer;
 
-use Cnx;
+use super::{Widget, WidgetStream};
 use errors::*;
 use text::{Attributes, Text};
-use super::{Widget, WidgetStream};
+use Cnx;
 
 /// Shows the current time and date.
 ///
@@ -77,13 +77,11 @@ impl Widget for Clock {
             Some(self.timer.sleep(sleep_for).map(move |()| {
                 let now = Local::now();
                 let formatted = now.format("%Y-%m-%d %a %I:%M %p").to_string();
-                let texts = vec![
-                    Text {
-                        attr: attr,
-                        text: formatted,
-                        stretch: false,
-                    },
-                ];
+                let texts = vec![Text {
+                    attr: attr,
+                    text: formatted,
+                    stretch: false,
+                }];
 
                 let sleep_for = Duration::from_secs(60 - u64::from(now.second()));
                 (texts, sleep_for)

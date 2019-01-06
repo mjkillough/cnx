@@ -6,7 +6,6 @@ use pangocairo;
 
 use errors::*;
 
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct Color {
     red: f64,
@@ -15,14 +14,16 @@ pub struct Color {
 }
 
 macro_rules! color {
-    ($name:ident, ($r:expr, $g:expr, $b:expr)) => {
+    ($name:ident,($r:expr, $g:expr, $b:expr)) => {
         #[allow(dead_code)]
         pub fn $name() -> Color {
             Color {
-                red: $r, green: $g, blue: $b,
+                red: $r,
+                green: $g,
+                blue: $b,
             }
         }
-    }
+    };
 }
 
 impl Color {
@@ -36,7 +37,6 @@ impl Color {
         cr.set_source_rgb(self.red, self.green, self.blue);
     }
 }
-
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Padding {
@@ -57,7 +57,6 @@ impl Padding {
     }
 }
 
-
 #[derive(Clone, PartialEq)]
 pub struct Font(FontDescription);
 
@@ -73,7 +72,6 @@ impl fmt::Debug for Font {
     }
 }
 
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct Attributes {
     pub font: Font,
@@ -81,7 +79,6 @@ pub struct Attributes {
     pub bg_color: Option<Color>,
     pub padding: Padding,
 }
-
 
 fn create_pango_layout(cairo_context: &cairo::Context) -> Result<pango::Layout> {
     pangocairo::functions::create_layout(cairo_context)
@@ -91,7 +88,6 @@ fn create_pango_layout(cairo_context: &cairo::Context) -> Result<pango::Layout> 
 fn show_pango_layout(cairo_context: &cairo::Context, layout: &pango::Layout) {
     pangocairo::functions::show_layout(cairo_context, layout);
 }
-
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Text {
@@ -134,7 +130,6 @@ impl PartialEq<ComputedText> for Text {
         self.attr == other.attr && self.text == other.text && self.stretch == other.stretch
     }
 }
-
 
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct ComputedText {

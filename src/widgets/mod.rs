@@ -5,7 +5,6 @@ use futures::{Async, Poll, Stream};
 use errors::*;
 use text::Text;
 
-
 /// The stream of `Vec<Text>` returned by each widget.
 ///
 /// This simple type alias makes referring to this stream a little easier. For
@@ -30,7 +29,6 @@ pub trait Widget {
     fn stream(self: Box<Self>) -> Result<WidgetStream>;
 }
 
-
 macro_rules! timer_widget {
     ($widget:ty, $timer:ident, $interval:ident, $tick:ident) => {
         impl ::widgets::Widget for $widget {
@@ -51,9 +49,8 @@ macro_rules! timer_widget {
                 Ok(Box::new(initial.chain(text_stream)))
             }
         }
-    }
+    };
 }
-
 
 macro_rules! x_properties_widget {
     ($widget:ty, $handle:ident, $on_change:ident; [ $( $property:ident ),+ ])  => {
@@ -115,7 +112,6 @@ macro_rules! x_properties_widget {
     }
 }
 
-
 // Defined after macros because of macro scoping rules:
 mod active_window_title;
 mod battery;
@@ -132,7 +128,6 @@ pub use self::pager::Pager;
 pub use self::sensors::Sensors;
 #[cfg(feature = "volume-widget")]
 pub use self::volume::Volume;
-
 
 pub(crate) struct WidgetList {
     vec: Vec<Box<Stream<Item = Vec<Text>, Error = Error>>>,
