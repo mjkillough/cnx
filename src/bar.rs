@@ -7,7 +7,6 @@ use std::rc::Rc;
 use cairo::{self, XCBSurface};
 use cairo_sys;
 use futures::{future, Async, Future, Poll, Stream};
-use itertools::Itertools;
 use mio::event::Evented;
 use mio::unix::EventedFd;
 use mio::{self, PollOpt, Ready, Token};
