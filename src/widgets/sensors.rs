@@ -128,7 +128,7 @@ impl Sensors {
                     });
                 Ok(Text {
                     attr: self.attr.clone(),
-                    text: text,
+                    text,
                     stretch: false,
                 })
             })

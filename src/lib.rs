@@ -121,10 +121,8 @@
 //! [`Widget`]: widgets/trait.Widget.html
 //! [`widgets`]: widgets/index.html
 
-#![allow(
-    unknown_lints, // Allowing clippy lints shouldn't cause rustc warnings.
-    boxed_local, // Widget::stream(Box<Self>) causes spurious warning.
-)]
+// new(...) -> Result<T> is used in a lot of places:
+#![allow(clippy::new_ret_no_self)]
 
 use tokio_core::reactor::{Core, Handle};
 use tokio_timer::Timer;

@@ -140,7 +140,7 @@ impl Bar {
             .map_err(|(e, _)| e)
             .chain_err(|| "Failed to wrap xcb::Connection in ewmh::Connection")?;
 
-        #[allow(blacklisted_name)]
+        #[allow(clippy::blacklisted_name)]
         let bar = Bar {
             conn: Rc::new(ewmh_conn),
             window_id: id,

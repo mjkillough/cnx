@@ -102,7 +102,7 @@ impl Pager {
                     self.inactive_attr.clone()
                 };
                 Text {
-                    attr: attr,
+                    attr,
                     text: name.to_owned(),
                     stretch: false,
                 }
