@@ -66,7 +66,7 @@ mod errors {
     }
 }
 
-fn run() -> errors::Result<()> {
+fn main() -> errors::Result<()> {
     let attr = Attributes {
         font: Font::new("SourceCodePro 21"),
         fg_color: Color::white(),
@@ -79,8 +79,6 @@ fn run() -> errors::Result<()> {
     cnx_add_widget!(cnx, Clock::new(&cnx, attr.clone()));
     Ok(cnx.run()?)
 }
-
-# fn main() { run().unwrap(); }
 ```
 
 A more complex example is given in [`src/bin/cnx.rs`] alongside the project.

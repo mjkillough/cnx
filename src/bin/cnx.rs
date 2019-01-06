@@ -35,7 +35,7 @@ fn init_log() -> errors::Result<()> {
     Ok(())
 }
 
-fn run() -> errors::Result<()> {
+fn main() -> errors::Result<()> {
     init_log()?;
 
     let attr = Attributes {
@@ -64,5 +64,3 @@ fn run() -> errors::Result<()> {
 
     Ok(())
 }
-
-quick_main!(run);
