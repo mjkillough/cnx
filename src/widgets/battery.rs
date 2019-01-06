@@ -129,13 +129,13 @@ impl Battery {
     }
 
     fn tick(&self) -> Result<Vec<Text>> {
-        let full: f64 = self.load_value("energy_full")?;
-        let now: f64 = self.load_value("energy_now")?;
+        let full: f64 = self.load_value("charge_full")?;
+        let now: f64 = self.load_value("charge_now")?;
         let percentage = (now / full) * 100.0;
 
         // If we're discharging, show time to empty.
         // If we're charging, show time to full.
-        let power: f64 = self.load_value("power_now")?;
+        let power: f64 = self.load_value("current_avg")?;
         let status: Status = self.load_value("status")?;
         let time = match status {
             Status::Discharging => now / power,
