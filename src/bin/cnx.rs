@@ -1,9 +1,7 @@
 #[macro_use]
 extern crate cnx;
-extern crate env_logger;
 #[macro_use]
 extern crate error_chain;
-extern crate log;
 
 use std::env;
 

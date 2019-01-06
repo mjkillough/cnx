@@ -128,25 +128,19 @@
 
 #[cfg(feature = "volume-widget")]
 extern crate alsa;
-extern crate cairo;
-extern crate cairo_sys;
-extern crate chrono;
 #[macro_use]
 extern crate error_chain;
-extern crate futures;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-extern crate mio;
-extern crate pango;
-extern crate pangocairo;
-extern crate regex;
-extern crate tokio_core;
-extern crate tokio_timer;
-extern crate xcb;
-extern crate xcb_util;
 
+use cairo;
+use cairo_sys;
+use mio;
+use pango;
+use pangocairo;
+use xcb;
 use tokio_core::reactor::{Core, Handle};
 use tokio_timer::Timer;
 
@@ -200,7 +194,7 @@ pub struct Cnx {
     core: Core,
     timer: Timer,
     bar: Bar,
-    widgets: Vec<Box<Widget>>,
+    widgets: Vec<Box<dyn Widget>>,
 }
 
 impl Cnx {
@@ -253,7 +247,7 @@ impl Cnx {
     where
         W: Widget + 'static,
     {
-        self.widgets.push(Box::new(widget) as Box<Widget>);
+        self.widgets.push(Box::new(widget) as Box<dyn Widget>);
     }
 
     /// Runs the Cnx instance.

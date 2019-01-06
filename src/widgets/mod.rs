@@ -12,7 +12,7 @@ use crate::text::Text;
 /// refer to the documentation on the [`Widget`] trait.
 ///
 /// [`Widget`]: trait.Widget.html
-pub type WidgetStream = Box<Stream<Item = Vec<Text>, Error = Error>>;
+pub type WidgetStream = Box<dyn Stream<Item = Vec<Text>, Error = Error>>;
 
 /// The main trait implemented by all widgets.
 ///
@@ -130,11 +130,11 @@ pub use self::sensors::Sensors;
 pub use self::volume::Volume;
 
 pub(crate) struct WidgetList {
-    vec: Vec<Box<Stream<Item = Vec<Text>, Error = Error>>>,
+    vec: Vec<Box<dyn Stream<Item = Vec<Text>, Error = Error>>>,
 }
 
 impl WidgetList {
-    pub fn new(widgets: Vec<Box<Widget>>) -> Result<WidgetList> {
+    pub fn new(widgets: Vec<Box<dyn Widget>>) -> Result<WidgetList> {
         Ok(WidgetList {
             vec: widgets
                 .into_iter()

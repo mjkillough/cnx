@@ -18,7 +18,7 @@ use crate::errors::*;
 use crate::text::{ComputedText, Text};
 use crate::widgets::{Widget, WidgetList};
 
-fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Visualtype {
+fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen<'_>) -> xcb::Visualtype {
     for root in conn.get_setup().roots() {
         for allowed_depth in root.allowed_depths() {
             for visual in allowed_depth.visuals() {
@@ -34,7 +34,7 @@ fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Vi
 /// Creates a `cairo::Surface` for the XCB window with the given `id`.
 fn cairo_surface_for_xcb_window(
     conn: &xcb::Connection,
-    screen: &xcb::Screen,
+    screen: &xcb::Screen<'_>,
     id: u32,
     width: i32,
     height: i32,
@@ -197,7 +197,7 @@ impl Bar {
         ewmh::set_wm_strut_partial(&self.conn, self.window_id, strut_partial);
     }
 
-    fn screen(&self) -> Result<xcb::Screen> {
+    fn screen(&self) -> Result<xcb::Screen<'_>> {
         self.conn
             .get_setup()
             .roots()
@@ -387,8 +387,8 @@ impl Bar {
     pub fn run_event_loop(
         mut self,
         handle: &Handle,
-        widgets: Vec<Box<Widget>>,
-    ) -> Result<Box<Future<Item = (), Error = Error>>> {
+        widgets: Vec<Box<dyn Widget>>,
+    ) -> Result<Box<dyn Future<Item = (), Error = Error>>> {
         self.contents = vec![Vec::new(); widgets.len()];
 
         enum Event {

@@ -16,7 +16,7 @@ struct Value<'a> {
 }
 
 /// Parses the output of the `sensors` executable from `lm_sensors`.
-fn parse_sensors_output(output: &str) -> Result<HashMap<&str, Value>> {
+fn parse_sensors_output(output: &str) -> Result<HashMap<&str, Value<'_>>> {
     lazy_static! {
         static ref RE: Regex = Regex::new(
             // Note: we ignore + but capture -
