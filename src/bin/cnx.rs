@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate cnx;
-
 use std::env;
 
 use env_logger::Builder;

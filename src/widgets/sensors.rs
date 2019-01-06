@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::process::Command;
 use std::time::Duration;
 
+use lazy_static::lazy_static;
 use regex::Regex;
 use tokio_timer::Timer;
 

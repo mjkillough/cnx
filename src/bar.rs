@@ -7,6 +7,7 @@ use std::rc::Rc;
 use cairo::{self, XCBSurface};
 use cairo_sys;
 use futures::{future, Async, Future, Poll, Stream};
+use log::*;
 use mio::event::Evented;
 use mio::unix::EventedFd;
 use mio::{self, PollOpt, Ready, Token};
@@ -259,11 +260,7 @@ impl Bar {
             // avoid even calling .compute()).
             .filter(|&(ref new, ref old)| {
                 let length_different = new.len() != old.len();
-                let all_same = !length_different &&
-                    new
-                        .iter()
-                        .zip(old.iter())
-                        .all(|(n, o)| n == o);
+                let all_same = !length_different && new.iter().zip(old.iter()).all(|(n, o)| n == o);
                 !all_same
             })
             // We finally have a list of the texts which have actually changed.
@@ -274,7 +271,8 @@ impl Bar {
                     .map(|text| text.compute(surface))
                     .collect::<Result<Vec<ComputedText>>>()
                     .map(|computeds| (computeds, old))
-            }).collect::<Result<Vec<_>>>()?;
+            })
+            .collect::<Result<Vec<_>>>()?;
 
         for (mut new_texts, old_texts) in it {
             // Redraw the entire bar if any of widget's non-stretch texts
