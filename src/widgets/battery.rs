@@ -6,6 +6,7 @@ use std::result;
 use std::str::FromStr;
 use std::time::Duration;
 
+use error_chain::bail;
 use tokio_timer::Timer;
 
 use crate::errors::*;

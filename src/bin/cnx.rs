@@ -1,7 +1,5 @@
 #[macro_use]
 extern crate cnx;
-#[macro_use]
-extern crate error_chain;
 
 use std::env;
 
@@ -13,6 +11,8 @@ use cnx::widgets::*;
 use cnx::*;
 
 mod errors {
+    use error_chain::*;
+
     error_chain! {
         links {
             Cnx(::cnx::errors::Error, ::cnx::errors::ErrorKind);

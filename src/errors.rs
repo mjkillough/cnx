@@ -10,6 +10,8 @@
 //! [`error-chain`]: https://docs.rs/error-chain
 //! [`src/bin/cnx.rs`]: https://github.com/mjkillough/cnx/blob/master/src/bin/cnx.rs
 
+use error_chain::*;
+
 error_chain!{
     foreign_links {
         Io(::std::io::Error);
