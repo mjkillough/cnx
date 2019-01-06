@@ -49,16 +49,13 @@ configuration handling).
 An simple example of a binary using Cnx is:
 
 ```rust
-#[macro_use]
-extern crate cnx;
-#[macro_use]
-extern crate error_chain;
-
 use cnx::*;
 use cnx::text::*;
 use cnx::widgets::*;
 
 mod errors {
+    use error_chain::*;
+
     error_chain! {
         links {
             Cnx(::cnx::errors::Error, ::cnx::errors::ErrorKind);
