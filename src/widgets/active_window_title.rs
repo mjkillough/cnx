@@ -2,9 +2,9 @@ use tokio_core::reactor::Handle;
 use xcb;
 use xcb_util::ewmh;
 
-use errors::*;
-use text::{Attributes, Text};
-use Cnx;
+use crate::errors::*;
+use crate::text::{Attributes, Text};
+use crate::Cnx;
 
 /// Shows the title of the currently focused window.
 ///

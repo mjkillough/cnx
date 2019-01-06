@@ -8,9 +8,9 @@ use std::time::Duration;
 
 use tokio_timer::Timer;
 
-use errors::*;
-use text::{Attributes, Color, Text};
-use Cnx;
+use crate::errors::*;
+use crate::text::{Attributes, Color, Text};
+use crate::Cnx;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum Status {

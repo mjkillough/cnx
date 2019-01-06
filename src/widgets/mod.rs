@@ -2,8 +2,8 @@
 
 use futures::{Async, Poll, Stream};
 
-use errors::*;
-use text::Text;
+use crate::errors::*;
+use crate::text::Text;
 
 /// The stream of `Vec<Text>` returned by each widget.
 ///
@@ -31,11 +31,11 @@ pub trait Widget {
 
 macro_rules! timer_widget {
     ($widget:ty, $timer:ident, $interval:ident, $tick:ident) => {
-        impl ::widgets::Widget for $widget {
-            fn stream(self: Box<Self>) -> ::errors::Result<::widgets::WidgetStream> {
+        impl crate::widgets::Widget for $widget {
+            fn stream(self: Box<Self>) -> crate::errors::Result<crate::widgets::WidgetStream> {
                 use futures::{stream, Stream};
 
-                use errors::*;
+                use crate::errors::*;
 
                 // The Timer will only fire after the first interval. To avoid
                 // waiting for the initial state, call the tick ourselves.
@@ -54,16 +54,16 @@ macro_rules! timer_widget {
 
 macro_rules! x_properties_widget {
     ($widget:ty, $handle:ident, $on_change:ident; [ $( $property:ident ),+ ])  => {
-        impl ::widgets::Widget for $widget {
-            fn stream(self: Box<Self>) -> ::errors::Result<::widgets::WidgetStream> {
+        impl crate::widgets::Widget for $widget {
+            fn stream(self: Box<Self>) -> crate::errors::Result<crate::widgets::WidgetStream> {
                 use std::rc::Rc;
 
                 use futures::{stream, Stream};
                 use xcb;
                 use xcb::xproto::{PropertyNotifyEvent, PROPERTY_NOTIFY};
 
-                use bar::XcbEventStream;
-                use errors::*;
+                use crate::bar::XcbEventStream;
+                use crate::errors::*;
 
                 let (xcb_conn, screen_idx) = xcb::Connection::connect(None)
                     .chain_err(|| "Failed to connect to X server")?;

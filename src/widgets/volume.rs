@@ -10,9 +10,9 @@ use mio::{self, PollOpt, Ready, Token};
 use tokio_core::reactor::{Handle, PollEvented};
 
 use super::{Widget, WidgetStream};
-use errors::*;
-use text::{Attributes, Text};
-use Cnx;
+use crate::errors::*;
+use crate::text::{Attributes, Text};
+use crate::Cnx;
 
 /// Shows the current volume of the default ALSA output.
 ///

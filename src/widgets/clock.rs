@@ -5,9 +5,9 @@ use futures::{stream, Future, Stream};
 use tokio_timer::Timer;
 
 use super::{Widget, WidgetStream};
-use errors::*;
-use text::{Attributes, Text};
-use Cnx;
+use crate::errors::*;
+use crate::text::{Attributes, Text};
+use crate::Cnx;
 
 /// Shows the current time and date.
 ///

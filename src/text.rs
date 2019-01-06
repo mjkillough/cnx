@@ -4,7 +4,7 @@ use cairo::{self, Context, Surface};
 use pango::{self, EllipsizeMode, FontDescription, LayoutExt};
 use pangocairo;
 
-use errors::*;
+use crate::errors::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Color {

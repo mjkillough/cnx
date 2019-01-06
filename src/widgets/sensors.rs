@@ -5,9 +5,9 @@ use std::time::Duration;
 use regex::Regex;
 use tokio_timer::Timer;
 
-use errors::*;
-use text::{Attributes, Text};
-use Cnx;
+use crate::errors::*;
+use crate::text::{Attributes, Text};
+use crate::Cnx;
 
 #[derive(Debug, PartialEq)]
 struct Value<'a> {

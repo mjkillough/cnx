@@ -155,11 +155,11 @@ pub mod errors;
 pub mod text;
 pub mod widgets;
 
-pub use bar::Position;
-use errors::*;
+pub use crate::bar::Position;
+use crate::errors::*;
 
-use bar::Bar;
-pub use widgets::Widget;
+use crate::bar::Bar;
+pub use crate::widgets::Widget;
 
 /// The main object, used to instantiate an instance of Cnx.
 ///

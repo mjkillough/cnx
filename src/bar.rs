@@ -14,9 +14,9 @@ use tokio_core::reactor::{Handle, PollEvented};
 use xcb;
 use xcb_util::ewmh;
 
-use errors::*;
-use text::{ComputedText, Text};
-use widgets::{Widget, WidgetList};
+use crate::errors::*;
+use crate::text::{ComputedText, Text};
+use crate::widgets::{Widget, WidgetList};
 
 fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen) -> xcb::Visualtype {
     for root in conn.get_setup().roots() {
