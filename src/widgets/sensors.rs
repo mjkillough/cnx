@@ -2,13 +2,13 @@ use std::collections::HashMap;
 use std::process::Command;
 use std::time::Duration;
 
+use failure::ResultExt;
 use lazy_static::lazy_static;
 use regex::Regex;
 use tokio_timer::Timer;
 
-use crate::errors::*;
 use crate::text::{Attributes, Text};
-use crate::Cnx;
+use crate::{Cnx, Result};
 
 #[derive(Debug, PartialEq)]
 struct Value<'a> {
@@ -84,7 +84,7 @@ impl Sensors {
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
     /// #
-    /// # fn run() -> ::cnx::errors::Result<()> {
+    /// # fn run() -> ::cnx::Result<()> {
     /// let attr = Attributes {
     ///     font: Font::new("SourceCodePro 21"),
     ///     fg_color: Color::white(),
@@ -113,11 +113,9 @@ impl Sensors {
     fn tick(&self) -> Result<Vec<Text>> {
         let output = Command::new("sensors")
             .output()
-            .chain_err(|| "Failed to run `sensors`")?;
-        let string =
-            String::from_utf8(output.stdout).chain_err(|| "Invalid UTF-8 in sensors output")?;
-        let parsed =
-            parse_sensors_output(&string).chain_err(|| "Failed to parse `sensors` output")?;
+            .context("Failed to run `sensors`")?;
+        let string = String::from_utf8(output.stdout).context("Invalid UTF-8 in sensors output")?;
+        let parsed = parse_sensors_output(&string).context("Failed to parse `sensors` output")?;
         self.sensors
             .iter()
             .map(|sensor_name| {

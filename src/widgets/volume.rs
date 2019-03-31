@@ -3,6 +3,7 @@ use std::os::unix::io::RawFd;
 
 use alsa::mixer::{SelemChannelId, SelemId};
 use alsa::{self, Mixer, PollDescriptors};
+use failure::{format_err, Error, ResultExt};
 use futures::{Async, Poll, Stream};
 use mio::event::Evented;
 use mio::unix::EventedFd;
@@ -10,9 +11,8 @@ use mio::{self, PollOpt, Ready, Token};
 use tokio_core::reactor::{Handle, PollEvented};
 
 use super::{Widget, WidgetStream};
-use crate::errors::*;
 use crate::text::{Attributes, Text};
-use crate::Cnx;
+use crate::{Cnx, Result};
 
 /// Shows the current volume of the default ALSA output.
 ///
@@ -53,7 +53,7 @@ impl Volume {
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
     /// #
-    /// # fn run() -> ::cnx::errors::Result<()> {
+    /// # fn run() -> ::cnx::Result<()> {
     /// let attr = Attributes {
     ///     font: Font::new("SourceCodePro 21"),
     ///     fg_color: Color::white(),
@@ -83,7 +83,7 @@ impl Widget for Volume {
         // to cache the state from when it was created. It's relatively cheap
         // create a new mixer each time we get an event though.
         let mixer = Mixer::new(mixer_name, true)
-            .chain_err(|| format!("Failed to open ALSA mixer: {}", mixer_name))?;
+            .with_context(|_| format!("Failed to open ALSA mixer: {}", mixer_name))?;
         let stream = AlsaEventStream::new(&self.handle, mixer)?
             .and_then(move |()| {
                 // FrontLeft has special meaning in ALSA and is the channel
@@ -93,7 +93,7 @@ impl Widget for Volume {
                 let mixer = Mixer::new(mixer_name, true)?;
                 let master = mixer
                     .find_selem(&SelemId::new("Master", 0))
-                    .ok_or("Couldn't open Master channel")?;
+                    .ok_or_else(|| format_err!("Couldn't open Master channel"))?;
 
                 let mute = master.get_playback_switch(channel)? == 0;
 
@@ -112,7 +112,8 @@ impl Widget for Volume {
                     stretch: false,
                 }])
             })
-            .then(|r| r.chain_err(|| "Error getting ALSA volume information"));
+            .then(|r| r.context("Error getting ALSA volume information"))
+            .map_err(|e| e.into());
 
         Ok(Box::new(stream))
     }

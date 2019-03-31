@@ -1,9 +1,8 @@
 use tokio_core::reactor::Handle;
 use xcb_util::ewmh;
 
-use crate::errors::*;
 use crate::text::{Attributes, Text};
-use crate::Cnx;
+use crate::{Cnx, Result};
 
 /// Shows the WM's workspaces/groups, highlighting whichever is currently
 /// active.
@@ -46,7 +45,7 @@ impl Pager {
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
     /// #
-    /// # fn run() -> ::cnx::errors::Result<()> {
+    /// # fn run() -> ::cnx::Result<()> {
     /// let attr = Attributes {
     ///     font: Font::new("SourceCodePro 21"),
     ///     fg_color: Color::white(),

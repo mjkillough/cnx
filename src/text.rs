@@ -1,10 +1,11 @@
 use std::fmt;
 
-use cairo::{self, Context, Surface};
-use pango::{self, EllipsizeMode, FontDescription, LayoutExt};
+use cairo::{Context, Surface};
+use failure::format_err;
+use pango::{EllipsizeMode, FontDescription, LayoutExt};
 use pangocairo;
 
-use crate::errors::*;
+use crate::Result;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Color {
@@ -81,8 +82,9 @@ pub struct Attributes {
 }
 
 fn create_pango_layout(cairo_context: &cairo::Context) -> Result<pango::Layout> {
-    pangocairo::functions::create_layout(cairo_context)
-        .ok_or_else(|| "Failed to create Pango layout".into())
+    let layout = pangocairo::functions::create_layout(cairo_context)
+        .ok_or_else(|| format_err!("Failed to create Pango layout"))?;
+    Ok(layout)
 }
 
 fn show_pango_layout(cairo_context: &cairo::Context, layout: &pango::Layout) {

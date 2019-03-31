@@ -4,20 +4,19 @@ use std::mem;
 use std::os::unix::io::RawFd;
 use std::rc::Rc;
 
-use cairo::{self, XCBSurface};
-use cairo_sys;
+use cairo::XCBSurface;
+use failure::{format_err, Error, ResultExt};
 use futures::{future, Async, Future, Poll, Stream};
 use log::*;
 use mio::event::Evented;
 use mio::unix::EventedFd;
-use mio::{self, PollOpt, Ready, Token};
+use mio::{PollOpt, Ready, Token};
 use tokio_core::reactor::{Handle, PollEvented};
-use xcb;
 use xcb_util::ewmh;
 
-use crate::errors::*;
 use crate::text::{ComputedText, Text};
 use crate::widgets::{Widget, WidgetList};
+use crate::Result;
 
 fn get_root_visual_type(conn: &xcb::Connection, screen: &xcb::Screen<'_>) -> xcb::Visualtype {
     for root in conn.get_setup().roots() {
@@ -88,7 +87,7 @@ pub struct Bar {
 impl Bar {
     pub fn new(position: Position) -> Result<Bar> {
         let (conn, screen_idx) =
-            xcb::Connection::connect(None).chain_err(|| "Failed to connect to X server")?;
+            xcb::Connection::connect(None).context("Failed to connect to X server")?;
         let screen_idx = screen_idx as usize;
         let id = conn.generate_id();
 
@@ -102,7 +101,7 @@ impl Bar {
                 .get_setup()
                 .roots()
                 .nth(screen_idx)
-                .ok_or("Invalid screen")?;
+                .ok_or_else(|| format_err!("Invalid screen"))?;
             let values = [
                 (xcb::CW_BACK_PIXEL, screen.black_pixel()),
                 (xcb::CW_EVENT_MASK, xcb::EVENT_MASK_EXPOSURE),
@@ -138,7 +137,7 @@ impl Bar {
 
         let ewmh_conn = ewmh::Connection::connect(conn)
             .map_err(|(e, _)| e)
-            .chain_err(|| "Failed to wrap xcb::Connection in ewmh::Connection")?;
+            .context("Failed to wrap xcb::Connection in ewmh::Connection")?;
 
         #[allow(clippy::blacklisted_name)]
         let bar = Bar {
@@ -199,11 +198,13 @@ impl Bar {
     }
 
     fn screen(&self) -> Result<xcb::Screen<'_>> {
-        self.conn
+        let screen = self
+            .conn
             .get_setup()
             .roots()
             .nth(self.screen_idx)
-            .ok_or_else(|| "Invalid screen".into())
+            .ok_or_else(|| format_err!("Invalid screen"))?;
+        Ok(screen)
     }
 
     fn update_bar_height(&mut self, height: u16) -> Result<()> {
@@ -282,7 +283,8 @@ impl Bar {
             // height. (It would be better to do this only if this changes
             // the height of the bar).
             let length_different = new_texts.len() != old_texts.len();
-            redraw_entire_bar = redraw_entire_bar || length_different
+            redraw_entire_bar = redraw_entire_bar
+                || length_different
                 || new_texts.iter().zip(old_texts.iter()).any(|(new, old)| {
                     let not_stretch = !new.stretch && !old.stretch;
                     let diff_width = (new.width - old.width).abs().round() >= 1.0;
@@ -335,22 +337,24 @@ impl Bar {
         // While we're at it, we also calculate how
         let screen_width = f64::from(
             self.screen()
-                .chain_err(|| "Could not get screen width")?
+                .context("Could not get screen width")?
                 .width_in_pixels(),
         );
-        let width_per_stretched = {
-            let texts = self.contents.iter().flatten();
-            let (stretched, non_stretched): (Vec<_>, Vec<_>) = texts.partition(|text| text.stretch);
-            let width = non_stretched.iter().fold(0.0, |acc, text| {
-                if text.stretch {
-                    0.0
-                } else {
-                    acc + text.width
-                }
-            });
-            let remaining_width = (screen_width - width).max(0.0);
-            remaining_width / (stretched.len() as f64)
-        };
+        let width_per_stretched =
+            {
+                let texts = self.contents.iter().flatten();
+                let (stretched, non_stretched): (Vec<_>, Vec<_>) =
+                    texts.partition(|text| text.stretch);
+                let width = non_stretched.iter().fold(0.0, |acc, text| {
+                    if text.stretch {
+                        0.0
+                    } else {
+                        acc + text.width
+                    }
+                });
+                let remaining_width = (screen_width - width).max(0.0);
+                remaining_width / (stretched.len() as f64)
+            };
 
         // Get the height of the biggest Text and set the bar to be that big.
         // TODO: Update all the Layouts so they all render that big too?

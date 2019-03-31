@@ -2,9 +2,8 @@ use tokio_core::reactor::Handle;
 use xcb;
 use xcb_util::ewmh;
 
-use crate::errors::*;
 use crate::text::{Attributes, Text};
-use crate::Cnx;
+use crate::{Cnx, Result};
 
 /// Shows the title of the currently focused window.
 ///
@@ -46,7 +45,7 @@ impl ActiveWindowTitle {
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
     /// #
-    /// # fn run() -> ::cnx::errors::Result<()> {
+    /// # fn run() -> ::cnx::Result<()> {
     /// let attr = Attributes {
     ///     font: Font::new("SourceCodePro 21"),
     ///     fg_color: Color::white(),

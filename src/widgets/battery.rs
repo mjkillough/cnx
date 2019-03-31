@@ -1,4 +1,3 @@
-use std::error;
 use std::f64;
 use std::fs::File;
 use std::io::Read;
@@ -6,12 +5,11 @@ use std::result;
 use std::str::FromStr;
 use std::time::Duration;
 
-use error_chain::bail;
+use failure::{format_err, Error, ResultExt};
 use tokio_timer::Timer;
 
-use crate::errors::*;
 use crate::text::{Attributes, Color, Text};
-use crate::Cnx;
+use crate::{Cnx, Result};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum Status {
@@ -30,7 +28,7 @@ impl FromStr for Status {
             "Charging" => Ok(Status::Charging),
             "Discharging" => Ok(Status::Discharging),
             "Unknown" => Ok(Status::Unknown),
-            _ => bail!("Unknown Status: {}", s),
+            _ => Err(format_err!("Unknown Status: {}", s)),
         }
     }
 }
@@ -83,7 +81,7 @@ impl Battery {
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
     /// #
-    /// # fn run() -> ::cnx::errors::Result<()> {
+    /// # fn run() -> ::cnx::Result<()> {
     /// let attr = Attributes {
     ///     font: Font::new("SourceCodePro 21"),
     ///     fg_color: Color::white(),
@@ -110,22 +108,27 @@ impl Battery {
     fn load_value_inner<T>(&self, file: &str) -> Result<T>
     where
         T: FromStr,
-        <T as FromStr>::Err: error::Error + Send + 'static,
+        <T as FromStr>::Err: Into<Error>,
     {
         let path = format!("/sys/class/power_supply/{}/{}", self.battery, file);
         let mut file = File::open(path)?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
-        FromStr::from_str(contents.trim()).chain_err(|| "Failed to parse value")
+        let s = FromStr::from_str(contents.trim())
+            .map_err(|e: <T as FromStr>::Err| e.into())
+            .context("Failed to parse value")?;
+        Ok(s)
     }
 
     fn load_value<T>(&self, file: &str) -> Result<T>
     where
         T: FromStr,
-        <T as FromStr>::Err: error::Error + Send + 'static,
+        <T as FromStr>::Err: Into<Error>,
     {
-        self.load_value_inner(file)
-            .chain_err(|| format!("Could not load value from battery status file: {}", file))
+        let value = self
+            .load_value_inner(file)
+            .with_context(|_| format!("Could not load value from battery status file: {}", file))?;
+        Ok(value)
     }
 
     fn tick(&self) -> Result<Vec<Text>> {

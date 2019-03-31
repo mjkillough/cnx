@@ -1,9 +1,10 @@
 //! Built-in widgets
 
+use failure::Error;
 use futures::{Async, Poll, Stream};
 
-use crate::errors::*;
 use crate::text::Text;
+use crate::Result;
 
 /// The stream of `Vec<Text>` returned by each widget.
 ///
@@ -32,10 +33,9 @@ pub trait Widget {
 macro_rules! timer_widget {
     ($widget:ty, $timer:ident, $interval:ident, $tick:ident) => {
         impl crate::widgets::Widget for $widget {
-            fn stream(self: Box<Self>) -> crate::errors::Result<crate::widgets::WidgetStream> {
+            fn stream(self: Box<Self>) -> crate::Result<crate::widgets::WidgetStream> {
+                use failure::Error;
                 use futures::{stream, Stream};
-
-                use crate::errors::*;
 
                 // The Timer will only fire after the first interval. To avoid
                 // waiting for the initial state, call the tick ourselves.
@@ -43,7 +43,7 @@ macro_rules! timer_widget {
 
                 let timer_stream = self.$timer.interval(self.$interval);
                 let text_stream = timer_stream
-                    .then(|r| r.chain_err(|| "Error in tokio_timer stream"))
+                    .map_err(|e| e.into())
                     .and_then(move |_| self.$tick());
 
                 Ok(Box::new(initial.chain(text_stream)))
@@ -55,27 +55,27 @@ macro_rules! timer_widget {
 macro_rules! x_properties_widget {
     ($widget:ty, $handle:ident, $on_change:ident; [ $( $property:ident ),+ ])  => {
         impl crate::widgets::Widget for $widget {
-            fn stream(self: Box<Self>) -> crate::errors::Result<crate::widgets::WidgetStream> {
+            fn stream(self: Box<Self>) -> crate::Result<crate::widgets::WidgetStream> {
                 use std::rc::Rc;
 
+                use failure::{format_err, Error, ResultExt};
                 use futures::{stream, Stream};
                 use xcb;
                 use xcb::xproto::{PropertyNotifyEvent, PROPERTY_NOTIFY};
 
                 use crate::bar::XcbEventStream;
-                use crate::errors::*;
 
                 let (xcb_conn, screen_idx) = xcb::Connection::connect(None)
-                    .chain_err(|| "Failed to connect to X server")?;
+                    .context("Failed to connect to X server")?;
                 let root_window = xcb_conn
                     .get_setup()
                     .roots()
                     .nth(screen_idx as usize)
-                    .ok_or("Invalid screen")?
+                    .ok_or_else(|| format_err!("Invalid screen"))?
                     .root();
                 let ewmh_conn = ewmh::Connection::connect(xcb_conn)
                     .map_err(|(e, _)| e)
-                    .chain_err(|| "Failed to wrap xcb::Connection in ewmh::Connection")?;
+                    .context("Failed to wrap xcb::Connection in ewmh::Connection")?;
                 let conn = Rc::new(ewmh_conn);
 
                 let properties = [ $( conn.$property() ),+ ];

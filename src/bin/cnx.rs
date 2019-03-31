@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 use std::env;
 
 use env_logger::Builder;
@@ -7,20 +9,7 @@ use cnx::text::*;
 use cnx::widgets::*;
 use cnx::*;
 
-mod errors {
-    use error_chain::*;
-
-    error_chain! {
-        links {
-            Cnx(::cnx::errors::Error, ::cnx::errors::ErrorKind);
-        }
-        foreign_links {
-            SetLogger(::log::SetLoggerError);
-        }
-    }
-}
-
-fn init_log() -> errors::Result<()> {
+fn init_log() -> Result<()> {
     let mut builder = Builder::new();
     builder.filter(Some("cnx"), LevelFilter::Trace);
     if let Ok(rust_log) = env::var("RUST_LOG") {
@@ -30,7 +19,7 @@ fn init_log() -> errors::Result<()> {
     Ok(())
 }
 
-fn main() -> errors::Result<()> {
+fn main() -> Result<()> {
     init_log()?;
 
     let attr = Attributes {

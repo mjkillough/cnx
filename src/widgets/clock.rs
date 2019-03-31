@@ -1,13 +1,13 @@
 use std::time::Duration;
 
 use chrono::prelude::*;
+use failure::ResultExt;
 use futures::{stream, Future, Stream};
 use tokio_timer::Timer;
 
 use super::{Widget, WidgetStream};
-use crate::errors::*;
 use crate::text::{Attributes, Text};
-use crate::Cnx;
+use crate::{Cnx, Result};
 
 /// Shows the current time and date.
 ///
@@ -43,7 +43,7 @@ impl Clock {
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
     /// #
-    /// # fn run() -> ::cnx::errors::Result<()> {
+    /// # fn run() -> ::cnx::Result<()> {
     /// let attr = Attributes {
     ///     font: Font::new("SourceCodePro 21"),
     ///     fg_color: Color::white(),
@@ -86,7 +86,9 @@ impl Widget for Clock {
                 let sleep_for = Duration::from_secs(60 - u64::from(now.second()));
                 (texts, sleep_for)
             }))
-        }).then(|r| r.chain_err(|| "Error in tokio_timer stream"));
+        })
+        .then(|r| r.context("Error in tokio_timer stream"))
+        .map_err(|e| e.into());
 
         Ok(Box::new(stream))
     }

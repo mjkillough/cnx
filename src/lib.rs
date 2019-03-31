@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 //! A simple X11 status bar for use with simple WMs.
 //!
 //! Cnx is written to be customisable, simple and fast. Where possible, it
@@ -20,22 +22,12 @@
 //! ```no_run
 //! #[macro_use]
 //! extern crate cnx;
-//! #[macro_use]
-//! extern crate error_chain;
 //!
 //! use cnx::*;
 //! use cnx::text::*;
 //! use cnx::widgets::*;
 //!
-//! mod errors {
-//!     error_chain! {
-//!         links {
-//!             Cnx(::cnx::errors::Error, ::cnx::errors::ErrorKind);
-//!         }
-//!     }
-//! }
-//!
-//! fn main() -> errors::Result<()> {
+//! fn main() -> Result<()> {
 //!     let attr = Attributes {
 //!         font: Font::new("SourceCodePro 21"),
 //!         fg_color: Color::white(),
@@ -124,19 +116,20 @@
 // new(...) -> Result<T> is used in a lot of places:
 #![allow(clippy::new_ret_no_self)]
 
-use tokio_core::reactor::{Core, Handle};
-use tokio_timer::Timer;
-
 mod bar;
-pub mod errors;
 pub mod text;
 pub mod widgets;
 
-pub use crate::bar::Position;
-use crate::errors::*;
+use failure::ResultExt;
+use tokio_core::reactor::{Core, Handle};
+use tokio_timer::Timer;
 
 use crate::bar::Bar;
+
+pub use crate::bar::Position;
 pub use crate::widgets::Widget;
+
+pub type Result<T> = std::result::Result<T, failure::Error>;
 
 /// The main object, used to instantiate an instance of Cnx.
 ///
@@ -157,7 +150,7 @@ pub use crate::widgets::Widget;
 /// # use cnx::text::*;
 /// # use cnx::widgets::*;
 /// #
-/// # fn run() -> ::cnx::errors::Result<()> {
+/// # fn run() -> ::cnx::Result<()> {
 /// let attr = Attributes {
 ///     font: Font::new("SourceCodePro 21"),
 ///     fg_color: Color::white(),
@@ -200,7 +193,7 @@ impl Cnx {
     /// ```
     pub fn new(position: Position) -> Result<Cnx> {
         Ok(Cnx {
-            core: Core::new().chain_err(|| "Could not create Tokio Core")?,
+            core: Core::new().context("Could not create Tokio Core")?,
             timer: Timer::default(),
             bar: Bar::new(position)?,
             widgets: Vec::new(),
