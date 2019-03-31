@@ -100,8 +100,8 @@ requirements:
 apt-get install libx11-xcb-dev libxcb-ewmh-dev libpango1.0-dev libcairo2-dev
 ```
 
-If the `volume-widget` is enabled (and it is by default), you will also need
-`alsa-lib`:
+If the `volume-widget` feature is enabled (and it is by default), you will
+also need `alsa-lib`:
 
 ```
 apt-get install libasound2-dev
