@@ -50,21 +50,11 @@ configuration handling).
 An simple example of a binary using Cnx is:
 
 ```rust
-use cnx::*;
 use cnx::text::*;
 use cnx::widgets::*;
+use cnx::*;
 
-mod errors {
-    use error_chain::*;
-
-    error_chain! {
-        links {
-            Cnx(::cnx::errors::Error, ::cnx::errors::ErrorKind);
-        }
-    }
-}
-
-fn main() -> errors::Result<()> {
+fn main() -> Result<()> {
     let attr = Attributes {
         font: Font::new("SourceCodePro 21"),
         fg_color: Color::white(),
@@ -72,10 +62,14 @@ fn main() -> errors::Result<()> {
         padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     };
 
-    let mut cnx = Cnx::new(Position::Top)?;
+    let mut cnx = Cnx::new(Position::Bottom)?;
     cnx_add_widget!(cnx, ActiveWindowTitle::new(&cnx, attr.clone()));
     cnx_add_widget!(cnx, Clock::new(&cnx, attr.clone()));
-    Ok(cnx.run()?)
+    cnx.run()?;
+
+    Ok(())
+}
+
 }
 ```
 
