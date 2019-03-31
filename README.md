@@ -69,8 +69,6 @@ fn main() -> Result<()> {
 
     Ok(())
 }
-
-}
 ```
 
 A more complex example is given in [`src/bin/cnx.rs`] alongside the project.
