@@ -13,7 +13,7 @@ fn init_log() -> Result<()> {
     let mut builder = Builder::new();
     builder.filter(Some("cnx"), LevelFilter::Trace);
     if let Ok(rust_log) = env::var("RUST_LOG") {
-        builder.parse(&rust_log);
+        builder.parse_filters(&rust_log);
     }
     builder.try_init()?;
     Ok(())
