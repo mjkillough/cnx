@@ -31,7 +31,7 @@ fn main() -> Result<()> {
     let mut active_attr = attr.clone();
     active_attr.bg_color = Some(Color::blue());
 
-    let mut cnx = Cnx::new(Position::Top)?;
+    let mut cnx = Cnx::new(Position::Bottom)?;
 
     cnx_add_widget!(cnx, Pager::new(&cnx, active_attr, attr.clone()));
     cnx_add_widget!(cnx, ActiveWindowTitle::new(&cnx, attr.clone()));
