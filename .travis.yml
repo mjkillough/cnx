@@ -6,10 +6,17 @@ services:
 
 language: rust
 
+cache: cargo
+
 rust:
   - stable
   - beta
   - nightly
+
+matrix:
+  allow_failures:
+  - rust: beta
+  - rust: nightly
 
 before_script:
   - rustup component add clippy
