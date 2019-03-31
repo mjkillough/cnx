@@ -6,6 +6,7 @@ Cnx doesn't rely on functionality from any specific WM, instead preferring to
 get its data from generic properties defined in EWMH. If your WM implements
 enough of EWMH, it should work with Cnx.
 
+![screenshot of cnx](/screenshot.png?raw=true =640x400)
 
 ## Features
 
