@@ -138,7 +138,9 @@ impl Battery {
 
         // If we're discharging, show time to empty.
         // If we're charging, show time to full.
-        let power: f64 = self.load_value("current_avg")?;
+        let power: f64 = self
+            .load_value("current_avg")
+            .or_else(|_| self.load_value("current_now"))?;
         let status: Status = self.load_value("status")?;
         let time = match status {
             Status::Discharging => now / power,
