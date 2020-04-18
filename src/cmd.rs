@@ -53,7 +53,7 @@ where
 {
     let command = command.as_ref();
     let string = command_output(command, args)?;
-    let value = from_str(&string).with_context(|_| {
+    let value = from_str(string.trim()).with_context(|_| {
         format!(
             "Parsing command `{command:?}` `{args:?}`: `{string}`",
             command = command,

@@ -122,7 +122,7 @@ mod sensors;
 mod volume;
 
 pub use self::active_window_title::ActiveWindowTitle;
-pub use self::battery::Battery;
+pub use self::battery::OpenBsdBattery;
 pub use self::clock::Clock;
 pub use self::pager::Pager;
 pub use self::sensors::Sensors;

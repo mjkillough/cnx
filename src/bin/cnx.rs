@@ -41,7 +41,7 @@ fn main() -> Result<()> {
     // );
     #[cfg(feature = "volume-widget")]
     cnx_add_widget!(cnx, Volume::new(&cnx, attr.clone()));
-    cnx_add_widget!(cnx, Battery::new(&cnx, attr.clone(), Color::red()));
+    cnx_add_widget!(cnx, OpenBsdBattery::new(&cnx, attr.clone(), Color::red()));
     cnx_add_widget!(cnx, Clock::new(&cnx, attr.clone()));
 
     cnx.run()?;

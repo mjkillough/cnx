@@ -16,7 +16,7 @@ enum Status {
 }
 
 #[derive(Copy, Clone, Debug)]
-struct Info {
+pub struct Info {
     status: Status,
     minutes: Option<u16>,
     percentage: u8, // 0-100
@@ -33,6 +33,55 @@ impl Info {
     }
 }
 
+pub trait BatteryInfo {
+    fn new() -> Self;
+    fn load_info(&self) -> Result<Info>;
+}
+
+pub struct OpenBsdBatteryInfo;
+
+impl OpenBsdBatteryInfo {
+    fn load_status(&self) -> Result<Status> {
+        let string = command_output("apm", &["-a"])?;
+        match string.trim() {
+            "0" => Ok(Status::Discharging),
+            "1" => Ok(Status::Charging),
+            _ => Ok(Status::Unknown),
+        }
+    }
+
+    fn load_percentage(&self) -> Result<u8> {
+        let percentage = from_command_output("apm", &["-l"]).context("Battery percentage")?;
+        Ok(percentage)
+    }
+
+    fn load_time_remaining(&self) -> Result<Option<u16>> {
+        let string = command_output("apm", &["-m"])?;
+        if string.trim() == "unknown" {
+            return Ok(None);
+        }
+        let minutes = u16::from_str(string.trim()).context("Parsing time remaining")?;
+        Ok(Some(minutes))
+    }
+}
+
+impl BatteryInfo for OpenBsdBatteryInfo {
+    fn new() -> Self {
+        Self
+    }
+
+    fn load_info(&self) -> Result<Info> {
+        let status = self.load_status()?;
+        let percentage = self.load_percentage()?;
+        let minutes = self.load_time_remaining()?;
+        Ok(Info {
+            status,
+            percentage,
+            minutes,
+        })
+    }
+}
+
 /// Shows battery charge percentage and (dis)charge time.
 ///
 /// This widget shows the battery's current charge percentage and the amount of
@@ -45,14 +94,15 @@ impl Info {
 /// Battery charge information is read from [`/sys/class/power_supply/BAT0/`].
 ///
 /// [`/sys/class/power_supply/BAT0/`]: https://www.kernel.org/doc/Documentation/power/power_supply_class.txt
-pub struct Battery {
+pub struct Battery<I: BatteryInfo> {
     timer: Timer,
     update_interval: Duration,
+    info: I,
     attr: Attributes,
     warning_color: Color,
 }
 
-impl Battery {
+impl<I: BatteryInfo> Battery<I> {
     ///  Creates a new Battery widget.
     ///
     ///  Creates a new `Battery` widget, whose text will be displayed with the
@@ -94,51 +144,18 @@ impl Battery {
     /// # }
     /// # fn main() { run().unwrap(); }
     /// ```
-    pub fn new(cnx: &Cnx, attr: Attributes, warning_color: Color) -> Battery {
-        Battery {
+    pub fn new(cnx: &Cnx, attr: Attributes, warning_color: Color) -> Self {
+        Self {
             timer: cnx.timer(),
             update_interval: Duration::from_secs(60),
+            info: I::new(),
             attr,
             warning_color,
         }
     }
 
-    fn load_status(&self) -> Result<Status> {
-        let string = command_output("apm", &["-a"])?;
-        match string.trim() {
-            "0" => Ok(Status::Discharging),
-            "1" => Ok(Status::Charging),
-            _ => Ok(Status::Unknown),
-        }
-    }
-
-    fn load_percentage(&self) -> Result<u8> {
-        let percentage = from_command_output("apm", &["-l"]).context("Battery percentage")?;
-        Ok(percentage)
-    }
-
-    fn load_time_remaining(&self) -> Result<Option<u16>> {
-        let string = command_output("apm", &["-m"])?;
-        if string.trim() == "unknown" {
-            return Ok(None);
-        }
-        let minutes = u16::from_str(string.trim()).context("Parsing time remaining")?;
-        Ok(Some(minutes))
-    }
-
-    fn load_info(&self) -> Result<Info> {
-        let status = self.load_status()?;
-        let percentage = self.load_percentage()?;
-        let minutes = self.load_time_remaining()?;
-        Ok(Info {
-            status,
-            percentage,
-            minutes,
-        })
-    }
-
     fn tick(&self) -> Result<Vec<Text>> {
-        let info = self.load_info()?;
+        let info = self.info.load_info()?;
 
         let mut text = match info.status {
             Status::Charging => "(⚡ ".to_owned(),
@@ -166,4 +183,6 @@ impl Battery {
     }
 }
 
-timer_widget!(Battery, timer, update_interval, tick);
+pub type OpenBsdBattery = Battery<OpenBsdBatteryInfo>;
+
+timer_widget!(OpenBsdBattery, timer, update_interval, tick);
