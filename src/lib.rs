@@ -120,6 +120,7 @@ mod bar;
 pub mod cmd;
 pub mod text;
 pub mod widgets;
+pub mod xcb;
 
 use failure::ResultExt;
 use tokio_core::reactor::{Core, Handle};

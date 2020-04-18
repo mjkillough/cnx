@@ -63,7 +63,7 @@ macro_rules! x_properties_widget {
                 use xcb;
                 use xcb::xproto::{PropertyNotifyEvent, PROPERTY_NOTIFY};
 
-                use crate::bar::XcbEventStream;
+                use crate::xcb::XcbEventStream;
 
                 let (xcb_conn, screen_idx) = xcb::Connection::connect(None)
                     .context("Failed to connect to X server")?;
