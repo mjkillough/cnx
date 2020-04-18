@@ -18,7 +18,7 @@ name = "cnx"
 doc = false
 
 [features]
-default = ["volume-widget"]
+default = []
 volume-widget = ["alsa"]
 
 [dependencies]
