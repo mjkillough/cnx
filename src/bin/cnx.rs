@@ -23,7 +23,7 @@ fn main() -> Result<()> {
     init_log()?;
 
     let attr = Attributes {
-        font: Font::new("SourceCodePro 21"),
+        font: Font::new("Envy Code R 22"),
         fg_color: Color::white(),
         bg_color: None,
         padding: Padding::new(8.0, 8.0, 0.0, 0.0),
