@@ -117,6 +117,7 @@
 #![allow(clippy::new_ret_no_self)]
 
 mod bar;
+pub mod cmd;
 pub mod text;
 pub mod widgets;
 
