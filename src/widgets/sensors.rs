@@ -1,190 +1,131 @@
-use std::collections::HashMap;
-use std::process::Command;
+use std::str::FromStr;
 use std::time::Duration;
 
-use failure::ResultExt;
+use anyhow::{anyhow, Context, Result};
 use lazy_static::lazy_static;
 use regex::Regex;
-use tokio_timer::Timer;
+use tokio::stream::StreamExt;
 
+use crate::cmd::command_output;
 use crate::text::{Attributes, Text};
-use crate::{Cnx, Result};
+use crate::widgets::{Widget, WidgetStream};
 
 #[derive(Debug, PartialEq)]
-struct Value<'a> {
-    temp: &'a str,
-    units: &'a str,
+struct Value {
+    value: u64,
+    units: String,
 }
 
-/// Parses the output of the `sensors` executable from `lm_sensors`.
-fn parse_sensors_output(output: &str) -> Result<HashMap<&str, Value<'_>>> {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(
-            // Note: we ignore + but capture -
-            r"\n(?P<name>[\w ]+):\s+\+?(?P<temp>-?\d+\.\d+).(?P<units>[C|F])"
-        ).expect("Failed to compile regex for parsing sensors output");
+#[derive(Default)]
+struct OpenBsd;
+
+impl OpenBsd {
+    fn parse_value(&self, value: &str) -> Result<u64> {
+        let value = f64::from_str(value)?;
+        Ok(value as u64)
     }
 
-    let mut map = HashMap::new();
-    for mat in RE.captures_iter(output) {
-        // These .unwraps() are harmless. If we have a match, we have these groups.
-        map.insert(
-            mat.name("name").unwrap().as_str(),
-            Value {
-                temp: mat.name("temp").unwrap().as_str(),
-                units: mat.name("units").unwrap().as_str(),
-            },
-        );
+    fn parse_units(&self, units: &str) -> String {
+        match units {
+            "degC" => "°C".to_owned(),
+            "RPM" => " RPM".to_owned(),
+            _ => units.to_owned(),
+        }
     }
 
-    Ok(map)
+    fn load_values(&self, sensors: &[String]) -> Result<Vec<Value>> {
+        // TODO: Use sysctl C API rather than shelling out.
+
+        lazy_static! {
+            static ref RE: Regex =
+                Regex::new(r"(?P<name>[^=]+)=(?P<value>[^ ]+) (?P<units>[^ \n]+).*\n")
+                    .expect("Failed to compile Sensors regex");
+        }
+
+        let output = command_output("sysctl", sensors)?;
+        let values = RE
+            .captures_iter(&output)
+            .map(|mat| {
+                let value = mat
+                    .name("value")
+                    .ok_or_else(|| anyhow!("Missing value in Sensors output"))?;
+                let units = mat
+                    .name("units")
+                    .ok_or_else(|| anyhow!("Missing units in Sensors output"))?;
+
+                let value = self.parse_value(value.as_str())?;
+                let units = self.parse_units(units.as_str());
+
+                Ok(Value { value, units })
+            })
+            .collect::<Result<_>>()?;
+
+        Ok(values)
+    }
 }
 
-/// Shows the temperature from one or more sensors.
+// TODO: Use config flag when we re-implement Linux version.
+type SensorsInfo = OpenBsd;
+
+/// Shows the value from one or more hardware sensors.
 ///
-/// This widget shows the temperature reported by one or more sensors from the
+/// On Linux, this shows the temperature reported by one or more sensors from the
 /// output of the `sensors` command, which is part of the [`lm_sensors`]
-/// package.
+/// package. It expects the `sensors` executable to be available in the `PATH`.
 ///
-/// It expects the `sensors` executable to be available in the `PATH`.
+/// On OpenBSD, this shows the values reported by one or more sensors available
+/// through [`sysctl`].
 ///
 /// [`lm_sensors`]: https://wiki.archlinux.org/index.php/lm_sensors
+/// [`sysctl`]: https://man.openbsd.org/sysctl.8
 pub struct Sensors {
-    timer: Timer,
     update_interval: Duration,
     attr: Attributes,
     sensors: Vec<String>,
+    info: SensorsInfo,
 }
 
 impl Sensors {
     /// Creates a new Sensors widget.
     ///
-    /// Creates a new `Sensors` widget, whose text will be displayed with the
-    /// given [`Attributes`].
-    ///
-    /// A list of sensor names should be passed as the `sensors` argument. (You
-    /// can discover the names by running the `sensors` utility in a terminal).
-    ///
-    /// The [`Cnx`] instance is borrowed during construction in order to get
-    /// access to handles of its event loop. However, it is not borrowed for the
-    /// lifetime of the widget. See the [`cnx_add_widget!()`] for more discussion
-    /// about the lifetime of the borrow.
-    ///
-    /// [`Attributes`]: ../text/struct.Attributes.html
-    /// [`Cnx`]: ../struct.Cnx.html
-    /// [`cnx_add_widget!()`]: ../macro.cnx_add_widget.html
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # #[macro_use]
-    /// # extern crate cnx;
-    /// #
-    /// # use cnx::*;
-    /// # use cnx::text::*;
-    /// # use cnx::widgets::*;
-    /// #
-    /// # fn run() -> ::cnx::Result<()> {
-    /// let attr = Attributes {
-    ///     font: Font::new("SourceCodePro 21"),
-    ///     fg_color: Color::white(),
-    ///     bg_color: None,
-    ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
-    /// };
-    ///
-    /// let mut cnx = Cnx::new(Position::Top)?;
-    /// cnx_add_widget!(
-    ///     cnx,
-    ///     Sensors::new(&cnx, attr.clone(), vec!["Core 0", "Core 1"])
-    /// );
-    /// # Ok(())
-    /// # }
-    /// # fn main() { run().unwrap(); }
-    /// ```
-    pub fn new<S: Into<String>>(cnx: &Cnx, attr: Attributes, sensors: Vec<S>) -> Sensors {
+    /// A list of sensor names should be passed as the `sensors` argument.
+    pub fn new<S: Into<String>>(attr: Attributes, sensors: Vec<S>) -> Sensors {
+        let sensors = sensors.into_iter().map(Into::into).collect();
         Sensors {
-            timer: cnx.timer(),
             update_interval: Duration::from_secs(60),
             attr,
-            sensors: sensors.into_iter().map(Into::into).collect(),
+            sensors,
+            info: SensorsInfo::default(),
         }
     }
 
     fn tick(&self) -> Result<Vec<Text>> {
-        let output = Command::new("sensors")
-            .output()
-            .context("Failed to run `sensors`")?;
-        let string = String::from_utf8(output.stdout).context("Invalid UTF-8 in sensors output")?;
-        let parsed = parse_sensors_output(&string).context("Failed to parse `sensors` output")?;
-        self.sensors
-            .iter()
-            .map(|sensor_name| {
-                let text = parsed
-                    .get::<str>(sensor_name)
-                    .map_or("?".to_owned(), |&Value { temp, units }| {
-                        format!("{}°{}", temp, units)
-                    });
-                Ok(Text {
+        let values = self
+            .info
+            .load_values(&self.sensors)
+            .context("Failed to get sensor information")?;
+
+        let texts = values
+            .into_iter()
+            .map(|Value { value, units }| {
+                let text = format!("{}{}", value, units);
+                Text {
                     attr: self.attr.clone(),
                     text,
                     stretch: false,
-                })
+                }
             })
-            .collect()
+            .collect();
+
+        Ok(texts)
     }
 }
 
-timer_widget!(Sensors, timer, update_interval, tick);
+impl Widget for Sensors {
+    fn into_stream(self: Box<Self>) -> Result<WidgetStream> {
+        let stream = tokio::time::interval(self.update_interval).map(move |_| self.tick());
 
-#[cfg(test)]
-mod test {
-    use super::{parse_sensors_output, Value};
-
-    #[test]
-    fn works() {
-        let output = r#"applesmc-isa-0300
-Adapter: ISA adapter
-Right Side  :    0 RPM  (min = 2000 RPM, max = 6199 RPM)
-Ts1S:         -127.0 C
-Ts2S:          +34.0 F
-
-coretemp-isa-0000
-Adapter: ISA adapter
-Package id 0:  +58.0 C  (high = +105.0 C, crit = +105.0 C)
-Core 0:        +53.0 C  (high = +105.0 C, crit = +105.0 C)
-Core 1:        +58.0 C  (high = +105.0 C, crit = +105.0 C)
-"#;
-
-        let parsed = parse_sensors_output(output).unwrap();
-        assert_eq!(
-            parsed.get("Core 0"),
-            Some(&Value {
-                temp: "53.0",
-                units: "C",
-            })
-        );
-        assert_eq!(
-            parsed.get("Core 1"),
-            Some(&Value {
-                temp: "58.0",
-                units: "C",
-            })
-        );
-        assert_eq!(
-            parsed.get("Ts1S"),
-            Some(&Value {
-                temp: "-127.0",
-                units: "C",
-            })
-        );
-        assert_eq!(
-            parsed.get("Ts2S"),
-            Some(&Value {
-                temp: "34.0",
-                units: "F",
-            })
-        );
-
-        assert_eq!(parsed.len(), 5);
+        Ok(Box::pin(stream))
     }
 }
+

@@ -1,9 +1,11 @@
-use tokio_core::reactor::Handle;
+use anyhow::{Context, Result};
+use tokio::stream::StreamExt;
 use xcb;
 use xcb_util::ewmh;
 
 use crate::text::{Attributes, Text};
-use crate::{Cnx, Result};
+use crate::widgets::{Widget, WidgetStream};
+use crate::xcb::xcb_properties_stream;
 
 /// Shows the title of the currently focused window.
 ///
@@ -16,61 +18,20 @@ use crate::{Cnx, Result};
 ///
 /// [`EWMH`]: https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
 pub struct ActiveWindowTitle {
-    tokio_handle: Handle,
     attr: Attributes,
 }
 
 impl ActiveWindowTitle {
     /// Creates a new Active Window Title widget.
-    ///
-    /// Creates a new `ActiveWindowTitle` widget, whose text will be displayed
-    /// with the given [`Attributes`].
-    ///
-    /// The [`Cnx`] instance is borrowed during construction in order to get
-    /// access to handles of its event loop. However, it is not borrowed for the
-    /// lifetime of the widget. See the [`cnx_add_widget!()`] for more discussion
-    /// about the lifetime of the borrow.
-    ///
-    /// [`Attributes`]: ../text/struct.Attributes.html
-    /// [`Cnx`]: ../struct.Cnx.html
-    /// [`cnx_add_widget!()`]: ../macro.cnx_add_widget.html
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # #[macro_use]
-    /// # extern crate cnx;
-    /// #
-    /// # use cnx::*;
-    /// # use cnx::text::*;
-    /// # use cnx::widgets::*;
-    /// #
-    /// # fn run() -> ::cnx::Result<()> {
-    /// let attr = Attributes {
-    ///     font: Font::new("SourceCodePro 21"),
-    ///     fg_color: Color::white(),
-    ///     bg_color: None,
-    ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
-    /// };
-    ///
-    /// let mut cnx = Cnx::new(Position::Top)?;
-    /// cnx_add_widget!(cnx, ActiveWindowTitle::new(&cnx, attr.clone()));
-    /// # Ok(())
-    /// # }
-    /// # fn main() { run().unwrap(); }
-    /// ```
-    pub fn new(cnx: &Cnx, attr: Attributes) -> ActiveWindowTitle {
-        ActiveWindowTitle {
-            tokio_handle: cnx.handle(),
-            attr,
-        }
+    pub fn new(attr: Attributes) -> ActiveWindowTitle {
+        ActiveWindowTitle { attr }
     }
 
     fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Result<Vec<Text>> {
         let title = ewmh::get_active_window(conn, screen_idx)
             .get_reply()
             .and_then(|active_window| {
-                // x_properties_widget!() will only register for notifications on the
+                // xcb_properties_stream() will only register for notifications on the
                 // root window, so will only receive notifications when the active window
                 // changes. So, for each active window we see, register for property
                 // change notifications, so that we can see when the currently active
@@ -93,7 +54,16 @@ impl ActiveWindowTitle {
     }
 }
 
-x_properties_widget!(ActiveWindowTitle, tokio_handle, on_change; [
-    ACTIVE_WINDOW,
-    WM_NAME
-]);
+impl Widget for ActiveWindowTitle {
+    fn into_stream(self: Box<Self>) -> Result<WidgetStream> {
+        let properties = &["_NET_ACTIVE_WINDOW", "_NET_WM_NAME"];
+        let screen_idx = 0; // XXX assume
+        let (conn, stream) =
+            xcb_properties_stream(properties).context("Initialising ActiveWindowtitle")?;
+
+        let stream = stream.map(move |()| self.on_change(&conn, screen_idx));
+
+        Ok(Box::pin(stream))
+    }
+}
+

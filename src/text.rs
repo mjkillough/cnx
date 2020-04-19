@@ -1,11 +1,14 @@
+//! Types to represent text to be displayed by widgets.
+//!
+//! This module is light on documentation. See the existing widget
+//! implementations for inspiration.
+
 use std::fmt;
 
+use anyhow::{anyhow, Result};
 use cairo::{Context, Surface};
-use failure::format_err;
-use pango::{EllipsizeMode, FontDescription, LayoutExt};
+use pango::{EllipsizeMode, FontDescription};
 use pangocairo;
-
-use crate::Result;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Color {
@@ -83,7 +86,7 @@ pub struct Attributes {
 
 fn create_pango_layout(cairo_context: &cairo::Context) -> Result<pango::Layout> {
     let layout = pangocairo::functions::create_layout(cairo_context)
-        .ok_or_else(|| format_err!("Failed to create Pango layout"))?;
+        .ok_or_else(|| anyhow!("Failed to create Pango layout"))?;
     Ok(layout)
 }
 
@@ -178,3 +181,4 @@ impl ComputedText {
         Ok(())
     }
 }
+

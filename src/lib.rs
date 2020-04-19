@@ -1,5 +1,3 @@
-#![deny(warnings)]
-
 //! A simple X11 status bar for use with simple WMs.
 //!
 //! Cnx is written to be customisable, simple and fast. Where possible, it
@@ -20,25 +18,26 @@
 //! An simple example of a binary using Cnx is:
 //!
 //! ```no_run
-//! #[macro_use]
-//! extern crate cnx;
+//! use anyhow::Result;
 //!
-//! use cnx::*;
 //! use cnx::text::*;
 //! use cnx::widgets::*;
+//! use cnx::{Cnx, Position};
 //!
 //! fn main() -> Result<()> {
 //!     let attr = Attributes {
-//!         font: Font::new("SourceCodePro 21"),
+//!         font: Font::new("Envy Code R 21"),
 //!         fg_color: Color::white(),
 //!         bg_color: None,
 //!         padding: Padding::new(8.0, 8.0, 0.0, 0.0),
 //!     };
 //!
-//!     let mut cnx = Cnx::new(Position::Top)?;
-//!     cnx_add_widget!(cnx, ActiveWindowTitle::new(&cnx, attr.clone()));
-//!     cnx_add_widget!(cnx, Clock::new(&cnx, attr.clone()));
-//!     Ok(cnx.run()?)
+//!     let mut cnx = Cnx::new(Position::Top);
+//!     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
+//!     cnx.add_widget(Clock::new(attr.clone()));
+//!     cnx.run()?;
+//!
+//!     Ok(())
 //! }
 //! ```
 //!
@@ -61,13 +60,15 @@
 //!   currently active. (Uses [`EWMH`]'s `_NET_DESKTOP_NAMES`,
 //!   `_NET_NUMBER_OF_DESKTOPS` and `_NET_CURRENT_DESKTOP`).
 //! - [`Sensors`] — Periodically parses and displays the output of the
-//!   [`lm_sensors`] utility, allowing CPU temperature to be displayed.
-//! - [`Volume`] — Uses `alsa-lib` to show the current volume/mute status of the
-//!   default output device. (Disable by removing default feature
-//!   `volume-control`).
-//! - [`Battery`] — Uses `/sys/class/power_supply/` to show details on the
-//!   remaining battery and charge status.
+//!   sensors provided by the system.
+//! - [`Volume`] - Shows the current volume/mute status of the default output
+//!   device.
+//! - [`Battery`] - Shows the remaining battery and charge status.
 //! - [`Clock`] — Shows the time.
+//!
+//! The [`Sensors`], [`Volume`] and [`Battery`] widgets require platform
+//! support. They currently support Linux (see dependencies below) and OpenBSD.
+//! Support for additional platforms should be possible.
 //!
 //! # Dependencies
 //!
@@ -80,7 +81,7 @@
 //!  - `cairo`
 //!  - `pangocairo`
 //!
-//! Some widgets have additional dependencies:
+//! Some widgets have additional dependencies on Linux:
 //!
 //!  - [`Volume`] widget relies on `alsa-lib`
 //!  - [`Sensors`] widget relies on [`lm_sensors`] being installed.
@@ -88,12 +89,16 @@
 //! # Creating new widgets
 //!
 //! Cnx is designed such that thirdparty widgets can be written in external
-//! crates and used with the main [`Cnx`] instance. However, this API is
-//! currently very unstable and isn't recommended.
+//! crates and used with the main [`Cnx`] instance. However, I've never done
+//! this.
 //!
-//! The adventurous may choose to ignore this warning and look into the
-//! documentation of the [`Widget`] trait. The built-in [`widgets`] should give you
-//! some examples on which to base your work.
+//! The adventurous may choose to implement the [`Widget`] trait and see how
+//! far they can get. The [`Widget`] implementation can assume it's being run
+//! from a single-threaded [`tokio`] event-loop, but this is an implementation
+//! detail that should not be relied upon.
+//!
+//! The built-in [`widgets`] should give you some examples on which to base
+//! your work.
 //!
 //! [`mio`]: https://docs.rs/mio
 //! [`tokio`]: https://tokio.rs/
@@ -113,65 +118,33 @@
 //! [`Widget`]: widgets/trait.Widget.html
 //! [`widgets`]: widgets/index.html
 
-// new(...) -> Result<T> is used in a lot of places:
-#![allow(clippy::new_ret_no_self)]
-
 mod bar;
-pub mod cmd;
+mod cmd;
 pub mod text;
 pub mod widgets;
-pub mod xcb;
+mod xcb;
 
-use failure::ResultExt;
-use tokio_core::reactor::{Core, Handle};
-use tokio_timer::Timer;
+use anyhow::Result;
+use tokio::runtime::Runtime;
+use tokio::stream::{StreamExt, StreamMap};
+use tokio::task;
 
 use crate::bar::Bar;
+use crate::widgets::Widget;
+use crate::xcb::XcbEventStream;
 
-pub use crate::bar::Position;
-pub use crate::widgets::Widget;
-
-pub type Result<T> = std::result::Result<T, failure::Error>;
+pub use bar::Position;
 
 /// The main object, used to instantiate an instance of Cnx.
 ///
-/// The [`cnx_add_widget!()`] macro can be used to add widgets to the Cnx
-/// instance. Once configured, the [`run()`] method will take ownership of the
-/// instance and run it until the process is killed or an error is returned.
+/// Widgets can be added using the [`add_widget()`] method. Once configured,
+/// the [`run()`] method will take ownership of the instance and run it until
+/// the process is killed or an error occurs.
 ///
-/// [`cnx_add_widget!()`]: macro.cnx_add_widget.html
+/// [`add_widget()`]: #method.add_widget
 /// [`run()`]: #method.run
-///
-/// # Examples
-///
-/// ```no_run
-/// # #[macro_use]
-/// # extern crate cnx;
-/// #
-/// # use cnx::*;
-/// # use cnx::text::*;
-/// # use cnx::widgets::*;
-/// #
-/// # fn run() -> ::cnx::Result<()> {
-/// let attr = Attributes {
-///     font: Font::new("SourceCodePro 21"),
-///     fg_color: Color::white(),
-///     bg_color: None,
-///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
-/// };
-///
-/// let mut cnx = Cnx::new(Position::Top)?;
-/// cnx_add_widget!(cnx, ActiveWindowTitle::new(&cnx, attr.clone()));
-/// cnx_add_widget!(cnx, Clock::new(&cnx, attr.clone()));
-/// cnx.run()?;
-/// # Ok(())
-/// # }
-/// # fn main() { run().unwrap(); }
-/// ```
 pub struct Cnx {
-    core: Core,
-    timer: Timer,
-    bar: Bar,
+    position: Position,
     widgets: Vec<Box<dyn Widget>>,
 }
 
@@ -182,97 +155,76 @@ impl Cnx {
     /// screen, depending on the value of the [`Position`] enum.
     ///
     /// [`Position`]: enum.Position.html
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use cnx::{Cnx, Position};
-    /// let mut cnx = Cnx::new(Position::Top);
-    /// ```
-    /// ```
-    /// # use cnx::{Cnx, Position};
-    /// let mut cnx = Cnx::new(Position::Bottom);
-    /// ```
-    pub fn new(position: Position) -> Result<Cnx> {
-        Ok(Cnx {
-            core: Core::new().context("Could not create Tokio Core")?,
-            timer: Timer::default(),
-            bar: Bar::new(position)?,
-            widgets: Vec::new(),
-        })
+    pub fn new(position: Position) -> Self {
+        let widgets = Vec::new();
+        Self { position, widgets }
     }
 
-    fn handle(&self) -> Handle {
-        self.core.handle()
-    }
-
-    fn timer(&self) -> Timer {
-        self.timer.clone()
-    }
-
-    /// Adds a widget to the Cnx instance.
-    ///
-    /// This method takes a [`Widget`] and adds it to the current Cnx instance,
-    /// to the right of any existing widgets.
-    ///
-    /// It is recommended that you instead use the [`cnx_add_widget!()`] macro,
-    /// as this will eventually grow to have a more flexible syntax for
-    /// configuring widget attributes.
-    ///
-    /// [`Widget`]: widgets/trait.Widget.html
-    /// [`cnx_add_widget!()`]: macro.cnx_add_widget.html
+    // Adds a widget to the `Cnx` instance.
+    //
+    // Takes ownership of the [`Widget`] and adds it to the Cnx instance to
+    // the right of any existing widgets.
+    //
+    // [`Widget`]: widgets/trait.Widget.html
     pub fn add_widget<W>(&mut self, widget: W)
     where
         W: Widget + 'static,
     {
-        self.widgets.push(Box::new(widget) as Box<dyn Widget>);
+        self.widgets.push(Box::new(widget));
     }
 
     /// Runs the Cnx instance.
     ///
     /// This method takes ownership of the Cnx instance and runs it until either
     /// the process is terminated, or an internal error is returned.
-    pub fn run(mut self) -> Result<()> {
-        let handle = self.handle();
-        self.core
-            .run(self.bar.run_event_loop(&handle, self.widgets)?)
+    pub fn run(self) -> Result<()> {
+        // Use a single-threaded event loop. We aren't interested in
+        // performance too much, so don't mind if we block the loop
+        // occasionally. We are using events to get woken up as
+        // infrequently as possible (to save battery).
+        let mut rt = Runtime::new()?;
+        let local = task::LocalSet::new();
+        local.block_on(&mut rt, self.run_inner())?;
+        Ok(())
     }
-}
 
-/// Adds a `Widget` to a `Cnx` instance.
-///
-/// This macro adds a [`Widget`] to a [`Cnx`] instance, placing it to the right
-/// of any existing widgets. (Internally, this macro uses
-/// [`Cnx::add_widget()`]).
-///
-/// This macro serves two purposes:
-///
-///  - It avoids lexical-lifetime issues in the borrow checker, if the
-///    [`Widget`]'s constructor borrows the [`Cnx`] instance and is constructed
-///    as part of the same statement where it's added to the [`Cnx`] instance.
-///
-///    For instance, this works:
-///
-///    ```ignore
-///    cnx_add_widget!(cnx, DummyWidget::new(&cnx)))
-///    ```
-///
-///    Whereas this doesn't pass borrow checking:
-///
-///    ```ignore
-///    cnx.add_widget(DummyWidget::new(&cnx))
-///    ```
-///
-///  - It might one day grow into a more complex DSL to pass configurable
-///    attributes through to widgets.
-///
-/// [`Widget`]: widgets/trait.Widget.html
-/// [`Cnx`]: struct.Cnx.html
-/// [`Cnx::add_widget()`]: struct.Cnx.html#method.add_widget
-#[macro_export]
-macro_rules! cnx_add_widget {
-    ($cnx:ident, $widget:expr) => {
-        let widget = $widget;
-        $cnx.add_widget(widget);
-    };
+    async fn run_inner(self) -> Result<()> {
+        let mut bar = Bar::new(self.position)?;
+
+        let mut widgets = StreamMap::with_capacity(self.widgets.len());
+        for widget in self.widgets {
+            let idx = bar.add_content(Vec::new())?;
+            widgets.insert(idx, widget.into_stream()?);
+        }
+
+        let mut event_stream = XcbEventStream::new(bar.connection().clone())?;
+        task::spawn_local(async move {
+            loop {
+                tokio::select! {
+                    // Pass each XCB event to the Bar.
+                    Some(event) = event_stream.next() => {
+                        if let Err(err) = bar.process_event(event) {
+                            println!("Error processing XCB event: {}", err);
+                        }
+                    },
+
+                    // Each time a widget yields new values, pass to the bar.
+                    // Ignore (but log) any errors from widgets.
+                    Some((idx, result)) = widgets.next() => {
+                        match result {
+                            Err(err) => println!("Error from widget {}: {}", idx, err),
+                            Ok(texts) => {
+                                if let Err(err) = bar.update_content(idx, texts) {
+                                    println!("Error updating widget {}: {}", idx, err);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+        .await?;
+
+        Ok(())
+    }
 }

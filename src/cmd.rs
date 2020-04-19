@@ -4,9 +4,7 @@ use std::fmt::Debug;
 use std::process::Command;
 use std::str::FromStr;
 
-use failure::ResultExt;
-
-use crate::Result;
+use anyhow::{Context, Result};
 
 fn command_output_inner<C, A>(command: C, args: &[A]) -> Result<String>
 where
@@ -24,7 +22,7 @@ where
     A: AsRef<OsStr> + Debug,
 {
     let command = command.as_ref();
-    let string = command_output_inner(command, args).with_context(|_| {
+    let string = command_output_inner(command, args).with_context(|| {
         format!(
             "Running command `{command:?}` `{args:?}`",
             command = command,
@@ -53,7 +51,7 @@ where
 {
     let command = command.as_ref();
     let string = command_output(command, args)?;
-    let value = from_str(string.trim()).with_context(|_| {
+    let value = from_str(string.trim()).with_context(|| {
         format!(
             "Parsing command `{command:?}` `{args:?}`: `{string}`",
             command = command,
@@ -63,3 +61,4 @@ where
     })?;
     Ok(value)
 }
+

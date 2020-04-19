@@ -20,19 +20,22 @@ calling out to external programs.
 [`tokio`]: https://tokio.rs/
 
 There are currently these widgets available:
- - Active Window Title — Shows the title (EWMH's `_NET_WM_NAME`) for the
-   currently focused window (EWMH's `_NEW_ACTIVE_WINDOW`).
- - Pager — Shows the WM's workspaces/groups, highlighting whichever is currently
-   active. (Uses EWMH's
-   `_NET_DESKTOP_NAMES`/`_NET_NUMBER_OF_DESKTOPS`/`_NET_CURRENT_DESKTOP`).
- - Sensors — Periodically parses and displays the output of the `lm_sensors`
-   utility, allowing CPU temperature to be displayed.
- - Volume — Uses `alsa-lib` to show the current volume/mute status of the
-   default output device. (Disable by removing default feature
-   `volume-widget`).
- - Battery — Uses `/sys/class/power_supply/` to show details on the remaining
-   battery and charge status.
+
+ - Active Window Title — Shows the title (EWMH's `_NET_WM_NAME`) for
+   the currently focused window (EWMH's `_NEW_ACTIVE_WINDOW`).
+ - Pager — Shows the WM's workspaces/groups, highlighting whichever is
+   currently active. (Uses EWMH's `_NET_DESKTOP_NAMES`,
+   `_NET_NUMBER_OF_DESKTOPS` and `_NET_CURRENT_DESKTOP`).
+ - Sensors — Periodically parses and displays the output of the
+   sensors provided by the system.
+ - Volume - Shows the current volume/mute status of the default output
+   device.
+ - Battery - Shows the remaining battery and charge status.
  - Clock — Shows the time.
+
+The [`Sensors`], [`Volume`] and [`Battery`] widgets require platform
+support. They currently support Linux (see dependencies below) and OpenBSD.
+Support for additional platforms should be possible.
 
 ## How to use
 
@@ -52,19 +55,19 @@ An simple example of a binary using Cnx is:
 ```rust
 use cnx::text::*;
 use cnx::widgets::*;
-use cnx::*;
+use cnx::{Cnx, Position};
 
 fn main() -> Result<()> {
     let attr = Attributes {
-        font: Font::new("SourceCodePro 21"),
+        font: Font::new("Envy Code R 21"),
         fg_color: Color::white(),
         bg_color: None,
         padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     };
 
-    let mut cnx = Cnx::new(Position::Bottom)?;
-    cnx_add_widget!(cnx, ActiveWindowTitle::new(&cnx, attr.clone()));
-    cnx_add_widget!(cnx, Clock::new(&cnx, attr.clone()));
+    let mut cnx = Cnx::new(Position::Top);
+    cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
+    cnx.add_widget(Clock::new(attr.clone()));
     cnx.run()?;
 
     Ok(())
@@ -101,7 +104,7 @@ apt-get install libx11-xcb-dev libxcb-ewmh-dev libpango1.0-dev libcairo2-dev
 ```
 
 If the `volume-widget` feature is enabled (and it is by default), you will
-also need `alsa-lib`:
+also need `alsa-lib` on Linux:
 
 ```
 apt-get install libasound2-dev

@@ -1,12 +1,12 @@
 use std::str::FromStr;
 use std::time::Duration;
 
-use failure::ResultExt;
-use tokio_timer::Timer;
+use anyhow::{Context, Result};
+use tokio::stream::StreamExt;
 
 use crate::cmd::{command_output, from_command_output};
 use crate::text::{Attributes, Color, Text};
-use crate::{Cnx, Result};
+use crate::widgets::{Widget, WidgetStream};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum Status {
@@ -16,7 +16,7 @@ enum Status {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Info {
+struct Info {
     status: Status,
     minutes: Option<u16>,
     percentage: u8, // 0-100
@@ -33,14 +33,10 @@ impl Info {
     }
 }
 
-pub trait BatteryInfo {
-    fn new() -> Self;
-    fn load_info(&self) -> Result<Info>;
-}
+#[derive(Default)]
+struct OpenBsd;
 
-pub struct OpenBsdBatteryInfo;
-
-impl OpenBsdBatteryInfo {
+impl OpenBsd {
     fn load_status(&self) -> Result<Status> {
         let string = command_output("apm", &["-a"])?;
         match string.trim() {
@@ -63,12 +59,6 @@ impl OpenBsdBatteryInfo {
         let minutes = u16::from_str(string.trim()).context("Parsing time remaining")?;
         Ok(Some(minutes))
     }
-}
-
-impl BatteryInfo for OpenBsdBatteryInfo {
-    fn new() -> Self {
-        Self
-    }
 
     fn load_info(&self) -> Result<Info> {
         let status = self.load_status()?;
@@ -82,6 +72,9 @@ impl BatteryInfo for OpenBsdBatteryInfo {
     }
 }
 
+// TODO: Gate this on platform once we add the Linux impl back.
+type BatteryInfo = OpenBsd;
+
 /// Shows battery charge percentage and (dis)charge time.
 ///
 /// This widget shows the battery's current charge percentage and the amount of
@@ -91,64 +84,28 @@ impl BatteryInfo for OpenBsdBatteryInfo {
 /// When the battery has less than 10% charge remaining, the widget's text will
 /// change to the specified `warning_color`.
 ///
-/// Battery charge information is read from [`/sys/class/power_supply/BAT0/`].
+/// On Linux, battery charge information is read from [`/sys/class/power_supply/BAT0/`].
+///
+/// On OpenBSD, battery information is parsed from [`apm`].
 ///
 /// [`/sys/class/power_supply/BAT0/`]: https://www.kernel.org/doc/Documentation/power/power_supply_class.txt
-pub struct Battery<I: BatteryInfo> {
-    timer: Timer,
+/// [`apm`]: https://man.openbsd.org/apm.8
+pub struct Battery {
     update_interval: Duration,
-    info: I,
+    info: BatteryInfo,
     attr: Attributes,
     warning_color: Color,
 }
 
-impl<I: BatteryInfo> Battery<I> {
-    ///  Creates a new Battery widget.
+impl Battery {
+    /// Creates a new Battery widget.
     ///
-    ///  Creates a new `Battery` widget, whose text will be displayed with the
-    ///  given [`Attributes`]. The caller can provide use the `warning_color`
-    ///  argument, to control the [`Color`] of the text once the battery has
-    ///  less than 10% charge remaining.
-    ///
-    ///  The [`Cnx`] instance is borrowed during construction in order to get
-    ///  access to handles of its event loop. However, it is not borrowed for
-    ///  the lifetime of the widget. See the [`cnx_add_widget!()`] for more
-    ///  discussion about the lifetime of the borrow.
-    ///
-    /// [`Attributes`]: ../text/struct.Attributes.html
-    /// [`Color`]: ../text/struct.Color.html
-    /// [`Cnx`]: ../struct.Cnx.html
-    /// [`cnx_add_widget!()`]: ../macro.cnx_add_widget.html
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # #[macro_use]
-    /// # extern crate cnx;
-    /// #
-    /// # use cnx::*;
-    /// # use cnx::text::*;
-    /// # use cnx::widgets::*;
-    /// #
-    /// # fn run() -> ::cnx::Result<()> {
-    /// let attr = Attributes {
-    ///     font: Font::new("SourceCodePro 21"),
-    ///     fg_color: Color::white(),
-    ///     bg_color: None,
-    ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
-    /// };
-    ///
-    /// let mut cnx = Cnx::new(Position::Top)?;
-    /// cnx_add_widget!(cnx, Battery::new(&cnx, attr.clone(), Color::red()));
-    /// # Ok(())
-    /// # }
-    /// # fn main() { run().unwrap(); }
-    /// ```
-    pub fn new(cnx: &Cnx, attr: Attributes, warning_color: Color) -> Self {
+    /// The `warning_color` attributes are used when there is less than 10%
+    /// battery charge remaining.
+    pub fn new(attr: Attributes, warning_color: Color) -> Self {
         Self {
-            timer: cnx.timer(),
             update_interval: Duration::from_secs(60),
-            info: I::new(),
+            info: BatteryInfo::default(),
             attr,
             warning_color,
         }
@@ -183,6 +140,11 @@ impl<I: BatteryInfo> Battery<I> {
     }
 }
 
-pub type OpenBsdBattery = Battery<OpenBsdBatteryInfo>;
+impl Widget for Battery {
+    fn into_stream(self: Box<Self>) -> Result<WidgetStream> {
+        let stream = tokio::time::interval(self.update_interval).map(move |_| self.tick());
 
-timer_widget!(OpenBsdBattery, timer, update_interval, tick);
+        Ok(Box::pin(stream))
+    }
+}
+
