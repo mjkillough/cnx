@@ -118,6 +118,8 @@
 //! [`Widget`]: widgets/trait.Widget.html
 //! [`widgets`]: widgets/index.html
 
+#![recursion_limit = "256"]
+
 mod bar;
 mod cmd;
 pub mod text;

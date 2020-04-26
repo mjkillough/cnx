@@ -5,6 +5,7 @@ mod battery;
 mod clock;
 mod pager;
 mod sensors;
+mod volume;
 
 use std::pin::Pin;
 
@@ -18,6 +19,7 @@ pub use self::battery::Battery;
 pub use self::clock::Clock;
 pub use self::pager::Pager;
 pub use self::sensors::Sensors;
+pub use self::volume::Volume;
 
 /// The stream of `Vec<Text>` returned by each widget.
 ///
