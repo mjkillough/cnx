@@ -179,7 +179,7 @@ dependencies = [
  "pango 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pangocairo 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 1.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "sioctl 0.0.1 (git+https://github.com/mjkillough/sioctl-rs.git)",
+ "sioctl 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "xcb 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "xcb-util 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -628,11 +628,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "sioctl"
 version = "0.0.1"
-source = "git+https://github.com/mjkillough/sioctl-rs.git#ed1facbe29772f98617a569747c22e50268e036a"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.2.69 (registry+https://github.com/rust-lang/crates.io-index)",
  "nix 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "sndio-sys 0.0.1 (git+https://github.com/mjkillough/sioctl-rs.git)",
+ "sndio-sys 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -643,7 +643,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "sndio-sys"
 version = "0.0.1"
-source = "git+https://github.com/mjkillough/sioctl-rs.git#ed1facbe29772f98617a569747c22e50268e036a"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bindgen 0.53.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.69 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -890,9 +890,9 @@ dependencies = [
 "checksum regex-syntax 0.6.17 (registry+https://github.com/rust-lang/crates.io-index)" = "7fe5bd57d1d7414c6b5ed48563a2c855d995ff777729dcd91c369ec7fea395ae"
 "checksum rustc-hash 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 "checksum shlex 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7fdf1b9db47230893d76faad238fd6097fd6d6a9245cd7a4d90dbd639536bbd2"
-"checksum sioctl 0.0.1 (git+https://github.com/mjkillough/sioctl-rs.git)" = "<none>"
+"checksum sioctl 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "efc3e89296142362fe4967e6a7cd19934d4f7be97a4c3bd95f6c362aba321122"
 "checksum slab 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "5f9776d6b986f77b35c6cf846c11ad986ff128fe0b2b63a3628e3755e8d3102d"
-"checksum sndio-sys 0.0.1 (git+https://github.com/mjkillough/sioctl-rs.git)" = "<none>"
+"checksum sndio-sys 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "0005ce55e70c5a0680a8f2f03d39f6185f7b17206bc784867657ebe938636f90"
 "checksum strsim 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 "checksum syn 1.0.17 (registry+https://github.com/rust-lang/crates.io-index)" = "0df0eb663f387145cab623dea85b09c2c5b4b0aef44e945d928e682fce71bb03"
 "checksum termcolor 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "bb6bfa289a4d7c5766392812c0a1f4c1ba45afa1ad47803c11e1f407d846d75f"

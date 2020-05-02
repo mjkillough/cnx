@@ -29,7 +29,7 @@ impl OpenBsd {
         let controls = sioctl.controls();
 
         let (sender, receiver) = mpsc::unbounded_channel();
-        sioctl.watch(move |control| {
+        let watcher = sioctl.watch(move |control| {
             if let Err(error) = sender.send(control.clone()) {
                 println!("Error sending sioctl message: {}", error);
             }
@@ -37,6 +37,8 @@ impl OpenBsd {
 
         let mut stream = stream::iter(controls).chain(receiver);
         stream! {
+            // Move watcher into stream! {} to keep it alive.
+            let watcher = watcher;
             let mut state = State::Unknown;
             let mut muted = false;
             let mut percentage = 1.0;
