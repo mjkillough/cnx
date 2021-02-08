@@ -5,6 +5,7 @@ mod battery;
 mod clock;
 mod pager;
 mod sensors;
+#[cfg(feature = "sioctl-volume")]
 mod volume;
 
 use std::pin::Pin;
@@ -19,6 +20,7 @@ pub use self::battery::Battery;
 pub use self::clock::Clock;
 pub use self::pager::Pager;
 pub use self::sensors::Sensors;
+#[cfg(feature = "sioctl-volume")]
 pub use self::volume::Volume;
 
 /// The stream of `Vec<Text>` returned by each widget.
@@ -48,4 +50,3 @@ pub type WidgetStream = Pin<Box<dyn Stream<Item = Result<Vec<Text>>>>>;
 pub trait Widget {
     fn into_stream(self: Box<Self>) -> Result<WidgetStream>;
 }
-

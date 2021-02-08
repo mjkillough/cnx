@@ -21,6 +21,7 @@ fn main() -> Result<()> {
     cnx.add_widget(Pager::new(active_attr, attr.clone()));
     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
     cnx.add_widget(Sensors::new(attr.clone(), sensors));
+    #[cfg(feature = "sioctl-volume")]
     cnx.add_widget(Volume::new(attr.clone()));
     cnx.add_widget(Battery::new(attr.clone(), Color::red()));
     cnx.add_widget(Clock::new(attr.clone()));
@@ -29,4 +30,3 @@ fn main() -> Result<()> {
 
     Ok(())
 }
-
