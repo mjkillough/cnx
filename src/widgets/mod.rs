@@ -7,11 +7,10 @@ mod pager;
 mod sensors;
 #[cfg(feature = "sioctl-volume")]
 mod volume;
-
 use std::pin::Pin;
 
 use anyhow::Result;
-use tokio::stream::Stream;
+use futures::stream::Stream;
 
 use crate::text::Text;
 

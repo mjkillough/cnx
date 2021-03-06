@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use tokio::stream::StreamExt;
+use futures::stream::StreamExt;
 use xcb;
 use xcb_util::ewmh;
 
@@ -66,4 +66,3 @@ impl Widget for ActiveWindowTitle {
         Ok(Box::pin(stream))
     }
 }
-

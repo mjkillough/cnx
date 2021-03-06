@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use tokio::stream::StreamExt;
+use futures::stream::StreamExt;
 use xcb_util::ewmh;
 
 use crate::text::{Attributes, Text};

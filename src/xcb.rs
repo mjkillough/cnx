@@ -1,14 +1,11 @@
-use std::io;
+use anyhow::{anyhow, Context as _AnyhowContext, Result};
+use std::os::unix::io::AsRawFd;
 use std::os::unix::io::RawFd;
 use std::pin::Pin;
 use std::rc::Rc;
 use std::task::{Context, Poll};
-
-use anyhow::{anyhow, Context as _AnyhowContext, Result};
-use mio::unix::EventedFd;
-use mio::{Evented, Ready};
-use tokio::io::PollEvented;
-use tokio::stream::{self, Stream, StreamExt};
+use tokio::io::unix::AsyncFd;
+use tokio_stream::{self as stream, Stream, StreamExt};
 use xcb;
 use xcb::xproto::{PropertyNotifyEvent, PROPERTY_NOTIFY};
 use xcb_util::ewmh;
@@ -20,50 +17,24 @@ use xcb_util::ewmh;
 // make it live long enough.
 struct XcbEvented(Rc<ewmh::Connection>);
 
-impl XcbEvented {
-    fn fd(&self) -> RawFd {
+impl AsRawFd for XcbEvented {
+    fn as_raw_fd(&self) -> RawFd {
         let conn: &xcb::Connection = &self.0;
-        unsafe { xcb::ffi::base::xcb_get_file_descriptor(conn.get_raw_conn()) }
-    }
-}
-
-impl Evented for XcbEvented {
-    fn register(
-        &self,
-        poll: &mio::Poll,
-        token: mio::Token,
-        interest: Ready,
-        opts: mio::PollOpt,
-    ) -> io::Result<()> {
-        EventedFd(&self.fd()).register(poll, token, interest, opts)
-    }
-
-    fn reregister(
-        &self,
-        poll: &mio::Poll,
-        token: mio::Token,
-        interest: Ready,
-        opts: mio::PollOpt,
-    ) -> io::Result<()> {
-        EventedFd(&self.fd()).reregister(poll, token, interest, opts)
-    }
-
-    fn deregister(&self, poll: &mio::Poll) -> io::Result<()> {
-        EventedFd(&self.fd()).deregister(poll)
+        conn.as_raw_fd()
     }
 }
 
 // A `Stream` of `xcb::GenericEvent` for the provided `xcb::Connection`.
 pub struct XcbEventStream {
     conn: Rc<ewmh::Connection>,
-    poll: PollEvented<XcbEvented>,
+    poll: AsyncFd<XcbEvented>,
     would_block: bool,
 }
 
 impl XcbEventStream {
     pub fn new(conn: Rc<ewmh::Connection>) -> Result<XcbEventStream> {
         let evented = XcbEvented(conn.clone());
-        let poll = PollEvented::new(evented)?;
+        let poll = AsyncFd::with_interest(evented, tokio::io::Interest::READABLE)?;
 
         Ok(XcbEventStream {
             conn,
@@ -76,28 +47,25 @@ impl XcbEventStream {
 impl Stream for XcbEventStream {
     type Item = xcb::GenericEvent;
 
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
-        let this = self.get_mut();
-
-        if this.would_block {
-            match this.poll.poll_read_ready(cx, Ready::readable()) {
-                Poll::Ready(Ok(_)) => this.would_block = false,
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+        let self_ = &mut *self;
+        if self_.would_block {
+            match self_.poll.poll_read_ready(cx) {
+                Poll::Ready(Ok(_)) => {
+                    self_.would_block = false;
+                }
                 Poll::Ready(Err(e)) => {
                     // Unsure when this would happen:
                     panic!("Error polling xcb::Connection: {}", e);
                 }
-                Poll::Pending => {
-                    return Poll::Pending;
-                }
+                Poll::Pending => return Poll::Pending,
             }
         }
-
-        match this.conn.poll_for_event() {
+        match self_.conn.poll_for_event() {
             Some(event) => Poll::Ready(Some(event)),
             None => {
-                this.would_block = true;
-                this.poll.clear_read_ready(cx, Ready::readable()).unwrap();
-                Poll::Pending
+                self_.would_block = true;
+                self.poll_next(cx)
             }
         }
     }
@@ -161,4 +129,3 @@ pub fn xcb_properties_stream(
 
     Ok((conn, stream))
 }
-

@@ -39,11 +39,10 @@ impl Widget for Clock {
                 // As we're not showing seconds, we can sleep for however long
                 // it takes until the minutes changes between updates.
                 let sleep_for = Duration::from_secs(60 - u64::from(now.second()));
-                tokio::time::delay_for(sleep_for).await;
+                tokio::time::sleep(sleep_for).await;
             }
         };
 
         Ok(Box::pin(stream))
     }
 }
-

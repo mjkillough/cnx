@@ -128,8 +128,8 @@ mod xcb;
 
 use anyhow::Result;
 use tokio::runtime::Runtime;
-use tokio::stream::{StreamExt, StreamMap};
 use tokio::task;
+use tokio_stream::{StreamExt, StreamMap};
 
 use crate::bar::Bar;
 use crate::widgets::Widget;
