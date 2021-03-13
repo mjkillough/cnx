@@ -1,33 +1,38 @@
 //! Provided widgets and types for creating new widgets.
 
 mod active_window_title;
-mod battery;
-mod clock;
-mod pager;
+
+#[cfg(target_os = "openbsd")]
+mod battery_bsd;
 #[cfg(target_os = "openbsd")]
 mod sensors_bsd;
+#[cfg(target_os = "openbsd")]
+mod volume;
+#[cfg(target_os = "openbsd")]
+pub use self::sensors_battery::Battery;
+#[cfg(feature = "openbsd")]
+pub use self::volume::Volume;
+
+#[cfg(target_os = "linux")]
+mod battery_linux;
 #[cfg(target_os = "linux")]
 mod sensors_linux;
-#[cfg(feature = "sioctl-volume")]
-mod volume;
-mod volume_rust;
-use std::pin::Pin;
-
-use anyhow::Result;
-use futures::stream::Stream;
-
-use crate::text::Text;
-
-pub use self::active_window_title::ActiveWindowTitle;
-pub use self::battery::Battery;
-pub use self::clock::Clock;
-pub use self::pager::Pager;
-#[cfg(target_os = "openbsd")]
-pub use self::sensors_bsd::Sensors;
+#[cfg(target_os = "linux")]
+pub use self::battery_linux::Battery;
 #[cfg(target_os = "linux")]
 pub use self::sensors_linux::Sensors;
-#[cfg(feature = "sioctl-volume")]
-pub use self::volume::Volume;
+#[cfg(target_os = "linux")]
+mod clock;
+mod pager;
+
+mod volume_rust;
+pub use self::active_window_title::ActiveWindowTitle;
+pub use self::clock::Clock;
+pub use self::pager::Pager;
+use crate::text::Text;
+use anyhow::Result;
+use futures::stream::Stream;
+use std::pin::Pin;
 
 /// The stream of `Vec<Text>` returned by each widget.
 ///

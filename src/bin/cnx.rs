@@ -17,11 +17,11 @@ fn main() -> Result<()> {
     let mut cnx = Cnx::new(Position::Bottom);
 
     let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
-
+    let battery = Battery::new(attr.clone(), Color::red());
     cnx.add_widget(Pager::new(active_attr, attr.clone()));
     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
     cnx.add_widget(sensors);
-    cnx.add_widget(Battery::new(attr.clone(), Color::red()));
+    cnx.add_widget(battery);
     cnx.add_widget(Clock::new(attr.clone()));
 
     cnx.run()?;
