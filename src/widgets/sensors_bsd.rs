@@ -1,11 +1,17 @@
+#[cfg(target_os = "openbsd")]
+use anyhow::{Context, Error, Result};
+use std::collections::HashMap;
+use std::process::Command;
+use std::time::Duration;
+
+use regex::Regex;
+
 use crate::cmd::command_output;
 use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
-use anyhow::{anyhow, Context, Result};
 use lazy_static::lazy_static;
-use regex::Regex;
+// use regex::Regex;
 use std::str::FromStr;
-use std::time::Duration;
 use tokio::time;
 use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
