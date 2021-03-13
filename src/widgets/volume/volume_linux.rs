@@ -200,26 +200,23 @@ impl Stream for AlsaEventStream {
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         // Always assume we're ready initially, so that we can clear the
         // state of the fds.
-        if !self.initial {
-            if let Poll::Pending = self.poll.poll_read_ready(cx) {
-                return Poll::Pending;
-            }
-        }
-        self.initial = false;
 
         // Do a poll with a timeout of 0 to figure out exactly which fds were
         // woken up, followed by a call to revents() which clears the pending
         // events. We don't actually care what the events are - we're just
         // using it as a wake-up so we can check the volume again.
-
-        // let mixer = self.poll.get_ref().mixer();
-        // let ready = alsa::poll::poll_all(&[mixer], 0).unwrap();
-        // let poll_descriptors = ready.into_iter().map(|(p, _)| p);
-        // for poll_descriptor in poll_descriptors {
-        //     mixer
-        //         .revents(poll_descriptor.get().unwrap().as_slice())
-        //         .unwrap();
-        // }
+        if self.initial {
+            let mixer = self.poll.get_ref().mixer();
+            let ready = alsa::poll::poll_all(&[mixer], 0).unwrap();
+            let poll_descriptors = ready.into_iter().map(|(p, _)| p);
+            for poll_descriptor in poll_descriptors {
+                mixer
+                    .revents(poll_descriptor.get().unwrap().as_slice())
+                    .unwrap();
+            }
+            self.initial = false;
+            return Poll::Ready(Some(()));
+        }
         // All events have been consumed - tell Tokio we're interested in waiting
         // for more again.
         // todo
