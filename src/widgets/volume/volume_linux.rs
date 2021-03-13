@@ -2,7 +2,7 @@ use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
 use alsa::mixer::{SelemChannelId, SelemId};
 use alsa::{self, Mixer, PollDescriptors};
-use anyhow::Result;
+use anyhow::{anyhow, Error, Result};
 use mio::unix::SourceFd;
 use mio::{event, Interest, Registry, Token};
 use std::io;
@@ -88,7 +88,7 @@ impl Widget for Volume {
 
             let mixer = Mixer::new(mixer_name, true)?;
             let master = mixer.find_selem(&SelemId::new("Master", 0)).unwrap();
-            // .ok_or_else(|| format_err!("Couldn't open Master channel"))?;
+            // .ok_or_else(|| format!("Couldn't open Master channel"))?;
 
             let mute = master.get_playback_switch(channel)? == 0;
 
@@ -129,40 +129,40 @@ impl AlsaEvented {
     }
 }
 
-impl event::Source for AlsaEvented {
-    fn register(
-        &mut self,
-        registry: &Registry,
-        token: Token,
-        interests: Interest,
-    ) -> io::Result<()> {
-        for fd in &self.fds() {
-            SourceFd(fd).register(registry, token, interests)?
-        }
-        Ok(())
-    }
+// impl event::Source for AlsaEvented {
+//     fn register(
+//         &mut self,
+//         registry: &Registry,
+//         token: Token,
+//         interests: Interest,
+//     ) -> io::Result<()> {
+//         for fd in &self.fds() {
+//             SourceFd(fd).register(registry, token, interests)?
+//         }
+//         Ok(())
+//     }
 
-    fn reregister(
-        &mut self,
-        registry: &Registry,
-        token: Token,
-        interests: Interest,
-    ) -> io::Result<()> {
-        for fd in &self.fds() {
-            SourceFd(fd).reregister(registry, token, interests);
-        }
-        Ok(())
-    }
+//     fn reregister(
+//         &mut self,
+//         registry: &Registry,
+//         token: Token,
+//         interests: Interest,
+//     ) -> io::Result<()> {
+//         for fd in &self.fds() {
+//             SourceFd(fd).reregister(registry, token, interests);
+//         }
+//         Ok(())
+//     }
 
-    fn deregister(&mut self, registry: &Registry) -> io::Result<()> {
-        // XXX If the set of fds changes (it won't), should we deregister the
-        // original set?
-        for fd in &self.fds() {
-            SourceFd(fd).deregister(registry);
-        }
-        Ok(())
-    }
-}
+//     fn deregister(&mut self, registry: &Registry) -> io::Result<()> {
+//         // XXX If the set of fds changes (it won't), should we deregister the
+//         // original set?
+//         for fd in &self.fds() {
+//             SourceFd(fd).deregister(registry);
+//         }
+//         Ok(())
+//     }
+// }
 
 struct AlsaEventStream {
     poll: AsyncFd<AlsaEvented>,
@@ -172,7 +172,7 @@ struct AlsaEventStream {
 impl AsRawFd for AlsaEvented {
     fn as_raw_fd(&self) -> RawFd {
         // todo: is this even correce
-        self.fds().clone().into_iter().nth(0).unwrap()
+        self.fds().into_iter().nth(0).unwrap()
     }
 }
 
@@ -211,19 +211,37 @@ impl Stream for AlsaEventStream {
         // woken up, followed by a call to revents() which clears the pending
         // events. We don't actually care what the events are - we're just
         // using it as a wake-up so we can check the volume again.
-        let mixer = self.poll.get_ref().mixer();
-        let ready = alsa::poll::poll_all(&[mixer], 0).unwrap();
-        let poll_descriptors = ready.into_iter().map(|(p, _)| p);
-        for poll_descriptor in poll_descriptors {
-            mixer
-                .revents(poll_descriptor.get().unwrap().as_slice())
-                .unwrap();
-        }
+
+        // let mixer = self.poll.get_ref().mixer();
+        // let ready = alsa::poll::poll_all(&[mixer], 0).unwrap();
+        // let poll_descriptors = ready.into_iter().map(|(p, _)| p);
+        // for poll_descriptor in poll_descriptors {
+        //     mixer
+        //         .revents(poll_descriptor.get().unwrap().as_slice())
+        //         .unwrap();
+        // }
         // All events have been consumed - tell Tokio we're interested in waiting
         // for more again.
         // todo
         // self.poll.need_read();
-
-        Poll::Ready(Some(()))
+        match self.poll.poll_read_ready(cx) {
+            Poll::Ready(Ok(mut r)) => {
+                let mixer = self.poll.get_ref().mixer();
+                let ready = alsa::poll::poll_all(&[mixer], 0).unwrap();
+                let poll_descriptors = ready.into_iter().map(|(p, _)| p);
+                for poll_descriptor in poll_descriptors {
+                    mixer
+                        .revents(poll_descriptor.get().unwrap().as_slice())
+                        .unwrap();
+                }
+                r.clear_ready();
+                return Poll::Ready(Some(()));
+                // todo!()
+            }
+            Poll::Ready(Err(_)) => return Poll::Ready(None),
+            Poll::Pending => return Poll::Pending,
+        }
+        // Poll::Ready(Some(()))
+        // Poll::Ready(Some(()))
     }
 }
