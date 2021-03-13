@@ -7,11 +7,7 @@ mod battery_bsd;
 #[cfg(target_os = "openbsd")]
 mod sensors_bsd;
 #[cfg(target_os = "openbsd")]
-mod volume;
-#[cfg(target_os = "openbsd")]
 pub use self::sensors_battery::Battery;
-#[cfg(feature = "openbsd")]
-pub use self::volume::Volume;
 
 #[cfg(target_os = "linux")]
 mod battery_linux;
@@ -21,11 +17,10 @@ mod sensors_linux;
 pub use self::battery_linux::Battery;
 #[cfg(target_os = "linux")]
 pub use self::sensors_linux::Sensors;
-#[cfg(target_os = "linux")]
 mod clock;
 mod pager;
+pub mod volume;
 
-mod volume_rust;
 pub use self::active_window_title::ActiveWindowTitle;
 pub use self::clock::Clock;
 pub use self::pager::Pager;
