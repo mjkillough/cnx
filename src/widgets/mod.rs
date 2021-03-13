@@ -4,9 +4,13 @@ mod active_window_title;
 mod battery;
 mod clock;
 mod pager;
-mod sensors;
+#[cfg(target_os = "openbsd")]
+mod sensors_bsd;
+#[cfg(target_os = "linux")]
+mod sensors_linux;
 #[cfg(feature = "sioctl-volume")]
 mod volume;
+mod volume_rust;
 use std::pin::Pin;
 
 use anyhow::Result;
@@ -18,7 +22,10 @@ pub use self::active_window_title::ActiveWindowTitle;
 pub use self::battery::Battery;
 pub use self::clock::Clock;
 pub use self::pager::Pager;
-pub use self::sensors::Sensors;
+#[cfg(target_os = "openbsd")]
+pub use self::sensors_bsd::Sensors;
+#[cfg(target_os = "linux")]
+pub use self::sensors_linux::Sensors;
 #[cfg(feature = "sioctl-volume")]
 pub use self::volume::Volume;
 

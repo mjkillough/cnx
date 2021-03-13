@@ -16,13 +16,11 @@ fn main() -> Result<()> {
 
     let mut cnx = Cnx::new(Position::Bottom);
 
-    let sensors = vec!["hw.sensors.asmc0.fan0", "hw.sensors.cpu0.temp0"];
+    let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
 
     cnx.add_widget(Pager::new(active_attr, attr.clone()));
     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
-    cnx.add_widget(Sensors::new(attr.clone(), sensors));
-    #[cfg(feature = "sioctl-volume")]
-    cnx.add_widget(Volume::new(attr.clone()));
+    cnx.add_widget(sensors);
     cnx.add_widget(Battery::new(attr.clone(), Color::red()));
     cnx.add_widget(Clock::new(attr.clone()));
 
