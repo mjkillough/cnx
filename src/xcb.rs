@@ -49,9 +49,11 @@ impl Stream for XcbEventStream {
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         let self_ = &mut *self;
+        let mut ready = None;
         if self_.would_block {
             match self_.poll.poll_read_ready(cx) {
-                Poll::Ready(Ok(_)) => {
+                Poll::Ready(Ok(r)) => {
+                    ready = Some(r);
                     self_.would_block = false;
                 }
                 Poll::Ready(Err(e)) => {
@@ -65,7 +67,14 @@ impl Stream for XcbEventStream {
             Some(event) => Poll::Ready(Some(event)),
             None => {
                 self_.would_block = true;
-                self.poll_next(cx)
+                match ready {
+                    None => self.poll_next(cx),
+                    Some(mut r) => {
+                        r.clear_ready();
+                        self.poll_next(cx)
+                    }
+                }
+                // self.poll_next(cx)
             }
         }
     }
