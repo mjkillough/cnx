@@ -6,7 +6,7 @@ use cnx::{Cnx, Position};
 
 fn main() -> Result<()> {
     let attr = Attributes {
-        font: Font::new("Envy Code R 21"),
+        font: Font::new("Ubuntu Mono:size=14:bold:antialias=true"),
         fg_color: Color::white(),
         bg_color: None,
         padding: Padding::new(8.0, 8.0, 0.0, 0.0),
@@ -14,7 +14,7 @@ fn main() -> Result<()> {
     let mut active_attr = attr.clone();
     active_attr.bg_color = Some(Color::blue());
 
-    let mut cnx = Cnx::new(Position::Bottom);
+    let mut cnx = Cnx::new(Position::Top);
 
     let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
     let battery = Battery::new(attr.clone(), Color::red());
