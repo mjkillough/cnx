@@ -19,8 +19,11 @@ fn main() -> Result<()> {
     let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
     let battery = Battery::new(attr.clone(), Color::red());
     let volume = volume::Volume::new(attr.clone());
+
+    let wireless = wireless::Wireless::new(attr.clone(), "wlp0s20f3".to_owned());
     cnx.add_widget(Pager::new(active_attr, attr.clone()));
     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
+    cnx.add_widget(wireless);
     cnx.add_widget(volume);
     cnx.add_widget(sensors);
     // cnx.add_widget(battery);

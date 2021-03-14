@@ -20,7 +20,8 @@ pub use self::sensors_linux::Sensors;
 mod clock;
 mod pager;
 pub mod volume;
-
+mod weather;
+pub mod wireless;
 pub use self::active_window_title::ActiveWindowTitle;
 pub use self::clock::Clock;
 pub use self::pager::Pager;
