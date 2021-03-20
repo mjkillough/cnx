@@ -20,7 +20,13 @@ fn main() -> Result<()> {
     let battery = Battery::new(attr.clone(), Color::red());
     let volume = volume::Volume::new(attr.clone());
 
-    let wireless = wireless::Wireless::new(attr.clone(), "wlp0s20f3".to_owned(), None);
+    let default_threshold = Threshold::default();
+
+    let wireless = wireless::Wireless::new(
+        attr.clone(),
+        "wlp0s20f3".to_owned(),
+        Some(default_threshold),
+    );
     cnx.add_widget(Pager::new(active_attr, attr.clone()));
     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
     cnx.add_widget(wireless);

@@ -29,9 +29,24 @@ impl Wireless {
         let wireless_info = get_wireless_info(self.interface.clone());
 
         let text = match wireless_info {
-            Some(info) => {
-                format!("{} {}%", info.wi_essid, info.wi_quality)
-            }
+            Some(info) => match &self.threshold {
+                Some(thold) => {
+                    let color = if info.wi_quality <= thold.low.threshold {
+                        &thold.low.color
+                    } else if info.wi_quality <= thold.normal.threshold {
+                        &thold.normal.color
+                    } else {
+                        &thold.high.color
+                    };
+                    format!(
+                        "{} <span foreground=\"{}\">{}%</span>",
+                        info.wi_essid,
+                        color.to_hex(),
+                        info.wi_quality
+                    )
+                }
+                None => format!("{} {}%", info.wi_essid, info.wi_quality),
+            },
             None => "NA".to_owned(),
         };
         Ok(vec![Text {

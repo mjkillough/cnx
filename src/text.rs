@@ -225,3 +225,22 @@ pub struct Threshold {
     pub normal: ThresholdValue,
     pub high: ThresholdValue,
 }
+
+impl Default for Threshold {
+    fn default() -> Self {
+        Threshold {
+            low: ThresholdValue {
+                threshold: 40,
+                color: Color::red(),
+            },
+            normal: ThresholdValue {
+                threshold: 60,
+                color: Color::yellow(),
+            },
+            high: ThresholdValue {
+                threshold: 100,
+                color: Color::green(),
+            },
+        }
+    }
+}
