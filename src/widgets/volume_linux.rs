@@ -96,7 +96,7 @@ impl Widget for Volume {
                 let volume = master.get_playback_volume(channel)?;
                 let (min, max) = master.get_playback_volume_range();
                 let percentage = (volume as f64 / (max as f64 - min as f64)) * 100.0;
-                format!("{:.0}%", percentage)
+                format!("\\61478 {:.0}%", percentage)
             } else {
                 "M".to_owned()
             };

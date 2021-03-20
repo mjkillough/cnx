@@ -18,7 +18,9 @@ fn main() -> Result<()> {
 
     let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
     let battery = Battery::new(attr.clone(), Color::red());
-    let volume = volume::Volume::new(attr.clone());
+    let mut volume_attr = attr.clone();
+    // volume_attr.font = Font::new("FontAwesome-9");
+    let volume = volume::Volume::new(volume_attr.clone());
 
     let default_threshold = Threshold::default();
 

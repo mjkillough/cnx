@@ -27,12 +27,12 @@ impl Widget for Clock {
         let stream = try_stream! {
             loop {
                 let now = chrono::Local::now();
-                let text = now.format("%Y-%m-%d %a %I:%M %p").to_string();
+                let text = now.format("<span foreground=\"#808080\">[</span>%d-%m-%Y %a %I:%M %p<span foreground=\"#808080\">]</span>").to_string();
                 let texts = vec![Text {
                     attr: self.attr.clone(),
                     text,
                     stretch: false,
-                    markup: false
+                    markup: true
                 }];
 
                 yield texts;

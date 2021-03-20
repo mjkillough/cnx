@@ -96,16 +96,16 @@ impl Widget for Volume {
                 let volume = master.get_playback_volume(channel)?;
                 let (min, max) = master.get_playback_volume_range();
                 let percentage = (volume as f64 / (max as f64 - min as f64)) * 100.0;
-                format!("{:.0}%", percentage)
+                format!("<span foreground=\"#808080\">[</span>🔈 {:.0}%<span foreground=\"#808080\">]</span>", percentage)
             } else {
-                "M".to_owned()
+                "🔇".to_owned()
             };
 
             Ok(vec![Text {
                 attr: self.attr.clone(),
                 text: text,
                 stretch: false,
-                markup: false,
+                markup: true,
             }])
         });
 
