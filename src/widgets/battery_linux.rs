@@ -163,6 +163,7 @@ impl Battery {
             attr,
             text,
             stretch: false,
+            markup: false,
         }])
     }
 }

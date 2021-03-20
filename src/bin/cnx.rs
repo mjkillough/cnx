@@ -6,7 +6,7 @@ use cnx::{Cnx, Position};
 
 fn main() -> Result<()> {
     let attr = Attributes {
-        font: Font::new("Ubuntu Mono:size=14:bold:antialias=true"),
+        font: Font::new("Ubuntu Mono Bold 14"),
         fg_color: Color::white(),
         bg_color: None,
         padding: Padding::new(8.0, 8.0, 0.0, 0.0),
@@ -14,13 +14,13 @@ fn main() -> Result<()> {
     let mut active_attr = attr.clone();
     active_attr.bg_color = Some(Color::blue());
 
-    let mut cnx = Cnx::new(Position::Top);
+    let mut cnx = Cnx::new(Position::Bottom);
 
     let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
     let battery = Battery::new(attr.clone(), Color::red());
     let volume = volume::Volume::new(attr.clone());
 
-    let wireless = wireless::Wireless::new(attr.clone(), "wlp0s20f3".to_owned());
+    let wireless = wireless::Wireless::new(attr.clone(), "wlp0s20f3".to_owned(), None);
     cnx.add_widget(Pager::new(active_attr, attr.clone()));
     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
     cnx.add_widget(wireless);

@@ -105,6 +105,7 @@ impl Widget for Volume {
                 attr: self.attr.clone(),
                 text: text,
                 stretch: false,
+                markup: false,
             }])
         });
 

@@ -63,6 +63,7 @@ impl Pager {
                     attr,
                     text: name.to_owned(),
                     stretch: false,
+                    markup: true,
                 }
             })
             .collect())

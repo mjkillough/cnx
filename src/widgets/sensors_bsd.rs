@@ -119,6 +119,7 @@ impl Sensors {
                     attr: self.attr.clone(),
                     text,
                     stretch: false,
+                    markup: false,
                 }
             })
             .collect();

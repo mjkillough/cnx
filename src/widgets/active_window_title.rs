@@ -50,6 +50,7 @@ impl ActiveWindowTitle {
             attr: self.attr.clone(),
             text: title,
             stretch: true,
+            markup: false,
         }])
     }
 }

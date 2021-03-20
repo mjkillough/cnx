@@ -32,6 +32,7 @@ impl Widget for Clock {
                     attr: self.attr.clone(),
                     text,
                     stretch: false,
+                    markup: false
                 }];
 
                 yield texts;

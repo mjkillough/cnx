@@ -1,4 +1,5 @@
-use crate::text::{Attributes, Color, Text};
+use crate::text::Color;
+use crate::text::{Attributes, Text, Threshold};
 use crate::widgets::{Widget, WidgetStream};
 use anyhow::{anyhow, Context, Error, Result};
 use iwlib::*;
@@ -11,27 +12,33 @@ pub struct Wireless {
     attr: Attributes,
     interface: String,
     update_interval: Duration,
+    threshold: Option<Threshold>,
 }
 
 impl Wireless {
-    pub fn new(attr: Attributes, interface: String) -> Wireless {
+    pub fn new(attr: Attributes, interface: String, threshold: Option<Threshold>) -> Wireless {
         Wireless {
             update_interval: Duration::from_secs(3600),
             interface,
             attr,
+            threshold,
         }
     }
 
     fn tick(&self) -> Result<Vec<Text>> {
         let wireless_info = get_wireless_info(self.interface.clone());
+
         let text = match wireless_info {
-            Some(info) => format!("{} {}", info.wi_essid, info.wi_quality),
+            Some(info) => {
+                format!("{} {}%", info.wi_essid, info.wi_quality)
+            }
             None => "NA".to_owned(),
         };
         Ok(vec![Text {
             attr: self.attr.clone(),
             text,
             stretch: false,
+            markup: self.threshold.is_some(),
         }])
     }
 }
