@@ -13,6 +13,7 @@ pub struct Wireless {
     interface: String,
     update_interval: Duration,
     threshold: Option<Threshold>,
+    template: Option<String>,
 }
 
 impl Wireless {
@@ -22,6 +23,7 @@ impl Wireless {
             interface,
             attr,
             threshold,
+            template: None,
         }
     }
 
@@ -39,7 +41,7 @@ impl Wireless {
                         &thold.high.color
                     };
                     format!(
-                        "{} <span foreground=\"{}\">{}%</span>",
+                        "<span foreground=\"#808080\">[</span>{} <span foreground=\"{}\">{}%</span><span foreground=\"#808080\">]</span>",
                         info.wi_essid,
                         color.to_hex(),
                         info.wi_quality
