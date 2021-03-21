@@ -10,16 +10,21 @@ use std::time::Duration;
 pub struct Cpu {
     attr: Attributes,
     cpu_data: CpuData,
+    render: Box<dyn Fn(u64) -> String>,
 }
 
 impl Cpu {
-    pub fn new(attr: Attributes) -> Result<Cpu> {
+    pub fn new(attr: Attributes, render: impl Fn(u64) -> String + 'static) -> Result<Self> {
         let cpu_data = CpuData::get_values()?;
-        Ok(Cpu { attr, cpu_data })
+        Ok(Cpu {
+            attr,
+            cpu_data,
+            render: Box::new(render),
+        })
     }
 }
 
-struct CpuData {
+pub struct CpuData {
     user_time: i64,
     nice_time: i64,
     system_time: i64,
@@ -102,7 +107,10 @@ impl Widget for Cpu {
                     0 => 0.0,
                     _ => (current.total_time - previous.total_time) as f64 / diff_total as f64
                 };
-                let text = format!("<span foreground=\"#808080\">[</span>Cpu: {}%<span foreground=\"#808080\">]</span>", (percentage * 100.0) as u64);
+                let text = (self.render)((percentage * 100.0) as u64);
+
+
+                    // format!("<span foreground=\"#808080\">[</span>Cpu: {}%<span foreground=\"#808080\">]</span>", (percentage * 100.0) as u64);
                 let texts = vec![Text {
                     attr: self.attr.clone(),
                     text,
