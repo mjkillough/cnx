@@ -9,7 +9,7 @@ fn main() -> Result<()> {
         font: Font::new("Ubuntu Mono Bold 14"),
         fg_color: Color::white(),
         bg_color: None,
-        padding: Padding::new(8.0, 8.0, 0.0, 0.0),
+        padding: Padding::new(0.0, 0.0, 0.0, 0.0),
     };
     let mut active_attr = attr.clone();
     active_attr.bg_color = Some(Color::blue());
