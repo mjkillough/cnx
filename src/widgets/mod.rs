@@ -18,6 +18,7 @@ pub use self::battery_linux::Battery;
 #[cfg(target_os = "linux")]
 pub use self::sensors_linux::Sensors;
 mod clock;
+pub mod cpu;
 mod pager;
 pub mod volume;
 mod weather;

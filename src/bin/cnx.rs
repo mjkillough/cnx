@@ -18,6 +18,7 @@ fn main() -> Result<()> {
 
     let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
     let battery = Battery::new(attr.clone(), Color::red());
+    let cpu = cpu::Cpu::new(attr.clone())?;
     let mut volume_attr = attr.clone();
     // volume_attr.font = Font::new("FontAwesome-9");
     let volume = volume::Volume::new(volume_attr.clone());
@@ -31,9 +32,10 @@ fn main() -> Result<()> {
     );
     cnx.add_widget(Pager::new(active_attr, attr.clone()));
     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
+    cnx.add_widget(cpu);
     cnx.add_widget(wireless);
     cnx.add_widget(volume);
-    cnx.add_widget(sensors);
+    // cnx.add_widget(sensors);
     // cnx.add_widget(battery);
     cnx.add_widget(Clock::new(attr.clone()));
     cnx.run()?;

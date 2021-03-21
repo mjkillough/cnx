@@ -1,8 +1,7 @@
-use std::time::Duration;
-
 use anyhow::Result;
 use async_stream::try_stream;
 use chrono::Timelike;
+use std::time::Duration;
 
 use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
