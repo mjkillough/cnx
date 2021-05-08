@@ -123,6 +123,3 @@ cargo test
 ## License
 
 MIT
-
-https://developer.gnome.org/pygtk/stable/pango-markup-language.html
-http://irtfweb.ifa.hawaii.edu/SoftwareDocs/gtk20/pango/pangomarkupformat.html
