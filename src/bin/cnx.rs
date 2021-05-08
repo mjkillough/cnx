@@ -56,7 +56,8 @@ fn main() -> Result<()> {
     cnx.add_widget(volume);
     cnx.add_widget(sensors);
     cnx.add_widget(battery);
-    cnx.add_widget(Clock::new(attr.clone()));
+    let time_template = Some("<span foreground=\"#808080\">[</span>%d-%m-%Y %a %I:%M %p<span foreground=\"#808080\">]</span>".into());
+    cnx.add_widget(Clock::new(attr.clone(), time_template));
     cnx.run()?;
 
     Ok(())

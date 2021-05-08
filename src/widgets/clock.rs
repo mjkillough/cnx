@@ -1,7 +1,8 @@
 use anyhow::Result;
-use async_stream::try_stream;
-use chrono::Timelike;
+use tokio::time;
 use std::time::Duration;
+use tokio_stream::wrappers::IntervalStream;
+use tokio_stream::StreamExt;
 
 use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
@@ -12,36 +13,36 @@ use crate::widgets::{Widget, WidgetStream};
 /// %p`, e.g. `2017-09-01 Fri 12:51 PM`.
 pub struct Clock {
     attr: Attributes,
+    format_str: Option<String>
 }
 
 impl Clock {
     // Creates a new Clock widget.
-    pub fn new(attr: Attributes) -> Self {
-        Self { attr }
+    pub fn new(attr: Attributes, format_str: Option<String>) -> Self {
+        Self { attr, format_str }
+    }
+
+    fn tick(&self) -> Result<Vec<Text>> {
+        let now = chrono::Local::now();
+        let format_time: String = self.format_str.clone().map_or("%Y-%m-%d %a %I:%M %p".to_string(), |item| item);
+        let text = now.format(&format_time).to_string();
+        let texts = vec![Text {
+            attr: self.attr.clone(),
+            text,
+            stretch: false,
+            markup: true
+        }];
+        Ok(texts)
     }
 }
 
 impl Widget for Clock {
     fn into_stream(self: Box<Self>) -> Result<WidgetStream> {
-        let stream = try_stream! {
-            loop {
-                let now = chrono::Local::now();
-                let text = now.format("<span foreground=\"#808080\">[</span>%d-%m-%Y %a %I:%M %p<span foreground=\"#808080\">]</span>").to_string();
-                let texts = vec![Text {
-                    attr: self.attr.clone(),
-                    text,
-                    stretch: false,
-                    markup: true
-                }];
-
-                yield texts;
-
-                // As we're not showing seconds, we can sleep for however long
-                // it takes until the minutes changes between updates.
-                let sleep_for = Duration::from_secs(60 - u64::from(now.second()));
-                tokio::time::sleep(sleep_for).await;
-            }
-        };
+        // As we're not showing seconds, we can sleep for however long
+        // it takes until the minutes changes between updates.
+        let one_minute = Duration::from_secs(60);
+        let interval = time::interval(one_minute);
+        let stream = IntervalStream::new(interval).map(move |_| self.tick());
 
         Ok(Box::pin(stream))
     }
