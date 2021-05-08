@@ -36,7 +36,7 @@ fn main() -> Result<()> {
             color, load
         )
     });
-    let cpu = cpu::Cpu::new(attr.clone(), render)?;
+    let cpu = cpu::Cpu::new(attr.clone(), Some(render))?;
 
     let volume = volume::Volume::new(attr.clone());
 
