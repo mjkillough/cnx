@@ -25,10 +25,10 @@ fn main() -> Result<()> {
     let battery = Battery::new(attr.clone(), Color::red());
     let render = Box::new(|load| {
         let mut color = Color::yellow().to_hex();
-        if (load < 5) {
+        if load < 5 {
             color = Color::green().to_hex();
         }
-        if (load > 50) {
+        if load > 50 {
             color = Color::red().to_hex();
         }
         format!(
@@ -37,7 +37,7 @@ fn main() -> Result<()> {
         )
     });
     let cpu = cpu::Cpu::new(attr.clone(), render)?;
-    // volume_attr.font = Font::new("FontAwesome-9");
+
     let volume = volume::Volume::new(attr.clone());
 
     let default_threshold = Threshold::default();
@@ -54,8 +54,8 @@ fn main() -> Result<()> {
     cnx.add_widget(cpu);
     cnx.add_widget(wireless);
     cnx.add_widget(volume);
-    // cnx.add_widget(sensors);
-    // cnx.add_widget(battery);
+    cnx.add_widget(sensors);
+    cnx.add_widget(battery);
     cnx.add_widget(Clock::new(attr.clone()));
     cnx.run()?;
 

@@ -10,16 +10,16 @@ use std::time::Duration;
 pub struct Cpu {
     attr: Attributes,
     cpu_data: CpuData,
-    render: Box<dyn Fn(u64) -> String>,
+    render: Option<Box<dyn Fn(u64) -> String>>,
 }
 
 impl Cpu {
-    pub fn new(attr: Attributes, render: impl Fn(u64) -> String + 'static) -> Result<Self> {
+    pub fn new(attr: Attributes, render: Option<Box<dyn Fn(u64) -> String>>) -> Result<Self> {
         let cpu_data = CpuData::get_values()?;
         Ok(Cpu {
             attr,
             cpu_data,
-            render: Box::new(render),
+            render,
         })
     }
 }
@@ -52,14 +52,13 @@ impl CpuData {
             total_time: 0,
             iowait_time: 0,
         };
-        println!("{}", val.len());
         match val[..] {
             [ref user, ref nice, ref system, ref idle, ref iowait, ..] => {
-                let user_time = user.parse().unwrap();
-                let nice_time = nice.parse().unwrap();
-                let system_time = system.parse().unwrap();
-                let idle_time = idle.parse().unwrap();
-                let iowait_time = iowait.parse().unwrap();
+                let user_time = user.parse()?;
+                let nice_time = nice.parse()?;
+                let system_time = system.parse()?;
+                let idle_time = idle.parse()?;
+                let iowait_time = iowait.parse()?;
                 cpu_data.user_time = user_time;
                 cpu_data.nice_time = nice_time;
                 cpu_data.system_time = system_time;
@@ -89,8 +88,6 @@ impl Widget for Cpu {
                 let prev_total = prev_idle + prev_non_idle;
                 let total = idle + non_idle;
 
-                // let total_diff = total - prev_total;
-                // let idle_diff = idle - prev_idle;
                 let total_diff = total;
                 let idle_diff = idle;
 
@@ -107,10 +104,10 @@ impl Widget for Cpu {
                     0 => 0.0,
                     _ => (current.total_time - previous.total_time) as f64 / diff_total as f64
                 };
-                let text = (self.render)((percentage * 100.0) as u64);
 
+                let cpu_usage = (percentage * 100.0) as u64;
+                let text = self.render.map_or(format!("{} %", cpu_usage), |x| x(cpu_usage));
 
-                    // format!("<span foreground=\"#808080\">[</span>Cpu: {}%<span foreground=\"#808080\">]</span>", (percentage * 100.0) as u64);
                 let texts = vec![Text {
                     attr: self.attr.clone(),
                     text,
