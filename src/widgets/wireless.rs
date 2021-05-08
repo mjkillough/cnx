@@ -1,7 +1,6 @@
-use crate::text::Color;
 use crate::text::{Attributes, Text, Threshold};
 use crate::widgets::{Widget, WidgetStream};
-use anyhow::{anyhow, Context, Error, Result};
+use anyhow::{Result};
 use iwlib::*;
 use std::time::Duration;
 use tokio::time;
@@ -13,7 +12,6 @@ pub struct Wireless {
     interface: String,
     update_interval: Duration,
     threshold: Option<Threshold>,
-    template: Option<String>,
 }
 
 impl Wireless {
@@ -23,7 +21,6 @@ impl Wireless {
             interface,
             attr,
             threshold,
-            template: None,
         }
     }
 

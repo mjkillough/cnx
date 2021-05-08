@@ -2,10 +2,7 @@ use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
 use alsa::mixer::{SelemChannelId, SelemId};
 use alsa::{self, Mixer, PollDescriptors};
-use anyhow::{anyhow, Error, Result};
-use mio::unix::SourceFd;
-use mio::{event, Interest, Registry, Token};
-use std::io;
+use anyhow::{Result};
 use std::os::unix::io::AsRawFd;
 use std::os::unix::io::RawFd;
 use std::pin::Pin;
@@ -172,7 +169,6 @@ struct AlsaEventStream {
 
 impl AsRawFd for AlsaEvented {
     fn as_raw_fd(&self) -> RawFd {
-        // todo: is this even correce
         self.fds().into_iter().nth(0).unwrap()
     }
 }
@@ -220,8 +216,6 @@ impl Stream for AlsaEventStream {
         }
         // All events have been consumed - tell Tokio we're interested in waiting
         // for more again.
-        // todo
-        // self.poll.need_read();
         match self.poll.poll_read_ready(cx) {
             Poll::Ready(Ok(mut r)) => {
                 let mixer = self.poll.get_ref().mixer();
@@ -234,12 +228,9 @@ impl Stream for AlsaEventStream {
                 }
                 r.clear_ready();
                 return Poll::Ready(Some(()));
-                // todo!()
             }
             Poll::Ready(Err(_)) => return Poll::Ready(None),
             Poll::Pending => return Poll::Pending,
         }
-        // Poll::Ready(Some(()))
-        // Poll::Ready(Some(()))
     }
 }
