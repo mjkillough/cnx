@@ -21,6 +21,8 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - name: Test
         run: |
+          set -e
+          sudo apt install libx11-xcb-dev libxcb-ewmh-dev libasound2-dev libpango1.0-dev libcairo2-dev
           cargo build
           make check
         shell: bash
