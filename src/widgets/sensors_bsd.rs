@@ -1,14 +1,20 @@
-use std::str::FromStr;
+#[cfg(target_os = "openbsd")]
+use anyhow::{Context, Error, Result};
+use std::collections::HashMap;
+use std::process::Command;
 use std::time::Duration;
 
-use anyhow::{anyhow, Context, Result};
-use lazy_static::lazy_static;
 use regex::Regex;
-use tokio::stream::StreamExt;
 
 use crate::cmd::command_output;
 use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
+use lazy_static::lazy_static;
+// use regex::Regex;
+use std::str::FromStr;
+use tokio::time;
+use tokio_stream::wrappers::IntervalStream;
+use tokio_stream::StreamExt;
 
 #[derive(Debug, PartialEq)]
 struct Value {
@@ -113,6 +119,7 @@ impl Sensors {
                     attr: self.attr.clone(),
                     text,
                     stretch: false,
+                    markup: false,
                 }
             })
             .collect();
@@ -123,9 +130,9 @@ impl Sensors {
 
 impl Widget for Sensors {
     fn into_stream(self: Box<Self>) -> Result<WidgetStream> {
-        let stream = tokio::time::interval(self.update_interval).map(move |_| self.tick());
+        let interval = time::interval(self.update_interval);
+        let stream = IntervalStream::new(interval).map(move |_| self.tick());
 
         Ok(Box::pin(stream))
     }
 }
-

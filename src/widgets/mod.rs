@@ -1,27 +1,35 @@
 //! Provided widgets and types for creating new widgets.
 
 mod active_window_title;
-mod battery;
+
+#[cfg(target_os = "openbsd")]
+mod battery_bsd;
+#[cfg(target_os = "openbsd")]
+mod sensors_bsd;
+#[cfg(target_os = "openbsd")]
+pub use self::sensors_battery::Battery;
+
+#[cfg(target_os = "linux")]
+mod battery_linux;
+#[cfg(target_os = "linux")]
+mod sensors_linux;
+#[cfg(target_os = "linux")]
+pub use self::battery_linux::Battery;
+#[cfg(target_os = "linux")]
+pub use self::sensors_linux::Sensors;
 mod clock;
+pub mod cpu;
 mod pager;
-mod sensors;
-#[cfg(feature = "sioctl-volume")]
-mod volume;
-
-use std::pin::Pin;
-
-use anyhow::Result;
-use tokio::stream::Stream;
-
-use crate::text::Text;
-
+pub mod volume;
+mod weather;
+pub mod wireless;
 pub use self::active_window_title::ActiveWindowTitle;
-pub use self::battery::Battery;
 pub use self::clock::Clock;
 pub use self::pager::Pager;
-pub use self::sensors::Sensors;
-#[cfg(feature = "sioctl-volume")]
-pub use self::volume::Volume;
+use crate::text::Text;
+use anyhow::Result;
+use futures::stream::Stream;
+use std::pin::Pin;
 
 /// The stream of `Vec<Text>` returned by each widget.
 ///

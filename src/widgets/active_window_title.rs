@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use tokio::stream::StreamExt;
+use futures::stream::StreamExt;
 use xcb;
 use xcb_util::ewmh;
 
@@ -50,6 +50,7 @@ impl ActiveWindowTitle {
             attr: self.attr.clone(),
             text: title,
             stretch: true,
+            markup: false,
         }])
     }
 }
@@ -66,4 +67,3 @@ impl Widget for ActiveWindowTitle {
         Ok(Box::pin(stream))
     }
 }
-

@@ -1,12 +1,12 @@
-use std::str::FromStr;
-use std::time::Duration;
-
-use anyhow::{Context, Result};
-use tokio::stream::StreamExt;
-
 use crate::cmd::{command_output, from_command_output};
 use crate::text::{Attributes, Color, Text};
 use crate::widgets::{Widget, WidgetStream};
+use anyhow::{Context, Result};
+use std::str::FromStr;
+use std::time::Duration;
+use tokio::time;
+use tokio_stream::wrappers::IntervalStream;
+use tokio_stream::StreamExt;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum Status {
@@ -136,15 +136,16 @@ impl Battery {
             attr,
             text,
             stretch: false,
+            markup: false,
         }])
     }
 }
 
 impl Widget for Battery {
     fn into_stream(self: Box<Self>) -> Result<WidgetStream> {
-        let stream = tokio::time::interval(self.update_interval).map(move |_| self.tick());
+        let interval = time::interval(self.update_interval);
+        let stream = IntervalStream::new(interval).map(move |_| self.tick());
 
         Ok(Box::pin(stream))
     }
 }
-

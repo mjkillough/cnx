@@ -3,12 +3,12 @@
 //! This module is light on documentation. See the existing widget
 //! implementations for inspiration.
 
-use std::fmt;
-
 use anyhow::{anyhow, Result};
 use cairo::{Context, Surface};
 use pango::{EllipsizeMode, FontDescription};
 use pangocairo;
+use std::fmt;
+use std::fmt::UpperHex;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Color {
@@ -36,9 +36,29 @@ impl Color {
     color!(blue, (0.0, 0.0, 1.0));
     color!(white, (1.0, 1.0, 1.0));
     color!(black, (0.0, 0.0, 0.0));
+    color!(yellow, (1.0, 1.0, 0.0));
 
     pub fn apply_to_context(&self, cr: &Context) {
         cr.set_source_rgb(self.red, self.green, self.blue);
+    }
+
+    pub fn to_hex(&self) -> String {
+        let r = if self.red >= 1.0 {
+            255
+        } else {
+            (self.red * 255.0) as i32
+        };
+        let g = if self.green >= 1.0 {
+            255
+        } else {
+            (self.green * 255.0) as i32
+        };
+        let b = if self.blue >= 1.0 {
+            255
+        } else {
+            (self.blue * 255.0) as i32
+        };
+        format!("#{:0width$X}{:0width$X}{:0width$X}", r, g, b, width = 2)
     }
 }
 
@@ -99,6 +119,7 @@ pub struct Text {
     pub attr: Attributes,
     pub text: String,
     pub stretch: bool,
+    pub markup: bool,
 }
 
 impl Text {
@@ -106,7 +127,11 @@ impl Text {
         let (width, height) = {
             let context = Context::new(&surface);
             let layout = create_pango_layout(&context)?;
-            layout.set_text(&self.text);
+            if self.markup {
+                layout.set_markup(&self.text);
+            } else {
+                layout.set_text(&self.text);
+            }
             layout.set_font_description(Some(&self.attr.font.0));
 
             let padding = &self.attr.padding;
@@ -124,6 +149,7 @@ impl Text {
             y: 0.0,
             width,
             height,
+            markup: self.markup,
         })
     }
 }
@@ -146,13 +172,18 @@ pub(crate) struct ComputedText {
     pub y: f64,
     pub width: f64,
     pub height: f64,
+    pub markup: bool,
 }
 
 impl ComputedText {
     pub fn render(&self, surface: &Surface) -> Result<()> {
         let context = Context::new(&surface);
         let layout = create_pango_layout(&context)?;
-        layout.set_text(&self.text);
+        if self.markup {
+            layout.set_markup(&self.text);
+        } else {
+            layout.set_text(&self.text);
+        }
         layout.set_font_description(Some(&self.attr.font.0));
 
         context.translate(self.x, self.y);
@@ -182,3 +213,34 @@ impl ComputedText {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct ThresholdValue {
+    pub threshold: u8,
+    pub color: Color,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Threshold {
+    pub low: ThresholdValue,
+    pub normal: ThresholdValue,
+    pub high: ThresholdValue,
+}
+
+impl Default for Threshold {
+    fn default() -> Self {
+        Threshold {
+            low: ThresholdValue {
+                threshold: 40,
+                color: Color::red(),
+            },
+            normal: ThresholdValue {
+                threshold: 60,
+                color: Color::yellow(),
+            },
+            high: ThresholdValue {
+                threshold: 100,
+                color: Color::green(),
+            },
+        }
+    }
+}
