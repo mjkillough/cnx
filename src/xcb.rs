@@ -6,7 +6,6 @@ use std::rc::Rc;
 use std::task::{Context, Poll};
 use tokio::io::unix::AsyncFd;
 use tokio_stream::{self as stream, Stream, StreamExt};
-use xcb;
 use xcb::xproto::{PropertyNotifyEvent, PROPERTY_NOTIFY};
 use xcb_util::ewmh;
 

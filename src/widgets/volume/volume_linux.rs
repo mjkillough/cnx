@@ -100,7 +100,7 @@ impl Widget for Volume {
 
             Ok(vec![Text {
                 attr: self.attr.clone(),
-                text: text,
+                text,
                 stretch: false,
                 markup: true,
             }])
@@ -169,7 +169,7 @@ struct AlsaEventStream {
 
 impl AsRawFd for AlsaEvented {
     fn as_raw_fd(&self) -> RawFd {
-        self.fds().into_iter().nth(0).unwrap()
+        self.fds().into_iter().next().unwrap()
     }
 }
 
@@ -227,10 +227,10 @@ impl Stream for AlsaEventStream {
                         .unwrap();
                 }
                 r.clear_ready();
-                return Poll::Ready(Some(()));
+                Poll::Ready(Some(()))
             }
-            Poll::Ready(Err(_)) => return Poll::Ready(None),
-            Poll::Pending => return Poll::Pending,
+            Poll::Ready(Err(_)) => Poll::Ready(None),
+            Poll::Pending => Poll::Pending,
         }
     }
 }

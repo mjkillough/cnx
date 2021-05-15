@@ -1,6 +1,5 @@
 use anyhow::{Context, Result};
 use futures::stream::StreamExt;
-use xcb;
 use xcb_util::ewmh;
 
 use crate::text::{Attributes, Text};
@@ -27,7 +26,7 @@ impl ActiveWindowTitle {
         ActiveWindowTitle { attr }
     }
 
-    fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Result<Vec<Text>> {
+    fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Vec<Text> {
         let title = ewmh::get_active_window(conn, screen_idx)
             .get_reply()
             .and_then(|active_window| {
@@ -46,12 +45,12 @@ impl ActiveWindowTitle {
             .map(|reply| reply.string().to_owned())
             .unwrap_or_else(|_| "".to_owned());
 
-        Ok(vec![Text {
+        vec![Text {
             attr: self.attr.clone(),
             text: title,
             stretch: true,
             markup: false,
-        }])
+        }]
     }
 }
 
@@ -62,7 +61,7 @@ impl Widget for ActiveWindowTitle {
         let (conn, stream) =
             xcb_properties_stream(properties).context("Initialising ActiveWindowtitle")?;
 
-        let stream = stream.map(move |()| self.on_change(&conn, screen_idx));
+        let stream = stream.map(move |()| Ok(self.on_change(&conn, screen_idx)));
 
         Ok(Box::pin(stream))
     }

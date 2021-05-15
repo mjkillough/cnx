@@ -43,11 +43,11 @@ impl Cpu {
         };
 
         let cpu_usage = (percentage * 100.0) as u64;
-        let text = self.render.as_ref().map_or(format!("{} %", cpu_usage), |x| (x)(cpu_usage).clone());
+        let text = self.render.as_ref().map_or(format!("{} %", cpu_usage), |x| (x)(cpu_usage));
         self.cpu_data = current;
         let texts = vec![Text {
             attr: self.attr.clone(),
-            text: text.clone(),
+            text,
             stretch: false,
             markup: true
         }];

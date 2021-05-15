@@ -22,7 +22,7 @@ impl Clock {
         Self { attr, format_str }
     }
 
-    fn tick(&self) -> Result<Vec<Text>> {
+    fn tick(&self) -> Vec<Text> {
         let now = chrono::Local::now();
         let format_time: String = self.format_str.clone().map_or("%Y-%m-%d %a %I:%M %p".to_string(), |item| item);
         let text = now.format(&format_time).to_string();
@@ -32,7 +32,7 @@ impl Clock {
             stretch: false,
             markup: true
         }];
-        Ok(texts)
+        texts
     }
 }
 
@@ -42,7 +42,7 @@ impl Widget for Clock {
         // it takes until the minutes changes between updates.
         let one_minute = Duration::from_secs(60);
         let interval = time::interval(one_minute);
-        let stream = IntervalStream::new(interval).map(move |_| self.tick());
+        let stream = IntervalStream::new(interval).map(move |_| Ok(self.tick()));
 
         Ok(Box::pin(stream))
     }

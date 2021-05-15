@@ -49,7 +49,7 @@ fn main() -> Result<()> {
     );
     let mut p2_attr = pager_attr.clone();
     p2_attr.bg_color = None;
-    cnx.add_widget(Pager::new(pager_attr.clone(), p2_attr));
+    cnx.add_widget(Pager::new(pager_attr, p2_attr));
     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
     cnx.add_widget(cpu);
     cnx.add_widget(wireless);
@@ -57,7 +57,7 @@ fn main() -> Result<()> {
     cnx.add_widget(sensors);
     cnx.add_widget(battery);
     let time_template = Some("<span foreground=\"#808080\">[</span>%d-%m-%Y %a %I:%M %p<span foreground=\"#808080\">]</span>".into());
-    cnx.add_widget(Clock::new(attr.clone(), time_template));
+    cnx.add_widget(Clock::new(attr, time_template));
     cnx.run()?;
 
     Ok(())
