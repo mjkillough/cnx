@@ -21,7 +21,6 @@ mod clock;
 pub mod cpu;
 mod pager;
 pub mod volume;
-mod weather;
 pub mod wireless;
 pub use self::active_window_title::ActiveWindowTitle;
 pub use self::clock::Clock;
