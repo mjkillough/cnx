@@ -47,8 +47,9 @@ impl Volume {
     /// # use cnx::*;
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
+    /// # use anyhow::Result;
     /// #
-    /// # fn run() -> ::cnx::Result<()> {
+    /// # fn run() -> Result<()> {
     /// let attr = Attributes {
     ///     font: Font::new("SourceCodePro 21"),
     ///     fg_color: Color::white(),
@@ -56,8 +57,8 @@ impl Volume {
     ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     /// };
     ///
-    /// let mut cnx = Cnx::new(Position::Top)?;
-    /// cnx_add_widget!(cnx, Volume::new(&cnx, attr.clone()));
+    /// let mut cnx = Cnx::new(Position::Top);
+    /// cnx.add_widget(volume::Volume::new(attr.clone()));
     /// # Ok(())
     /// # }
     /// # fn main() { run().unwrap(); }

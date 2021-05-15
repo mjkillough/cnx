@@ -80,8 +80,9 @@ impl Sensors {
     /// # use cnx::*;
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
+    /// # use anyhow::Result;
     /// #
-    /// # fn run() -> ::cnx::Result<()> {
+    /// # fn run() -> Result<()> {
     /// let attr = Attributes {
     ///     font: Font::new("SourceCodePro 21"),
     ///     fg_color: Color::white(),
@@ -89,10 +90,9 @@ impl Sensors {
     ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     /// };
     ///
-    /// let mut cnx = Cnx::new(Position::Top)?;
-    /// cnx_add_widget!(
-    ///     cnx,
-    ///     Sensors::new(&cnx, attr.clone(), vec!["Core 0", "Core 1"])
+    /// let mut cnx = Cnx::new(Position::Top);
+    /// cnx.add_widget(
+    ///     Sensors::new(attr.clone(), vec!["Core 0", "Core 1"])
     /// );
     /// # Ok(())
     /// # }

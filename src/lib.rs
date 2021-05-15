@@ -18,11 +18,11 @@
 //! An simple example of a binary using Cnx is:
 //!
 //! ```no_run
-//! use anyhow::Result;
 //!
 //! use cnx::text::*;
 //! use cnx::widgets::*;
 //! use cnx::{Cnx, Position};
+//! use anyhow::Result;
 //!
 //! fn main() -> Result<()> {
 //!     let attr = Attributes {
@@ -34,7 +34,7 @@
 //!
 //!     let mut cnx = Cnx::new(Position::Top);
 //!     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
-//!     cnx.add_widget(Clock::new(attr.clone()));
+//!     cnx.add_widget(Clock::new(attr.clone(), None));
 //!     cnx.run()?;
 //!
 //!     Ok(())

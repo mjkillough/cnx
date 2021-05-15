@@ -19,10 +19,10 @@ fn main() -> Result<()> {
         padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     };
 
-    let mut cnx = Cnx::new(Position::Bottom);
+    let mut cnx = Cnx::new(Position::Top);
 
-    let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
-    let battery = Battery::new(attr.clone(), Color::red());
+    // let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
+    // let battery = Battery::new(attr.clone(), Color::red());
     let render = Box::new(|load| {
         let mut color = Color::yellow().to_hex();
         if load < 5 {
@@ -54,8 +54,8 @@ fn main() -> Result<()> {
     cnx.add_widget(cpu);
     cnx.add_widget(wireless);
     cnx.add_widget(volume);
-    cnx.add_widget(sensors);
-    cnx.add_widget(battery);
+    // cnx.add_widget(sensors);
+    // cnx.add_widget(battery);
     let time_template = Some("<span foreground=\"#808080\">[</span>%d-%m-%Y %a %I:%M %p<span foreground=\"#808080\">]</span>".into());
     cnx.add_widget(Clock::new(attr, time_template));
     cnx.run()?;
