@@ -1,7 +1,7 @@
 #[cfg(target_os = "linux")]
 use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use regex::Regex;
 use std::collections::HashMap;
 use std::process::Command;
@@ -20,8 +20,9 @@ struct Value<'a> {
 fn parse_sensors_output(output: &str) -> Result<HashMap<&str, Value<'_>>> {
     let re: Regex = Regex::new(
         // Note: we ignore + but capture -
-        r"\n(?P<name>[\w ]+):\s+\+?(?P<temp>-?\d+\.\d+).(?P<units>[C|F])"
-    ).map_err(|_|anyhow!("Failed to compile regex for parsing sensors output"))?;
+        r"\n(?P<name>[\w ]+):\s+\+?(?P<temp>-?\d+\.\d+).(?P<units>[C|F])",
+    )
+    .map_err(|_| anyhow!("Failed to compile regex for parsing sensors output"))?;
 
     let mut map = HashMap::new();
     for mat in re.captures_iter(output) {

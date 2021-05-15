@@ -1,6 +1,6 @@
 use anyhow::Result;
-use tokio::time;
 use std::time::Duration;
+use tokio::time;
 use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
 
@@ -13,7 +13,7 @@ use crate::widgets::{Widget, WidgetStream};
 /// %p`, e.g. `2017-09-01 Fri 12:51 PM`.
 pub struct Clock {
     attr: Attributes,
-    format_str: Option<String>
+    format_str: Option<String>,
 }
 
 impl Clock {
@@ -24,13 +24,16 @@ impl Clock {
 
     fn tick(&self) -> Vec<Text> {
         let now = chrono::Local::now();
-        let format_time: String = self.format_str.clone().map_or("%Y-%m-%d %a %I:%M %p".to_string(), |item| item);
+        let format_time: String = self
+            .format_str
+            .clone()
+            .map_or("%Y-%m-%d %a %I:%M %p".to_string(), |item| item);
         let text = now.format(&format_time).to_string();
         let texts = vec![Text {
             attr: self.attr.clone(),
             text,
             stretch: false,
-            markup: true
+            markup: true,
         }];
         texts
     }

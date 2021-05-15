@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use futures::stream::StreamExt;
-use xcb_util::ewmh;
 use std::cmp::Ordering;
+use xcb_util::ewmh;
 
 use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
@@ -48,8 +48,8 @@ impl Pager {
             Ordering::Equal => (),
             Ordering::Greater => names.truncate(number),
             Ordering::Less => {
-            let num_unnamed = number - names.len();
-            names.extend(vec!["?"; num_unnamed]);
+                let num_unnamed = number - names.len();
+                names.extend(vec!["?"; num_unnamed]);
             }
         }
 

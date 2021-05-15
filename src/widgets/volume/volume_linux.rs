@@ -2,7 +2,7 @@ use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
 use alsa::mixer::{SelemChannelId, SelemId};
 use alsa::{self, Mixer, PollDescriptors};
-use anyhow::{Result};
+use anyhow::Result;
 use std::os::unix::io::AsRawFd;
 use std::os::unix::io::RawFd;
 use std::pin::Pin;
