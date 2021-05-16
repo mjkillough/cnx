@@ -1,6 +1,6 @@
 use crate::text::{Attributes, Text, Threshold};
 use crate::widgets::{Widget, WidgetStream};
-use anyhow::{Result};
+use anyhow::Result;
 use iwlib::*;
 use std::time::Duration;
 use tokio::time;
@@ -24,7 +24,7 @@ impl Wireless {
         }
     }
 
-    fn tick(&self) -> Result<Vec<Text>> {
+    fn tick(&self) -> Vec<Text> {
         let wireless_info = get_wireless_info(self.interface.clone());
 
         let text = match wireless_info {
@@ -48,19 +48,19 @@ impl Wireless {
             },
             None => "NA".to_owned(),
         };
-        Ok(vec![Text {
+        vec![Text {
             attr: self.attr.clone(),
             text,
             stretch: false,
             markup: self.threshold.is_some(),
-        }])
+        }]
     }
 }
 
 impl Widget for Wireless {
     fn into_stream(self: Box<Self>) -> Result<WidgetStream> {
         let interval = time::interval(self.update_interval);
-        let stream = IntervalStream::new(interval).map(move |_| self.tick());
+        let stream = IntervalStream::new(interval).map(move |_| Ok(self.tick()));
 
         Ok(Box::pin(stream))
     }

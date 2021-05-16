@@ -283,13 +283,15 @@ impl Bar {
             .map(|text| text.compute(&self.surface))
             .collect::<Result<Vec<_>>>()?;
 
+        let error_margin = f64::EPSILON; // Use an epsilon for comparison
+
         // If there are any new texts or any non-stretch texts changed size,
         // we'll redraw all texts.
         let redraw_entire_bar = old.len() != new.len()
             || old
-                .into_iter()
+                .iter()
                 .zip(&new)
-                .any(|(old, new)| old.width != new.width && !new.stretch);
+                .any(|(old, new)| ((old.width - new.width).abs() < error_margin) && !new.stretch);
 
         // Steal dimenions from old ComputedText. If we need new dimensions,
         // they'll be recomputed by redraw_entire_bar().
@@ -387,4 +389,3 @@ impl Bar {
         Ok(())
     }
 }
-

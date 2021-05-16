@@ -6,9 +6,7 @@
 use anyhow::{anyhow, Result};
 use cairo::{Context, Surface};
 use pango::{EllipsizeMode, FontDescription};
-use pangocairo;
 use std::fmt;
-use std::fmt::UpperHex;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Color {

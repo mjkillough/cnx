@@ -31,7 +31,7 @@ lazy_static = "1.4"
 ordered-float = "1.0"
 pango = "0.8"
 pangocairo = "0.9"
-regex = "1.3"
+regex = "1.5"
 tokio = { version = "1.2.0", features = ["rt", "net", "time", "macros", "rt-multi-thread"] }
 tokio-stream = { version = "0.1.5" }
 xcb = "0.9"

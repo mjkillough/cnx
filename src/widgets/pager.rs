@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use futures::stream::StreamExt;
+use std::cmp::Ordering;
 use xcb_util::ewmh;
 
 use crate::text::{Attributes, Text};
@@ -28,7 +29,7 @@ impl Pager {
         }
     }
 
-    fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Result<Vec<Text>> {
+    fn on_change(&self, conn: &ewmh::Connection, screen_idx: i32) -> Vec<Text> {
         let number = ewmh::get_number_of_desktops(conn, screen_idx)
             .get_reply()
             .unwrap_or(0) as usize;
@@ -43,14 +44,16 @@ impl Pager {
 
         // EWMH states that `number` may not equal `names.len()`, as there may
         // be unnamed desktops, or more desktops than are currently in use.
-        if names.len() > number {
-            names.truncate(number);
-        } else if number > names.len() {
-            let num_unnamed = number - names.len();
-            names.extend(vec!["?"; num_unnamed]);
+        match names.len().cmp(&number) {
+            Ordering::Equal => (),
+            Ordering::Greater => names.truncate(number),
+            Ordering::Less => {
+                let num_unnamed = number - names.len();
+                names.extend(vec!["?"; num_unnamed]);
+            }
         }
 
-        Ok(names
+        names
             .into_iter()
             .enumerate()
             .map(|(i, name)| {
@@ -66,7 +69,7 @@ impl Pager {
                     markup: true,
                 }
             })
-            .collect())
+            .collect()
     }
 }
 
@@ -80,7 +83,7 @@ impl Widget for Pager {
         let screen_idx = 0; // XXX assume
         let (conn, stream) = xcb_properties_stream(properties).context("Initialising Pager")?;
 
-        let stream = stream.map(move |()| self.on_change(&conn, screen_idx));
+        let stream = stream.map(move |()| Ok(self.on_change(&conn, screen_idx)));
 
         Ok(Box::pin(stream))
     }

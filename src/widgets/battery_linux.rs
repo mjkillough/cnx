@@ -78,8 +78,9 @@ impl Battery {
     /// # use cnx::*;
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
+    /// # use anyhow::Result;
     /// #
-    /// # fn run() -> ::cnx::Result<()> {
+    /// # fn run() -> Result<()> {
     /// let attr = Attributes {
     ///     font: Font::new("SourceCodePro 21"),
     ///     fg_color: Color::white(),
@@ -87,8 +88,8 @@ impl Battery {
     ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     /// };
     ///
-    /// let mut cnx = Cnx::new(Position::Top)?;
-    /// cnx_add_widget!(cnx, Battery::new(&cnx, attr.clone(), Color::red()));
+    /// let mut cnx = Cnx::new(Position::Top);
+    /// cnx.add_widget(Battery::new(attr.clone(), Color::red()));
     /// # Ok(())
     /// # }
     /// # fn main() { run().unwrap(); }

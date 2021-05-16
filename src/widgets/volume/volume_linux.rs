@@ -2,7 +2,7 @@ use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
 use alsa::mixer::{SelemChannelId, SelemId};
 use alsa::{self, Mixer, PollDescriptors};
-use anyhow::{Result};
+use anyhow::Result;
 use std::os::unix::io::AsRawFd;
 use std::os::unix::io::RawFd;
 use std::pin::Pin;
@@ -47,8 +47,9 @@ impl Volume {
     /// # use cnx::*;
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
+    /// # use anyhow::Result;
     /// #
-    /// # fn run() -> ::cnx::Result<()> {
+    /// # fn run() -> Result<()> {
     /// let attr = Attributes {
     ///     font: Font::new("SourceCodePro 21"),
     ///     fg_color: Color::white(),
@@ -56,8 +57,8 @@ impl Volume {
     ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     /// };
     ///
-    /// let mut cnx = Cnx::new(Position::Top)?;
-    /// cnx_add_widget!(cnx, Volume::new(&cnx, attr.clone()));
+    /// let mut cnx = Cnx::new(Position::Top);
+    /// cnx.add_widget(volume::Volume::new(attr.clone()));
     /// # Ok(())
     /// # }
     /// # fn main() { run().unwrap(); }
@@ -100,7 +101,7 @@ impl Widget for Volume {
 
             Ok(vec![Text {
                 attr: self.attr.clone(),
-                text: text,
+                text,
                 stretch: false,
                 markup: true,
             }])
@@ -169,7 +170,7 @@ struct AlsaEventStream {
 
 impl AsRawFd for AlsaEvented {
     fn as_raw_fd(&self) -> RawFd {
-        self.fds().into_iter().nth(0).unwrap()
+        self.fds().into_iter().next().unwrap()
     }
 }
 
@@ -227,10 +228,10 @@ impl Stream for AlsaEventStream {
                         .unwrap();
                 }
                 r.clear_ready();
-                return Poll::Ready(Some(()));
+                Poll::Ready(Some(()))
             }
-            Poll::Ready(Err(_)) => return Poll::Ready(None),
-            Poll::Pending => return Poll::Pending,
+            Poll::Ready(Err(_)) => Poll::Ready(None),
+            Poll::Pending => Poll::Pending,
         }
     }
 }

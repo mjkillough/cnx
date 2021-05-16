@@ -5,9 +5,9 @@ use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
 use std::time::Duration;
+use tokio::time;
 use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
-use tokio::time;
 
 pub struct Cpu {
     attr: Attributes,
@@ -31,28 +31,30 @@ impl Cpu {
         // https://github.com/jaor/xmobar/blob/61d075d3c275366c3344d59c058d7dd0baf21ef2/src/Xmobar/Plugins/Monitors/Cpu.hs#L128
         let previous = &self.cpu_data;
         let current = cpu_data;
-        let diff_total = (current.user_time - previous.user_time) +
-            (current.nice_time - previous.nice_time) +
-            (current.system_time - previous.system_time) +
-            (current.idle_time - previous.idle_time) +
-            (current.iowait_time - previous.iowait_time) +
-            (current.total_time - previous.total_time);
+        let diff_total = (current.user_time - previous.user_time)
+            + (current.nice_time - previous.nice_time)
+            + (current.system_time - previous.system_time)
+            + (current.idle_time - previous.idle_time)
+            + (current.iowait_time - previous.iowait_time)
+            + (current.total_time - previous.total_time);
         let percentage = match diff_total {
             0 => 0.0,
-            _ => (current.total_time - previous.total_time) as f64 / diff_total as f64
+            _ => (current.total_time - previous.total_time) as f64 / diff_total as f64,
         };
 
         let cpu_usage = (percentage * 100.0) as u64;
-        let text = self.render.as_ref().map_or(format!("{} %", cpu_usage), |x| (x)(cpu_usage).clone());
+        let text = self
+            .render
+            .as_ref()
+            .map_or(format!("{} %", cpu_usage), |x| (x)(cpu_usage));
         self.cpu_data = current;
         let texts = vec![Text {
             attr: self.attr.clone(),
-            text: text.clone(),
+            text,
             stretch: false,
-            markup: true
+            markup: true,
         }];
         Ok(texts)
-
     }
 }
 

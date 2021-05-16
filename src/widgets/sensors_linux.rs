@@ -1,8 +1,7 @@
 #[cfg(target_os = "linux")]
 use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
-use anyhow::{Context, Result};
-use lazy_static::lazy_static;
+use anyhow::{anyhow, Context, Result};
 use regex::Regex;
 use std::collections::HashMap;
 use std::process::Command;
@@ -19,15 +18,14 @@ struct Value<'a> {
 
 /// Parses the output of the `sensors` executable from `lm_sensors`.
 fn parse_sensors_output(output: &str) -> Result<HashMap<&str, Value<'_>>> {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(
-            // Note: we ignore + but capture -
-            r"\n(?P<name>[\w ]+):\s+\+?(?P<temp>-?\d+\.\d+).(?P<units>[C|F])"
-        ).expect("Failed to compile regex for parsing sensors output");
-    }
+    let re: Regex = Regex::new(
+        // Note: we ignore + but capture -
+        r"\n(?P<name>[\w ]+):\s+\+?(?P<temp>-?\d+\.\d+).(?P<units>[C|F])",
+    )
+    .map_err(|_| anyhow!("Failed to compile regex for parsing sensors output"))?;
 
     let mut map = HashMap::new();
-    for mat in RE.captures_iter(output) {
+    for mat in re.captures_iter(output) {
         // These .unwraps() are harmless. If we have a match, we have these groups.
         map.insert(
             mat.name("name").unwrap().as_str(),
@@ -83,8 +81,9 @@ impl Sensors {
     /// # use cnx::*;
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
+    /// # use anyhow::Result;
     /// #
-    /// # fn run() -> ::cnx::Result<()> {
+    /// # fn run() -> Result<()> {
     /// let attr = Attributes {
     ///     font: Font::new("SourceCodePro 21"),
     ///     fg_color: Color::white(),
@@ -92,10 +91,9 @@ impl Sensors {
     ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     /// };
     ///
-    /// let mut cnx = Cnx::new(Position::Top)?;
-    /// cnx_add_widget!(
-    ///     cnx,
-    ///     Sensors::new(&cnx, attr.clone(), vec!["Core 0", "Core 1"])
+    /// let mut cnx = Cnx::new(Position::Top);
+    /// cnx.add_widget(
+    ///     Sensors::new(attr.clone(), vec!["Core 0", "Core 1"])
     /// );
     /// # Ok(())
     /// # }
