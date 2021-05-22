@@ -41,3 +41,4 @@ alsa = "0.5.0"
 reqwest = { version = "0.11" }
 mio = "0.7.9"
 iwlib = "0.1"
+weathernoaa = "0.2.0"
