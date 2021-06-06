@@ -49,6 +49,14 @@ pub struct Battery {
     battery: String,
     attr: Attributes,
     warning_color: Color,
+    render: Option<Box<dyn Fn(u64) -> String>>,
+}
+
+pub struct BatteryInfo {
+    charge_full: f64,
+    charge_now: f64,
+    current_now: f64,
+    status: Status
 }
 
 impl Battery {
@@ -94,10 +102,10 @@ impl Battery {
     /// # }
     /// # fn main() { run().unwrap(); }
     /// ```
-    pub fn new(attr: Attributes, warning_color: Color) -> Battery {
+    pub fn new(attr: Attributes, warning_color: Color, battery: Option<String>) -> Battery {
         Battery {
             update_interval: Duration::from_secs(60),
-            battery: "BAT0".to_owned(),
+            battery: battery.unwrap_or("BAT0".into()),
             attr,
             warning_color,
         }
@@ -129,15 +137,24 @@ impl Battery {
         Ok(value)
     }
 
-    fn tick(&self) -> Result<Vec<Text>> {
+    fn get_value(&self) -> Result<BatteryInfo> {
         let full: f64 = self.load_value("charge_full")?;
         let now: f64 = self.load_value("charge_now")?;
         let percentage = (now / full) * 100.0;
 
         // If we're discharging, show time to empty.
         // If we're charging, show time to full.
-        let power: f64 = self.load_value("current_avg")?;
+        let power: f64 = self.load_value("current_now")?;
         let status: Status = self.load_value("status")?;
+        Ok(BatteryInfo {
+            charge_full: full,
+            charge_now: now,
+            current_now: power,
+            status : status
+        })
+    }
+
+    fn tick(&self) -> Result<Vec<Text>> {
         let time = match status {
             Status::Discharging => now / power,
             Status::Charging => (full - now) / power,
