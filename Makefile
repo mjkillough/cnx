@@ -21,6 +21,11 @@ check-without-clean:
 run:
 	cargo run
 
+
+## Create release binary
+bin-release:
+	cargo install --path .
+
 ## Watch and run build
 watch-build:
 	cargo watch -x build
