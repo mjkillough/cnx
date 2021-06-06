@@ -72,7 +72,7 @@ fn main() -> Result<()> {
         let percentage = (battery_info.charge_now / battery_info.charge_full) * 100.0;
 
         let default_text = format!(
-            "({percentage:.0}% - {hours}:{minutes:02})",
+            "🔋{percentage:.0}% - {hours}:{minutes:02}",
             percentage = percentage,
             hours = hours,
             minutes = minutes

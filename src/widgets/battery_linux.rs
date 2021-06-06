@@ -188,7 +188,7 @@ impl Battery {
             attr,
             text,
             stretch: false,
-            markup: false,
+            markup: self.render.is_some(),
         }])
     }
 }
