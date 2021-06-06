@@ -57,7 +57,7 @@ pub struct BatteryInfo {
     pub charge_full: f64,
     pub charge_now: f64,
     pub current_now: f64,
-    pub status: Status
+    pub status: Status,
 }
 
 impl Battery {
@@ -98,15 +98,20 @@ impl Battery {
     /// };
     ///
     /// let mut cnx = Cnx::new(Position::Top);
-    /// cnx.add_widget(Battery::new(attr.clone(), Color::red()));
+    /// cnx.add_widget(Battery::new(attr.clone(), Color::red(), None, None));
     /// # Ok(())
     /// # }
     /// # fn main() { run().unwrap(); }
     /// ```
-    pub fn new(attr: Attributes, warning_color: Color, battery: Option<String>,  render: Option<Box<dyn Fn(BatteryInfo) -> String>>) -> Battery {
+    pub fn new(
+        attr: Attributes,
+        warning_color: Color,
+        battery: Option<String>,
+        render: Option<Box<dyn Fn(BatteryInfo) -> String>>,
+    ) -> Battery {
         Battery {
             update_interval: Duration::from_secs(60),
-            battery: battery.unwrap_or("BAT0".into()),
+            battery: battery.unwrap_or_else(|| "BAT0".into()),
             attr,
             warning_color,
             render,
@@ -151,17 +156,18 @@ impl Battery {
             charge_full: full,
             charge_now: now,
             current_now: power,
-            status : status
+            status,
         })
     }
 
     fn tick(&self) -> Result<Vec<Text>> {
-
         let battery_info = self.get_value()?;
 
         let time = match battery_info.status {
             Status::Discharging => battery_info.charge_now / battery_info.current_now,
-            Status::Charging => (battery_info.charge_full - battery_info.charge_now) / battery_info.current_now,
+            Status::Charging => {
+                (battery_info.charge_full - battery_info.charge_now) / battery_info.current_now
+            }
             _ => 0.0,
         };
         let hours = time as u64;
@@ -175,7 +181,10 @@ impl Battery {
             hours = hours,
             minutes = minutes
         );
-        let text = self.render.as_ref().map_or(default_text, |x| (x)(battery_info.clone()));
+        let text = self
+            .render
+            .as_ref()
+            .map_or(default_text, |x| (x)(battery_info.clone()));
 
         // If we're discharging and have <=10% left, then render with a
         // special warning color.

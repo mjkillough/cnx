@@ -2,8 +2,8 @@ use anyhow::Result;
 
 use byte_unit::ByteUnit;
 use cnx::text::*;
-use cnx::widgets::disk_usage::DiskInfo;
 use cnx::widgets::battery_linux::{BatteryInfo, Status};
+use cnx::widgets::disk_usage::DiskInfo;
 use cnx::widgets::*;
 use cnx::{Cnx, Position};
 use weathernoaa::weather::WeatherInfo;
@@ -59,10 +59,11 @@ fn main() -> Result<()> {
     // let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
 
     let battery_render = Box::new(|battery_info: BatteryInfo| {
-
         let time = match battery_info.status {
             Status::Discharging => battery_info.charge_now / battery_info.current_now,
-            Status::Charging => (battery_info.charge_full - battery_info.charge_now) / battery_info.current_now,
+            Status::Charging => {
+                (battery_info.charge_full - battery_info.charge_now) / battery_info.current_now
+            }
             _ => 0.0,
         };
 
