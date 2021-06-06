@@ -11,7 +11,7 @@ use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-enum Status {
+pub enum Status {
     Full,
     Charging,
     Discharging,
@@ -49,14 +49,15 @@ pub struct Battery {
     battery: String,
     attr: Attributes,
     warning_color: Color,
-    render: Option<Box<dyn Fn(u64) -> String>>,
+    render: Option<Box<dyn Fn(BatteryInfo) -> String>>,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct BatteryInfo {
-    charge_full: f64,
-    charge_now: f64,
-    current_now: f64,
-    status: Status
+    pub charge_full: f64,
+    pub charge_now: f64,
+    pub current_now: f64,
+    pub status: Status
 }
 
 impl Battery {
@@ -102,12 +103,13 @@ impl Battery {
     /// # }
     /// # fn main() { run().unwrap(); }
     /// ```
-    pub fn new(attr: Attributes, warning_color: Color, battery: Option<String>) -> Battery {
+    pub fn new(attr: Attributes, warning_color: Color, battery: Option<String>,  render: Option<Box<dyn Fn(BatteryInfo) -> String>>) -> Battery {
         Battery {
             update_interval: Duration::from_secs(60),
             battery: battery.unwrap_or("BAT0".into()),
             attr,
             warning_color,
+            render,
         }
     }
 
@@ -140,7 +142,6 @@ impl Battery {
     fn get_value(&self) -> Result<BatteryInfo> {
         let full: f64 = self.load_value("charge_full")?;
         let now: f64 = self.load_value("charge_now")?;
-        let percentage = (now / full) * 100.0;
 
         // If we're discharging, show time to empty.
         // If we're charging, show time to full.
@@ -155,25 +156,31 @@ impl Battery {
     }
 
     fn tick(&self) -> Result<Vec<Text>> {
-        let time = match status {
-            Status::Discharging => now / power,
-            Status::Charging => (full - now) / power,
+
+        let battery_info = self.get_value()?;
+
+        let time = match battery_info.status {
+            Status::Discharging => battery_info.charge_now / battery_info.current_now,
+            Status::Charging => (battery_info.charge_full - battery_info.charge_now) / battery_info.current_now,
             _ => 0.0,
         };
         let hours = time as u64;
         let minutes = (time * 60.0) as u64 % 60;
 
-        let text = format!(
+        let percentage = (battery_info.charge_now / battery_info.charge_full) * 100.0;
+
+        let default_text = format!(
             "({percentage:.0}% - {hours}:{minutes:02})",
             percentage = percentage,
             hours = hours,
             minutes = minutes
         );
+        let text = self.render.as_ref().map_or(default_text, |x| (x)(battery_info.clone()));
 
         // If we're discharging and have <=10% left, then render with a
         // special warning color.
         let mut attr = self.attr.clone();
-        if status == Status::Discharging && percentage <= 10.0 {
+        if battery_info.status == Status::Discharging && percentage <= 10.0 {
             attr.fg_color = self.warning_color.clone()
         }
 

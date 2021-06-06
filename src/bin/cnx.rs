@@ -3,6 +3,7 @@ use anyhow::Result;
 use byte_unit::ByteUnit;
 use cnx::text::*;
 use cnx::widgets::disk_usage::DiskInfo;
+use cnx::widgets::battery_linux::{BatteryInfo, Status};
 use cnx::widgets::*;
 use cnx::{Cnx, Position};
 use weathernoaa::weather::WeatherInfo;
@@ -56,7 +57,30 @@ fn main() -> Result<()> {
     let mut cnx = Cnx::new(Position::Top);
 
     // let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
-    let battery = Battery::new(attr.clone(), Color::red(), None);
+
+    let battery_render = Box::new(|battery_info: BatteryInfo| {
+
+        let time = match battery_info.status {
+            Status::Discharging => battery_info.charge_now / battery_info.current_now,
+            Status::Charging => (battery_info.charge_full - battery_info.charge_now) / battery_info.current_now,
+            _ => 0.0,
+        };
+
+        let hours = time as u64;
+        let minutes = (time * 60.0) as u64 % 60;
+
+        let percentage = (battery_info.charge_now / battery_info.charge_full) * 100.0;
+
+        let default_text = format!(
+            "({percentage:.0}% - {hours}:{minutes:02})",
+            percentage = percentage,
+            hours = hours,
+            minutes = minutes
+        );
+        pango_markup_single_render(Color::white(), default_text)
+    });
+
+    let battery = Battery::new(attr.clone(), Color::red(), None, Some(battery_render));
     let render = Box::new(|load| {
         let mut color = Color::yellow().to_hex();
         if load < 5 {
