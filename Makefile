@@ -26,6 +26,10 @@ run:
 bin-release:
 	cargo install --path .
 
+## Setup
+setup:
+	rustup component add rustfmt
+
 ## Watch and run build
 watch-build:
 	cargo watch -x build
