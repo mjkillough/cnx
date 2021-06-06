@@ -29,6 +29,7 @@ bin-release:
 ## Setup
 setup:
 	rustup component add rustfmt
+	rustup component add clippy
 
 ## Watch and run build
 watch-build:
