@@ -25,11 +25,7 @@ impl DiskInfo {
         let used = byte_unit::Byte::from_bytes(used as u128);
         let free: Byte = byte_unit::Byte::from_bytes(available as u128);
 
-        let disk_info = DiskInfo {
-            total: total,
-            used: used,
-            free: free,
-        };
+        let disk_info = DiskInfo { total, used, free };
         Ok(disk_info)
     }
 }
