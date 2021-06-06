@@ -19,6 +19,7 @@ pub use self::battery_linux::Battery;
 pub use self::sensors_linux::Sensors;
 mod clock;
 pub mod cpu;
+pub mod disk_usage;
 mod pager;
 pub mod volume;
 pub mod weather;

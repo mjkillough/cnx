@@ -21,6 +21,16 @@ check-without-clean:
 run:
 	cargo run
 
+
+## Create release binary
+bin-release:
+	cargo install --path .
+
+## Setup
+setup:
+	rustup component add rustfmt
+	rustup component add clippy
+
 ## Watch and run build
 watch-build:
 	cargo watch -x build

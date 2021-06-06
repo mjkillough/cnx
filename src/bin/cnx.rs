@@ -1,6 +1,8 @@
 use anyhow::Result;
 
+use byte_unit::ByteUnit;
 use cnx::text::*;
+use cnx::widgets::disk_usage::DiskInfo;
 use cnx::widgets::*;
 use cnx::{Cnx, Position};
 use weathernoaa::weather::WeatherInfo;
@@ -9,6 +11,13 @@ fn pango_markup_render(color: Color, start_text: String, text: String) -> String
     format!(
             "<span foreground=\"#808080\">[</span>{} <span foreground=\"{}\">{}</span><span foreground=\"#808080\">]</span>",
         start_text, color.to_hex(), text
+        )
+}
+
+fn pango_markup_single_render(color: Color, start_text: String) -> String {
+    format!(
+            "<span foreground=\"#808080\">[</span>{}<span foreground=\"{}\"></span><span foreground=\"#808080\">]</span>",
+        start_text, color.to_hex()
         )
 }
 
@@ -73,6 +82,15 @@ fn main() -> Result<()> {
         Some(default_threshold),
     );
 
+    let disk_render = Box::new(|disk_info: DiskInfo| {
+        let used = disk_info.used.get_adjusted_unit(ByteUnit::GiB).format(0);
+        let total = disk_info.total.get_adjusted_unit(ByteUnit::GiB).format(0);
+        let disk_text = format!("🏠 {}/{}", used, total);
+        pango_markup_single_render(Color::white(), disk_text)
+    });
+
+    let disk_usage = disk_usage::DiskUsage::new(attr.clone(), "/home".into(), Some(disk_render));
+
     let weather_render = Box::new(|weather: WeatherInfo| {
         let sky_condition = weather_sky_condition(weather.sky_condition);
         let weather_text = format!("BLR: {} :", sky_condition);
@@ -88,6 +106,7 @@ fn main() -> Result<()> {
     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
     cnx.add_widget(cpu);
     cnx.add_widget(weather);
+    cnx.add_widget(disk_usage);
     cnx.add_widget(wireless);
     cnx.add_widget(volume);
 

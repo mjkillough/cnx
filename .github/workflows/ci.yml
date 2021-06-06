@@ -16,7 +16,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: 1.50.0
           override: true
       - uses: Swatinem/rust-cache@v1
       - name: Test
@@ -25,5 +25,6 @@ jobs:
           sudo apt install libx11-xcb-dev libxcb-ewmh-dev libasound2-dev \
             libpango1.0-dev libcairo2-dev libiw-dev
           cargo build
+          make setup
           make check
         shell: bash
