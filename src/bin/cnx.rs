@@ -2,7 +2,7 @@ use anyhow::Result;
 
 use byte_unit::ByteUnit;
 use cnx::text::*;
-use cnx::widgets::battery_linux::{BatteryInfo, Status};
+use cnx::widgets::battery_linux::BatteryInfo;
 use cnx::widgets::disk_usage::DiskInfo;
 use cnx::widgets::*;
 use cnx::{Cnx, Position};
@@ -59,25 +59,9 @@ fn main() -> Result<()> {
     // let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
 
     let battery_render = Box::new(|battery_info: BatteryInfo| {
-        let time = match battery_info.status {
-            Status::Discharging => battery_info.charge_now / battery_info.current_now,
-            Status::Charging => {
-                (battery_info.charge_full - battery_info.charge_now) / battery_info.current_now
-            }
-            _ => 0.0,
-        };
+        let percentage = battery_info.capacity;
 
-        let hours = time as u64;
-        let minutes = (time * 60.0) as u64 % 60;
-
-        let percentage = (battery_info.charge_now / battery_info.charge_full) * 100.0;
-
-        let default_text = format!(
-            "🔋{percentage:.0}% - {hours}:{minutes:02}",
-            percentage = percentage,
-            hours = hours,
-            minutes = minutes
-        );
+        let default_text = format!("🔋{percentage:.0}%", percentage = percentage,);
         pango_markup_single_render(Color::white(), default_text)
     });
 
@@ -101,11 +85,8 @@ fn main() -> Result<()> {
 
     let default_threshold = Threshold::default();
 
-    let wireless = wireless::Wireless::new(
-        attr.clone(),
-        "wlp0s20f3".to_owned(),
-        Some(default_threshold),
-    );
+    let wireless =
+        wireless::Wireless::new(attr.clone(), "wlp2s0".to_owned(), Some(default_threshold));
 
     let disk_render = Box::new(|disk_info: DiskInfo| {
         let used = disk_info.used.get_adjusted_unit(ByteUnit::GiB).format(0);
