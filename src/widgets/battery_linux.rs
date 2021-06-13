@@ -1,7 +1,6 @@
 use crate::text::{Attributes, Color, Text};
 use crate::widgets::{Widget, WidgetStream};
 use anyhow::{anyhow, Context, Error, Result};
-use std::f64;
 use std::fs::File;
 use std::io::Read;
 use std::str::FromStr;
@@ -54,10 +53,8 @@ pub struct Battery {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct BatteryInfo {
-    pub charge_full: f64,
-    pub charge_now: f64,
-    pub current_now: f64,
     pub status: Status,
+    pub capacity: u8,
 }
 
 impl Battery {
@@ -145,42 +142,15 @@ impl Battery {
     }
 
     fn get_value(&self) -> Result<BatteryInfo> {
-        let full: f64 = self.load_value("charge_full")?;
-        let now: f64 = self.load_value("charge_now")?;
-
-        // If we're discharging, show time to empty.
-        // If we're charging, show time to full.
-        let power: f64 = self.load_value("current_now")?;
+        let capacity: u8 = self.load_value("capacity")?;
         let status: Status = self.load_value("status")?;
-        Ok(BatteryInfo {
-            charge_full: full,
-            charge_now: now,
-            current_now: power,
-            status,
-        })
+        Ok(BatteryInfo { capacity, status })
     }
 
     fn tick(&self) -> Result<Vec<Text>> {
         let battery_info = self.get_value()?;
 
-        let time = match battery_info.status {
-            Status::Discharging => battery_info.charge_now / battery_info.current_now,
-            Status::Charging => {
-                (battery_info.charge_full - battery_info.charge_now) / battery_info.current_now
-            }
-            _ => 0.0,
-        };
-        let hours = time as u64;
-        let minutes = (time * 60.0) as u64 % 60;
-
-        let percentage = (battery_info.charge_now / battery_info.charge_full) * 100.0;
-
-        let default_text = format!(
-            "({percentage:.0}% - {hours}:{minutes:02})",
-            percentage = percentage,
-            hours = hours,
-            minutes = minutes
-        );
+        let default_text = format!("({percentage:.0}%)", percentage = battery_info.capacity,);
         let text = self
             .render
             .as_ref()
@@ -189,7 +159,7 @@ impl Battery {
         // If we're discharging and have <=10% left, then render with a
         // special warning color.
         let mut attr = self.attr.clone();
-        if battery_info.status == Status::Discharging && percentage <= 10.0 {
+        if battery_info.status == Status::Discharging && battery_info.capacity <= 10 {
             attr.fg_color = self.warning_color.clone()
         }
 
