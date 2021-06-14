@@ -2,7 +2,7 @@ use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
 use alsa::mixer::{SelemChannelId, SelemId};
 use alsa::{self, Mixer, PollDescriptors};
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use std::os::unix::io::AsRawFd;
 use std::os::unix::io::RawFd;
 use std::pin::Pin;
@@ -79,14 +79,16 @@ impl Widget for Volume {
         // create a new mixer each time we get an event though.
         let mixer = Mixer::new(mixer_name, true)?;
         // .with_context(|_| format!("Failed to open ALSA mixer: {}", mixer_name))?;
-        let stream = AlsaEventStream::new(mixer).unwrap().map(move |()| {
+        let stream = AlsaEventStream::new(mixer).expect(
+            "AlsaEventStream issue"
+        ).map(move |()| {
             // FrontLeft has special meaning in ALSA and is the channel
             // that's used when the mixer is mono.
             let channel = SelemChannelId::FrontLeft;
 
             let mixer = Mixer::new(mixer_name, true)?;
-            let master = mixer.find_selem(&SelemId::new("Master", 0)).unwrap();
-            // .ok_or_else(|| format!("Couldn't open Master channel"))?;
+            let master = mixer.find_selem(&SelemId::new("Master", 0))
+             .ok_or_else(|| anyhow!("Couldn't open Master channel"))?;
 
             let mute = master.get_playback_switch(channel)? == 0;
 
@@ -121,7 +123,7 @@ impl AlsaEvented {
     fn fds(&self) -> Vec<RawFd> {
         self.0
             .get()
-            .unwrap()
+            .expect("volume: no fds available")
             .iter()
             .map(|pollfd| pollfd.fd)
             .collect()
@@ -170,7 +172,10 @@ struct AlsaEventStream {
 
 impl AsRawFd for AlsaEvented {
     fn as_raw_fd(&self) -> RawFd {
-        self.fds().into_iter().next().unwrap()
+        self.fds()
+            .into_iter()
+            .next()
+            .expect("volume: as_raw_fd empty")
     }
 }
 
@@ -205,13 +210,7 @@ impl Stream for AlsaEventStream {
         // using it as a wake-up so we can check the volume again.
         if self.initial {
             let mixer = self.poll.get_ref().mixer();
-            let ready = alsa::poll::poll_all(&[mixer], 0).unwrap();
-            let poll_descriptors = ready.into_iter().map(|(p, _)| p);
-            for poll_descriptor in poll_descriptors {
-                mixer
-                    .revents(poll_descriptor.get().unwrap().as_slice())
-                    .unwrap();
-            }
+            let ready = alsa::poll::poll_all(&[mixer], 0).expect("volume: alsa poll ready failure");
             self.initial = false;
             return Poll::Ready(Some(()));
         }
@@ -220,17 +219,12 @@ impl Stream for AlsaEventStream {
         match self.poll.poll_read_ready(cx) {
             Poll::Ready(Ok(mut r)) => {
                 let mixer = self.poll.get_ref().mixer();
-                let ready = alsa::poll::poll_all(&[mixer], 0).unwrap();
-                let poll_descriptors = ready.into_iter().map(|(p, _)| p);
-                for poll_descriptor in poll_descriptors {
-                    mixer
-                        .revents(poll_descriptor.get().unwrap().as_slice())
-                        .unwrap();
-                }
+                let ready = alsa::poll::poll_all(&[mixer], 0).expect("volume: ready failure");
+                let dr = mixer.handle_events();
                 r.clear_ready();
                 Poll::Ready(Some(()))
             }
-            Poll::Ready(Err(_)) => Poll::Ready(None),
+            Poll::Ready(Err(_)) => Poll::Ready(Some(())),
             Poll::Pending => Poll::Pending,
         }
     }
