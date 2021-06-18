@@ -2,11 +2,11 @@ use crate::text::{Attributes, Text};
 use crate::widgets::{Widget, WidgetStream};
 use alsa::mixer::{SelemChannelId, SelemId};
 use alsa::{self, Mixer, PollDescriptors};
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use std::os::unix::io::AsRawFd;
 use std::os::unix::io::RawFd;
 use std::pin::Pin;
-use std::task::{Context, Poll};
+use std::task::Poll;
 use tokio::io::unix::AsyncFd;
 use tokio_stream::{Stream, StreamExt};
 
@@ -77,11 +77,9 @@ impl Widget for Volume {
         // recompute the mixer state (in the callback below) as the Mixer seems
         // to cache the state from when it was created. It's relatively cheap
         // create a new mixer each time we get an event though.
-        let mixer = Mixer::new(mixer_name, true)?;
-        // .with_context(|_| format!("Failed to open ALSA mixer: {}", mixer_name))?;
-        let stream = AlsaEventStream::new(mixer).expect(
-            "AlsaEventStream issue"
-        ).map(move |()| {
+        let mixer = Mixer::new(mixer_name, true)
+            .with_context(|| format!("Failed to open ALSA mixer: {}", mixer_name))?;
+        let stream = AlsaEventStream::new(mixer)?.map(move |()| {
             // FrontLeft has special meaning in ALSA and is the channel
             // that's used when the mixer is mono.
             let channel = SelemChannelId::FrontLeft;
@@ -121,49 +119,11 @@ impl AlsaEvented {
     }
 
     fn fds(&self) -> Vec<RawFd> {
-        self.0
-            .get()
-            .expect("volume: no fds available")
-            .iter()
-            .map(|pollfd| pollfd.fd)
-            .collect()
+        self.0.get().map_or(vec![], |vec_poll| {
+            vec_poll.iter().map(|pollfd| pollfd.fd).collect()
+        })
     }
 }
-
-// impl event::Source for AlsaEvented {
-//     fn register(
-//         &mut self,
-//         registry: &Registry,
-//         token: Token,
-//         interests: Interest,
-//     ) -> io::Result<()> {
-//         for fd in &self.fds() {
-//             SourceFd(fd).register(registry, token, interests)?
-//         }
-//         Ok(())
-//     }
-
-//     fn reregister(
-//         &mut self,
-//         registry: &Registry,
-//         token: Token,
-//         interests: Interest,
-//     ) -> io::Result<()> {
-//         for fd in &self.fds() {
-//             SourceFd(fd).reregister(registry, token, interests);
-//         }
-//         Ok(())
-//     }
-
-//     fn deregister(&mut self, registry: &Registry) -> io::Result<()> {
-//         // XXX If the set of fds changes (it won't), should we deregister the
-//         // original set?
-//         for fd in &self.fds() {
-//             SourceFd(fd).deregister(registry);
-//         }
-//         Ok(())
-//     }
-// }
 
 struct AlsaEventStream {
     poll: AsyncFd<AlsaEvented>,
@@ -178,8 +138,6 @@ impl AsRawFd for AlsaEvented {
             .expect("volume: as_raw_fd empty")
     }
 }
-
-// I'm porting one of the crates tokio 0.2 series. Since PollEvented is removed, I'm using AsyncFd for most of them and it works well. But in one of the cases - I have to watch a bucn
 
 impl AlsaEventStream {
     fn new(mixer: Mixer) -> Result<AlsaEventStream> {
@@ -200,7 +158,10 @@ impl Stream for AlsaEventStream {
     // it receives a new item from the stream.
     type Item = ();
 
-    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+    fn poll_next(
+        mut self: Pin<&mut Self>,
+        cx: &mut std::task::Context,
+    ) -> Poll<Option<Self::Item>> {
         // Always assume we're ready initially, so that we can clear the
         // state of the fds.
 
