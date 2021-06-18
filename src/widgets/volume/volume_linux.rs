@@ -185,7 +185,7 @@ impl Stream for AlsaEventStream {
                 r.clear_ready();
                 Poll::Ready(Some(()))
             }
-            Poll::Ready(Err(_)) => Poll::Ready(Some(())),
+            Poll::Ready(Err(_)) => Poll::Ready(None),
             Poll::Pending => Poll::Pending,
         }
     }
