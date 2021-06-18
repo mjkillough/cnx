@@ -1,7 +1,6 @@
 use crate::text::{Attributes, Color, Text};
 use crate::widgets::{Widget, WidgetStream};
 use anyhow::{anyhow, Context, Error, Result};
-use std::f64;
 use std::fs::File;
 use std::io::Read;
 use std::str::FromStr;
@@ -11,7 +10,7 @@ use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-enum Status {
+pub enum Status {
     Full,
     Charging,
     Discharging,
@@ -49,6 +48,13 @@ pub struct Battery {
     battery: String,
     attr: Attributes,
     warning_color: Color,
+    render: Option<Box<dyn Fn(BatteryInfo) -> String>>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct BatteryInfo {
+    pub status: Status,
+    pub capacity: u8,
 }
 
 impl Battery {
@@ -89,17 +95,23 @@ impl Battery {
     /// };
     ///
     /// let mut cnx = Cnx::new(Position::Top);
-    /// cnx.add_widget(Battery::new(attr.clone(), Color::red()));
+    /// cnx.add_widget(Battery::new(attr.clone(), Color::red(), None, None));
     /// # Ok(())
     /// # }
     /// # fn main() { run().unwrap(); }
     /// ```
-    pub fn new(attr: Attributes, warning_color: Color) -> Battery {
+    pub fn new(
+        attr: Attributes,
+        warning_color: Color,
+        battery: Option<String>,
+        render: Option<Box<dyn Fn(BatteryInfo) -> String>>,
+    ) -> Battery {
         Battery {
             update_interval: Duration::from_secs(60),
-            battery: "BAT0".to_owned(),
+            battery: battery.unwrap_or_else(|| "BAT0".into()),
             attr,
             warning_color,
+            render,
         }
     }
 
@@ -129,34 +141,25 @@ impl Battery {
         Ok(value)
     }
 
-    fn tick(&self) -> Result<Vec<Text>> {
-        let full: f64 = self.load_value("charge_full")?;
-        let now: f64 = self.load_value("charge_now")?;
-        let percentage = (now / full) * 100.0;
-
-        // If we're discharging, show time to empty.
-        // If we're charging, show time to full.
-        let power: f64 = self.load_value("current_avg")?;
+    fn get_value(&self) -> Result<BatteryInfo> {
+        let capacity: u8 = self.load_value("capacity")?;
         let status: Status = self.load_value("status")?;
-        let time = match status {
-            Status::Discharging => now / power,
-            Status::Charging => (full - now) / power,
-            _ => 0.0,
-        };
-        let hours = time as u64;
-        let minutes = (time * 60.0) as u64 % 60;
+        Ok(BatteryInfo { capacity, status })
+    }
 
-        let text = format!(
-            "({percentage:.0}% - {hours}:{minutes:02})",
-            percentage = percentage,
-            hours = hours,
-            minutes = minutes
-        );
+    fn tick(&self) -> Result<Vec<Text>> {
+        let battery_info = self.get_value()?;
+
+        let default_text = format!("({percentage:.0}%)", percentage = battery_info.capacity,);
+        let text = self
+            .render
+            .as_ref()
+            .map_or(default_text, |x| (x)(battery_info.clone()));
 
         // If we're discharging and have <=10% left, then render with a
         // special warning color.
         let mut attr = self.attr.clone();
-        if status == Status::Discharging && percentage <= 10.0 {
+        if battery_info.status == Status::Discharging && battery_info.capacity <= 10 {
             attr.fg_color = self.warning_color.clone()
         }
 
@@ -164,7 +167,7 @@ impl Battery {
             attr,
             text,
             stretch: false,
-            markup: false,
+            markup: self.render.is_some(),
         }])
     }
 }

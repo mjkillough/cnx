@@ -3,16 +3,16 @@
 mod active_window_title;
 
 #[cfg(target_os = "openbsd")]
-mod battery_bsd;
+pub mod battery_bsd;
 #[cfg(target_os = "openbsd")]
-mod sensors_bsd;
+pub mod sensors_bsd;
 #[cfg(target_os = "openbsd")]
 pub use self::sensors_battery::Battery;
 
 #[cfg(target_os = "linux")]
-mod battery_linux;
+pub mod battery_linux;
 #[cfg(target_os = "linux")]
-mod sensors_linux;
+pub mod sensors_linux;
 #[cfg(target_os = "linux")]
 pub use self::battery_linux::Battery;
 #[cfg(target_os = "linux")]

@@ -2,6 +2,7 @@ use anyhow::Result;
 
 use byte_unit::ByteUnit;
 use cnx::text::*;
+use cnx::widgets::battery_linux::BatteryInfo;
 use cnx::widgets::disk_usage::DiskInfo;
 use cnx::widgets::*;
 use cnx::{Cnx, Position};
@@ -56,7 +57,15 @@ fn main() -> Result<()> {
     let mut cnx = Cnx::new(Position::Top);
 
     // let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
-    // let battery = Battery::new(attr.clone(), Color::red());
+
+    let battery_render = Box::new(|battery_info: BatteryInfo| {
+        let percentage = battery_info.capacity;
+
+        let default_text = format!("🔋{percentage:.0}%", percentage = percentage,);
+        pango_markup_single_render(Color::white(), default_text)
+    });
+
+    let battery = Battery::new(attr.clone(), Color::red(), None, Some(battery_render));
     let render = Box::new(|load| {
         let mut color = Color::yellow().to_hex();
         if load < 5 {
@@ -76,11 +85,8 @@ fn main() -> Result<()> {
 
     let default_threshold = Threshold::default();
 
-    let wireless = wireless::Wireless::new(
-        attr.clone(),
-        "wlp0s20f3".to_owned(),
-        Some(default_threshold),
-    );
+    let wireless =
+        wireless::Wireless::new(attr.clone(), "wlp2s0".to_owned(), Some(default_threshold));
 
     let disk_render = Box::new(|disk_info: DiskInfo| {
         let used = disk_info.used.get_adjusted_unit(ByteUnit::GiB).format(0);
@@ -111,7 +117,7 @@ fn main() -> Result<()> {
     cnx.add_widget(volume);
 
     // cnx.add_widget(sensors);
-    // cnx.add_widget(battery);
+    cnx.add_widget(battery);
     let time_template = Some("<span foreground=\"#808080\">[</span>%d-%m-%Y %a %I:%M %p<span foreground=\"#808080\">]</span>".into());
     cnx.add_widget(Clock::new(attr, time_template));
     cnx.run()?;
