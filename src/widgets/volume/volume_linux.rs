@@ -210,7 +210,7 @@ impl Stream for AlsaEventStream {
         // using it as a wake-up so we can check the volume again.
         if self.initial {
             let mixer = self.poll.get_ref().mixer();
-            let ready = alsa::poll::poll_all(&[mixer], 0).expect("volume: alsa poll ready failure");
+            let _poll_result = alsa::poll::poll_all(&[mixer], 0);
             self.initial = false;
             return Poll::Ready(Some(()));
         }
@@ -219,8 +219,8 @@ impl Stream for AlsaEventStream {
         match self.poll.poll_read_ready(cx) {
             Poll::Ready(Ok(mut r)) => {
                 let mixer = self.poll.get_ref().mixer();
-                let ready = alsa::poll::poll_all(&[mixer], 0).expect("volume: ready failure");
-                let dr = mixer.handle_events();
+                let _poll_result = alsa::poll::poll_all(&[mixer], 0);
+                let _result = mixer.handle_events();
                 r.clear_ready();
                 Poll::Ready(Some(()))
             }
