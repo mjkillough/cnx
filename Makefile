@@ -24,7 +24,7 @@ run:
 
 ## Create release binary
 bin-release:
-	cargo install --path .
+	cargo install --path . --root ~
 
 ## Setup
 setup:

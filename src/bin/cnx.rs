@@ -54,10 +54,9 @@ fn main() -> Result<()> {
         padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     };
 
-    let mut cnx = Cnx::new(Position::Top);
+    let mut cnx = Cnx::new(Position::Bottom);
 
     // let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
-
     let battery_render = Box::new(|battery_info: BatteryInfo| {
         let percentage = battery_info.capacity;
 
