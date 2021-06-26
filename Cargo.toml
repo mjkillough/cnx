@@ -1,46 +1,6 @@
-[package]
-name = "cnx"
-version = "0.4.0"
-edition = "2018"
-authors = ["Michael Killough <michaeljkillough@gmail.com>"]
-description = "A simple X11 status bar"
-repository = "https://github.com/mjkillough/cnx"
-readme = "README.md"
-keywords = ["x11", "status", "bar"]
-categories = ["gui"]
-license = "MIT"
-
-[badges]
-travis-ci = { repository = "mjkillough/cnx", branch = "master" }
-
-[[bin]]
-name = "cnx"
-doc = false
-
-[features]
-sioctl-volume = ["sioctl"]
-
-[dependencies]
-anyhow = "1.0"
-async-stream = "0.2"
-cairo-rs = { version = "0.8", features = ["xcb"] }
-cairo-sys-rs = "0.9"
-chrono = "0.4"
-futures = "0.3"
-lazy_static = "1.4"
-ordered-float = "1.0"
-pango = "0.8"
-pangocairo = "0.9"
-regex = "1.5"
-tokio = { version = "1.2.0", features = ["rt", "net", "time", "macros", "rt-multi-thread"] }
-tokio-stream = { version = "0.1.5" }
-xcb = "0.9"
-xcb-util = { version = "0.3", features = ["ewmh"] }
-sioctl = { version = "0.0.1", optional = true }
-alsa = "0.5.0"
-reqwest = { version = "0.11" }
-mio = "0.7.9"
-iwlib = "0.1"
-weathernoaa = "0.2.0"
-nix = "0.20.0"
-byte-unit = "4.0.12"
+[workspace]
+members = [
+    "cnx",
+    "cnx-contrib",
+    "cnx-bin"
+]

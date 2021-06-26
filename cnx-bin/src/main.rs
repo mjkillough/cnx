@@ -1,11 +1,11 @@
 use anyhow::Result;
-
 use byte_unit::ByteUnit;
 use cnx::text::*;
 use cnx::widgets::battery_linux::BatteryInfo;
 use cnx::widgets::disk_usage::DiskInfo;
 use cnx::widgets::*;
 use cnx::{Cnx, Position};
+use cnx_contrib::widgets::*;
 use weathernoaa::weather::WeatherInfo;
 
 fn pango_markup_render(color: Color, start_text: String, text: String) -> String {

@@ -1,7 +1,7 @@
-use crate::text::{Attributes, Text};
-use crate::widgets::{Widget, WidgetStream};
 use anyhow::Result;
 use async_stream::try_stream;
+use cnx::text::{Attributes, Text};
+use cnx::widgets::{Widget, WidgetStream};
 use std::time::Duration;
 use weathernoaa::weather::*;
 

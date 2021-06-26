@@ -42,9 +42,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.40"
+version = "1.0.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28b2cd92db5cbd74e8e5028f7e27dd7aa3090e89e4f2a197cc7c8dfb69c7063b"
+checksum = "15af2628f6890fe2609a3b91bef4c83450512802e59489f9c1cb1fa5df064a61"
 
 [[package]]
 name = "arrayvec"
@@ -262,7 +262,6 @@ dependencies = [
  "cairo-sys-rs",
  "chrono",
  "futures",
- "iwlib",
  "lazy_static",
  "mio",
  "nix 0.20.0",
@@ -274,9 +273,32 @@ dependencies = [
  "sioctl",
  "tokio",
  "tokio-stream",
- "weathernoaa",
  "xcb",
  "xcb-util",
+]
+
+[[package]]
+name = "cnx-bin"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "byte-unit",
+ "cnx",
+ "cnx_contrib",
+ "weathernoaa",
+]
+
+[[package]]
+name = "cnx_contrib"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-stream",
+ "cnx",
+ "iwlib",
+ "tokio",
+ "tokio-stream",
+ "weathernoaa",
 ]
 
 [[package]]

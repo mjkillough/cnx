@@ -1,0 +1,16 @@
+[package]
+name = "cnx_contrib"
+version = "0.1.0"
+authors = ["Sibi Prabakaran <sibi@psibi.in>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cnx = { path = "../cnx" }
+anyhow = "1.0.41"
+weathernoaa = "0.2.0"
+tokio = { version = "1.2.0", features = ["rt", "net", "time", "macros", "rt-multi-thread"] }
+tokio-stream = { version = "0.1.5" }
+async-stream = "0.2"
+iwlib = "0.1"
