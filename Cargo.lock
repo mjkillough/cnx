@@ -284,12 +284,12 @@ dependencies = [
  "anyhow",
  "byte-unit",
  "cnx",
- "cnx_contrib",
+ "cnx-contrib",
  "weathernoaa",
 ]
 
 [[package]]
-name = "cnx_contrib"
+name = "cnx-contrib"
 version = "0.1.0"
 dependencies = [
  "anyhow",

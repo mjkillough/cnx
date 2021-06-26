@@ -1,5 +1,5 @@
 [package]
-name = "cnx_contrib"
+name = "cnx-contrib"
 version = "0.1.0"
 authors = ["Sibi Prabakaran <sibi@psibi.in>"]
 edition = "2018"
