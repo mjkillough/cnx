@@ -161,12 +161,12 @@ impl Cnx {
         Self { position, widgets }
     }
 
-    // Adds a widget to the `Cnx` instance.
-    //
-    // Takes ownership of the [`Widget`] and adds it to the Cnx instance to
-    // the right of any existing widgets.
-    //
-    // [`Widget`]: widgets/trait.Widget.html
+    /// Adds a widget to the `Cnx` instance.
+    ///
+    /// Takes ownership of the [`Widget`] and adds it to the Cnx instance to
+    /// the right of any existing widgets.
+    ///
+    /// [`Widget`]: widgets/trait.Widget.html
     pub fn add_widget<W>(&mut self, widget: W)
     where
         W: Widget + 'static,

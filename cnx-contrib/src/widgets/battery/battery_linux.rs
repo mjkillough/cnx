@@ -9,6 +9,7 @@ use tokio::time;
 use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
 
+/// Represent Battery's operating status
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Status {
     Full,
@@ -31,11 +32,9 @@ impl FromStr for Status {
     }
 }
 
-/// Shows battery charge percentage and (dis)charge time.
+/// Shows battery charge percentage
 ///
-/// This widget shows the battery's current charge percentage and the amount of
-/// remaining (dis)charge time, depending on whether the battery is charging or
-/// discharging. The format of the output is `(PP% HH:MM)`.
+/// This widget shows the battery's current charge percentage.
 ///
 /// When the battery has less than 10% charge remaining, the widget's text will
 /// change to the specified `warning_color`.
@@ -51,9 +50,12 @@ pub struct Battery {
     render: Option<Box<dyn Fn(BatteryInfo) -> String>>,
 }
 
+/// Represent Battery information
 #[derive(Clone, Debug, PartialEq)]
 pub struct BatteryInfo {
+    /// Battery Status
     pub status: Status,
+    /// Capacity in percentage
     pub capacity: u8,
 }
 
@@ -65,15 +67,10 @@ impl Battery {
     ///  argument, to control the [`Color`] of the text once the battery has
     ///  less than 10% charge remaining.
     ///
-    ///  The [`Cnx`] instance is borrowed during construction in order to get
+    ///  The [`cnx::Cnx`] instance is borrowed during construction in order to get
     ///  access to handles of its event loop. However, it is not borrowed for
-    ///  the lifetime of the widget. See the [`cnx_add_widget!()`] for more
+    ///  the lifetime of the widget. See the [`cnx::Cnx::add_widget`] for more
     ///  discussion about the lifetime of the borrow.
-    ///
-    /// [`Attributes`]: ../text/struct.Attributes.html
-    /// [`Color`]: ../text/struct.Color.html
-    /// [`Cnx`]: ../struct.Cnx.html
-    /// [`cnx_add_widget!()`]: ../macro.cnx_add_widget.html
     ///
     /// # Examples
     ///
