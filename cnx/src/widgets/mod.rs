@@ -21,7 +21,6 @@ mod clock;
 pub mod cpu;
 pub mod disk_usage;
 mod pager;
-pub mod volume;
 pub use self::active_window_title::ActiveWindowTitle;
 pub use self::clock::Clock;
 pub use self::pager::Pager;

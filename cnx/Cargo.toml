@@ -30,7 +30,6 @@ tokio-stream = { version = "0.1.5" }
 xcb = "0.9"
 xcb-util = { version = "0.3", features = ["ewmh"] }
 sioctl = { version = "0.0.1", optional = true }
-alsa = "0.5.0"
 reqwest = { version = "0.11" }
 mio = "0.7.9"
 nix = "0.20.0"
