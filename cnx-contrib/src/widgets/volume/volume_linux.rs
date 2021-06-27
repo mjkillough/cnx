@@ -47,6 +47,7 @@ impl Volume {
     /// # use cnx::*;
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
+    /// # use cnx_contrib::widgets::*;
     /// # use anyhow::Result;
     /// #
     /// # fn run() -> Result<()> {

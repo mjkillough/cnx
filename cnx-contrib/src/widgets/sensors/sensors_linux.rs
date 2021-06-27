@@ -81,6 +81,7 @@ impl Sensors {
     /// # use cnx::*;
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
+    /// # use cnx_contrib::widgets::sensors::*;
     /// # use anyhow::Result;
     /// #
     /// # fn run() -> Result<()> {

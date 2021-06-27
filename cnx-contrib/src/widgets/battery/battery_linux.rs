@@ -81,6 +81,7 @@ impl Battery {
     /// # use cnx::*;
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
+    /// # use cnx_contrib::widgets::battery::*;
     /// # use anyhow::Result;
     /// #
     /// # fn run() -> Result<()> {

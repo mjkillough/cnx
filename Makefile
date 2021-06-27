@@ -17,6 +17,10 @@ check-without-clean:
 	cargo clippy -- -D warnings
 	cargo check
 
+## Watch and run test
+watch-test:
+	cargo watch -x test
+
 ## Run the binary
 run:
 	cargo run
