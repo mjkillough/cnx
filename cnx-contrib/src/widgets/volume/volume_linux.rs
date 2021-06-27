@@ -1,8 +1,8 @@
-use crate::text::{Attributes, Text};
-use crate::widgets::{Widget, WidgetStream};
 use alsa::mixer::{SelemChannelId, SelemId};
 use alsa::{self, Mixer, PollDescriptors};
 use anyhow::{anyhow, Context, Result};
+use cnx::text::{Attributes, Text};
+use cnx::widgets::{Widget, WidgetStream};
 use std::os::unix::io::AsRawFd;
 use std::os::unix::io::RawFd;
 use std::pin::Pin;
@@ -47,6 +47,7 @@ impl Volume {
     /// # use cnx::*;
     /// # use cnx::text::*;
     /// # use cnx::widgets::*;
+    /// # use cnx_contrib::widgets::*;
     /// # use anyhow::Result;
     /// #
     /// # fn run() -> Result<()> {

@@ -1,12 +1,13 @@
-use crate::text::{Attributes, Text, Threshold};
-use crate::widgets::{Widget, WidgetStream};
 use anyhow::Result;
+use cnx::text::{Attributes, Text, Threshold};
+use cnx::widgets::{Widget, WidgetStream};
 use iwlib::*;
 use std::time::Duration;
 use tokio::time;
 use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
 
+/// Wireless widget to show wireless information for a particular ESSID
 pub struct Wireless {
     attr: Attributes,
     interface: String,
@@ -15,6 +16,45 @@ pub struct Wireless {
 }
 
 impl Wireless {
+    /// Creates a new [`Wireless`] widget.
+    ///
+    /// Arguments
+    ///
+    /// * `attr` - Represents `Attributes` which controls properties like
+    /// `Font`, foreground and background color etc.
+    ///
+    /// * `interface` - String representing the name name of the network
+    /// interface for your wireless hardware. In Linux systems, you can
+    /// find that out using `iw dev` command.
+    ///
+    /// * `threshold` - Represents threshold values to determine if
+    /// the wireless strength is low, normal or high.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[macro_use]
+    /// # extern crate cnx;
+    /// #
+    /// # use cnx::*;
+    /// # use cnx::text::*;
+    /// # use cnx_contrib::widgets::wireless::*;
+    /// # use anyhow::Result;
+    /// #
+    /// # fn run() -> Result<()> {
+    /// let attr = Attributes {
+    ///     font: Font::new("SourceCodePro 21"),
+    ///     fg_color: Color::white(),
+    ///     bg_color: None,
+    ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
+    /// };
+    ///
+    /// let mut cnx = Cnx::new(Position::Top);
+    /// cnx.add_widget(Wireless::new(attr, "wlp2s0".into(),  None));
+    /// # Ok(())
+    /// # }
+    /// # fn main() { run().unwrap(); }
+    /// ```
     pub fn new(attr: Attributes, interface: String, threshold: Option<Threshold>) -> Wireless {
         Wireless {
             update_interval: Duration::from_secs(3600),

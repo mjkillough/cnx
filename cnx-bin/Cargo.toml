@@ -1,0 +1,14 @@
+[package]
+name = "cnx-bin"
+version = "0.1.0"
+authors = ["Sibi Prabakaran <sibi@psibi.in>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cnx = { path = "../cnx" }
+cnx-contrib = { path = "../cnx-contrib", features = ["wireless"]}
+anyhow = "1.0.41"
+weathernoaa = "0.2.0"
+byte-unit = "4.0.12"

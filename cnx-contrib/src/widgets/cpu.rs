@@ -1,6 +1,6 @@
-use crate::text::{Attributes, Text};
-use crate::widgets::{Widget, WidgetStream};
 use anyhow::{anyhow, Result};
+use cnx::text::{Attributes, Text};
+use cnx::widgets::{Widget, WidgetStream};
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
@@ -9,6 +9,7 @@ use tokio::time;
 use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
 
+/// Represents CPU widget used to show current CPU consumptiong
 pub struct Cpu {
     attr: Attributes,
     cpu_data: CpuData,
@@ -16,6 +17,42 @@ pub struct Cpu {
 }
 
 impl Cpu {
+    /// Creates a new [`Cpu`] widget.
+    ///
+    /// Arguments
+    ///
+    /// * `attr` - Represents `Attributes` which controls properties like
+    /// `Font`, foreground and background color etc.
+    ///
+    /// * `render` - We use the closure to control the way output is
+    /// displayed in the bar. `u64` represents the current CPU usage
+    /// in percentage.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[macro_use]
+    /// # extern crate cnx;
+    /// #
+    /// # use cnx::*;
+    /// # use cnx::text::*;
+    /// # use cnx_contrib::widgets::cpu::*;
+    /// # use anyhow::Result;
+    /// #
+    /// # fn run() -> Result<()> {
+    /// let attr = Attributes {
+    ///     font: Font::new("SourceCodePro 21"),
+    ///     fg_color: Color::white(),
+    ///     bg_color: None,
+    ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
+    /// };
+    ///
+    /// let mut cnx = Cnx::new(Position::Top);
+    /// cnx.add_widget(Cpu::new(attr, None)?);
+    /// # Ok(())
+    /// # }
+    /// # fn main() { run().unwrap(); }
+    /// ```
     pub fn new(attr: Attributes, render: Option<Box<dyn Fn(u64) -> String>>) -> Result<Self> {
         let cpu_data = CpuData::get_values()?;
         Ok(Cpu {
@@ -58,7 +95,7 @@ impl Cpu {
     }
 }
 
-pub struct CpuData {
+struct CpuData {
     user_time: i64,
     nice_time: i64,
     system_time: i64,
