@@ -54,26 +54,26 @@
 //!
 //! There are currently these widgets available:
 //!
-//! - [`Active Window Title`] — Shows the title ([`EWMH`]'s `_NET_WM_NAME`) for
+//! - [`crate::widgets::ActiveWindowTitle`] — Shows the title ([`EWMH`]'s `_NET_WM_NAME`) for
 //!   the currently focused window ([`EWMH`]'s `_NEW_ACTIVE_WINDOW`).
-//! - [`Pager`] — Shows the WM's workspaces/groups, highlighting whichever is
+//! - [`crate::widgets::Pager`] — Shows the WM's workspaces/groups, highlighting whichever is
 //!   currently active. (Uses [`EWMH`]'s `_NET_DESKTOP_NAMES`,
 //!   `_NET_NUMBER_OF_DESKTOPS` and `_NET_CURRENT_DESKTOP`).
-//! - [`Clock`] — Shows the time.
+//! - [`crate::widgets::Clock`] — Shows the time.
 //!
 //! The cnx-contrib crate contains additional widgets:
 //!
-//! - [`Sensors`] — Periodically parses and displays the output of the
+//! - **Sensors** — Periodically parses and displays the output of the
 //!   sensors provided by the system.
-//! - [`Volume`] - Shows the current volume/mute status of the default output
+//! - **Volume** - Shows the current volume/mute status of the default output
 //!   device.
-//! - [`Battery`] - Shows the remaining battery and charge status.
-//! - [`Wireless`] - Shows the wireless strength of your current network.
-//! - [`CPU`] - Shows the current CPU consumption
-//! - [`Weather`] - Shows the Weather information of your location
-//! - [`Disk Usage`] - Show the current usage of your monted filesystem
+//! - **Battery** - Shows the remaining battery and charge status.
+//! - **Wireless** - Shows the wireless strength of your current network.
+//! - **CPU** - Shows the current CPU consumption
+//! - **Weather** - Shows the Weather information of your location
+//! - **Disk Usage** - Show the current usage of your monted filesystem
 //!
-//! The [`Sensors`], [`Volume`] and [`Battery`] widgets require platform
+//! The Sensors, Volume and Battery widgets require platform
 //! support. They currently support Linux (see dependencies below) and OpenBSD.
 //! Support for additional platforms should be possible.
 //!
@@ -90,9 +90,9 @@
 //!
 //! Some widgets have additional dependencies on Linux:
 //!
-//!  - [`Volume`] widget relies on `alsa-lib`
-//!  - [`Sensors`] widget relies on [`lm_sensors`] being installed.
-//!  - [`Wireless`] widget relies on `libiw-dev`.
+//!  - **Volume** widget relies on `alsa-lib`
+//!  - **Sensors** widget relies on [`lm_sensors`] being installed.
+//!  - **Wireless** widget relies on `libiw-dev`.
 //!
 //! # Creating new widgets
 //!
@@ -110,21 +110,12 @@
 //!
 //! [`mio`]: https://docs.rs/mio
 //! [`tokio`]: https://tokio.rs/
-//! [`Cnx`]: struct.Cnx.html
 //! [`QTile`]: http://www.qtile.org/
 //! [`dwm`]: http://dwm.suckless.org/
 //! [readme-deps]: https://github.com/mjkillough/cnx/blob/master/README.md#dependencies
 //! [`src/bin/cnx.rs`]: https://github.com/mjkillough/cnx/blob/master/src/bin/cnx.rs
-//! [`Active Window Title`]: widgets/struct.ActiveWindowTitle.html
 //! [`EWMH`]: https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
-//! [`Pager`]: widgets/struct.Pager.html
-//! [`Sensors`]: widgets/struct.Sensors.html
 //! [`lm_sensors`]: https://wiki.archlinux.org/index.php/lm_sensors
-//! [`Volume`]: widgets/struct.Volume.html
-//! [`Battery`]: widgets/struct.Battery.html
-//! [`Clock`]: widgets/struct.Clock.html
-//! [`Widget`]: widgets/trait.Widget.html
-//! [`widgets`]: widgets/index.html
 
 #![recursion_limit = "256"]
 
