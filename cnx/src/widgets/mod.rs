@@ -19,23 +19,19 @@ use std::pin::Pin;
 /// refer to the documentation on the [`Widget`] trait.
 ///
 /// Any errors on the stream are logged but do not affect the runtime of the
-/// main [`Cnx`] instance.
+/// main [`crate::Cnx`] instance.
 ///
-/// [`Widget`]: trait.Widget.html
-/// [`Cnx`]: ../struct.Cnx.html
 pub type WidgetStream = Pin<Box<dyn Stream<Item = Result<Vec<Text>>>>>;
 
 /// The main trait implemented by all widgets.
 ///
 /// This simple trait defines a widget. A widget is essentially just a
-/// [`tokio::stream::Stream`] and this trait is the standard way of accessing
+/// [`futures::stream::Stream`] and this trait is the standard way of accessing
 /// that stream.
 ///
 /// See the [`WidgetStream`] type alias for the exact type of stream that
 /// should be returned.
 ///
-/// [`tokio::stream::Stream`]: https://docs.rs/tokio/0.2.18/tokio/stream/trait.Stream.html
-/// [`WidgetStream`]: type.WidgetStream.html
 pub trait Widget {
     fn into_stream(self: Box<Self>) -> Result<WidgetStream>;
 }

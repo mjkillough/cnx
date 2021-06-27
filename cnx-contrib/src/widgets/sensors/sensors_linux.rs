@@ -68,10 +68,6 @@ impl Sensors {
     /// lifetime of the widget. See the [`cnx_add_widget!()`] for more discussion
     /// about the lifetime of the borrow.
     ///
-    /// [`Attributes`]: ../text/struct.Attributes.html
-    /// [`Cnx`]: ../struct.Cnx.html
-    /// [`cnx_add_widget!()`]: ../macro.cnx_add_widget.html
-    ///
     /// # Examples
     ///
     /// ```
