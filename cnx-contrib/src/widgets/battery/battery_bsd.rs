@@ -1,7 +1,7 @@
-use crate::cmd::{command_output, from_command_output};
-use crate::text::{Attributes, Color, Text};
-use crate::widgets::{Widget, WidgetStream};
 use anyhow::{Context, Result};
+use cnx::cmd::{command_output, from_command_output};
+use cnx::text::{Attributes, Color, Text};
+use cnx::widgets::{Widget, WidgetStream};
 use std::str::FromStr;
 use std::time::Duration;
 use tokio::time;

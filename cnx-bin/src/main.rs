@@ -1,10 +1,10 @@
 use anyhow::Result;
 use byte_unit::ByteUnit;
 use cnx::text::*;
-use cnx::widgets::battery_linux::BatteryInfo;
-use cnx::widgets::disk_usage::DiskInfo;
 use cnx::widgets::*;
 use cnx::{Cnx, Position};
+use cnx_contrib::widgets::battery::*;
+use cnx_contrib::widgets::disk_usage::*;
 use cnx_contrib::widgets::*;
 use weathernoaa::weather::WeatherInfo;
 

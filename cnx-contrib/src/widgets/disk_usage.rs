@@ -1,7 +1,7 @@
-use crate::text::{Attributes, Text};
-use crate::widgets::{Widget, WidgetStream};
 use anyhow::Result;
 use byte_unit::{Byte, ByteUnit};
+use cnx::text::{Attributes, Text};
+use cnx::widgets::{Widget, WidgetStream};
 use nix::sys::statvfs::statvfs;
 use std::time::Duration;
 use tokio::time;

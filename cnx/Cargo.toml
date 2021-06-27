@@ -10,9 +10,6 @@ keywords = ["x11", "status", "bar"]
 categories = ["gui"]
 license = "MIT"
 
-[features]
-sioctl-volume = ["sioctl"]
-
 [dependencies]
 anyhow = "1.0"
 async-stream = "0.2"
@@ -24,13 +21,8 @@ lazy_static = "1.4"
 ordered-float = "1.0"
 pango = "0.8"
 pangocairo = "0.9"
-regex = "1.5"
 tokio = { version = "1.2.0", features = ["rt", "net", "time", "macros", "rt-multi-thread"] }
 tokio-stream = { version = "0.1.5" }
 xcb = "0.9"
 xcb-util = { version = "0.3", features = ["ewmh"] }
-sioctl = { version = "0.0.1", optional = true }
-reqwest = { version = "0.11" }
 mio = "0.7.9"
-nix = "0.20.0"
-byte-unit = "4.0.12"

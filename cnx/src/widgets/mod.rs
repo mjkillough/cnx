@@ -2,24 +2,7 @@
 
 mod active_window_title;
 
-#[cfg(target_os = "openbsd")]
-pub mod battery_bsd;
-#[cfg(target_os = "openbsd")]
-pub mod sensors_bsd;
-#[cfg(target_os = "openbsd")]
-pub use self::sensors_battery::Battery;
-
-#[cfg(target_os = "linux")]
-pub mod battery_linux;
-#[cfg(target_os = "linux")]
-pub mod sensors_linux;
-#[cfg(target_os = "linux")]
-pub use self::battery_linux::Battery;
-#[cfg(target_os = "linux")]
-pub use self::sensors_linux::Sensors;
 mod clock;
-pub mod cpu;
-pub mod disk_usage;
 mod pager;
 pub use self::active_window_title::ActiveWindowTitle;
 pub use self::clock::Clock;

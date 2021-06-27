@@ -1,6 +1,6 @@
-use crate::text::{Attributes, Text};
-use crate::widgets::{Widget, WidgetStream};
 use anyhow::{anyhow, Result};
+use cnx::text::{Attributes, Text};
+use cnx::widgets::{Widget, WidgetStream};
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
