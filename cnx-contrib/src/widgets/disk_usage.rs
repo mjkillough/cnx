@@ -8,15 +8,19 @@ use tokio::time;
 use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
 
+/// Represent Information about the mounted filesystem
 #[derive(Debug)]
 pub struct DiskInfo {
+    /// Total size of the filesystem
     pub total: Byte,
+    /// Total used space of the filesystem
     pub used: Byte,
+    /// Total free space of the filesystem
     pub free: Byte,
 }
 
 impl DiskInfo {
-    pub fn new(path: &str) -> Result<Self> {
+    fn new(path: &str) -> Result<Self> {
         let stat = statvfs(path)?;
         let total_size = stat.blocks() * stat.fragment_size();
         let used = (stat.blocks() - stat.blocks_free()) * stat.fragment_size();
@@ -30,6 +34,8 @@ impl DiskInfo {
     }
 }
 
+/// Disk usage widget to show current usage and remaining free space
+/// in the mounted filesystem.
 pub struct DiskUsage {
     attr: Attributes,
     path: String,
@@ -37,6 +43,44 @@ pub struct DiskUsage {
 }
 
 impl DiskUsage {
+    /// Creates a new [`DiskUsage`] widget.
+    ///
+    /// Arguments
+    ///
+    /// * `attr` - Represents `Attributes` which controls properties like
+    /// `Font`, foreground and background color etc.
+    ///
+    /// * `path` - Pathname of any file within the mounted filesystem.
+
+    /// * `render` - We use the closure to control the way output is
+    /// displayed in the bar. [`DiskInfo`] represents the details
+    /// about the mounted filesystem.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[macro_use]
+    /// # extern crate cnx;
+    /// #
+    /// # use cnx::*;
+    /// # use cnx::text::*;
+    /// # use cnx_contrib::widgets::disk_usage::*;
+    /// # use anyhow::Result;
+    /// #
+    /// # fn run() -> Result<()> {
+    /// let attr = Attributes {
+    ///     font: Font::new("SourceCodePro 21"),
+    ///     fg_color: Color::white(),
+    ///     bg_color: None,
+    ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
+    /// };
+    ///
+    /// let mut cnx = Cnx::new(Position::Top);
+    /// cnx.add_widget(DiskUsage::new(attr, "/home".into(), None));
+    /// # Ok(())
+    /// # }
+    /// # fn main() { run().unwrap(); }
+    /// ```
     pub fn new(
         attr: Attributes,
         path: String,
