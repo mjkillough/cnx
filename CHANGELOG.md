@@ -1,4 +1,4 @@
-# v0.5.0
+# v0.3.0
 
 * Update to tokio 1.2.0 (from 0.2)
 * Use tokio-stream package for streams.
