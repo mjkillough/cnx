@@ -1,4 +1,4 @@
-# Cnx — [![Build Status](https://travis-ci.org/mjkillough/cnx.svg?branch=master)](https://travis-ci.org/mjkillough/cnx)
+# Cnx — [![CI](https://github.com/mjkillough/cnx/actions/workflows/ci.yml/badge.svg)](https://github.com/mjkillough/cnx/actions)
 
 A simple X11 status bar for use with simple WMs.
 
@@ -26,12 +26,19 @@ There are currently these widgets available:
  - Pager — Shows the WM's workspaces/groups, highlighting whichever is
    currently active. (Uses EWMH's `_NET_DESKTOP_NAMES`,
    `_NET_NUMBER_OF_DESKTOPS` and `_NET_CURRENT_DESKTOP`).
- - Sensors — Periodically parses and displays the output of the
-   sensors provided by the system.
- - Volume - Shows the current volume/mute status of the default output
-   device.
- - Battery - Shows the remaining battery and charge status.
  - Clock — Shows the time.
+
+The cnx-contrib crate contains additional widgets:
+
+- **Sensors** — Periodically parses and displays the output of the
+  sensors provided by the system.
+- **Volume** - Shows the current volume/mute status of the default output
+  device.
+- **Battery** - Shows the remaining battery and charge status.
+- **Wireless** - Shows the wireless strength of your current network.
+- **CPU** - Shows the current CPU consumption
+- **Weather** - Shows the Weather information of your location
+- **Disk Usage** - Show the current usage of your monted filesystem
 
 The [`Sensors`], [`Volume`] and [`Battery`] widgets require platform
 support. They currently support Linux (see dependencies below) and OpenBSD.
@@ -103,13 +110,19 @@ requirements:
 apt-get install libx11-xcb-dev libxcb-ewmh-dev libpango1.0-dev libcairo2-dev
 ```
 
-If the `volume-widget` feature is enabled (and it is by default), you will
+If the `volume` feature is enabled (and it is by default), you will
 also need `alsa-lib` on Linux:
 
 ```
 apt-get install libasound2-dev
 ```
 
+If the `wireless` feature is enabled (and it is not by default), you will also need `iwlib-dev`
+on Linux:
+
+```
+apt install libiw-dev
+```
 
 ## Tests
 

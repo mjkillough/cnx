@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 cnx = { path = "../cnx" }
-cnx-contrib = { path = "../cnx-contrib", features = ["volume", "wireless"]}
+cnx-contrib = { path = "../cnx-contrib", features = ["wireless"]}
 anyhow = "1.0.41"
 weathernoaa = "0.2.0"
 byte-unit = "4.0.12"
