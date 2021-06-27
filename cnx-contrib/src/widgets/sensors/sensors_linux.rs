@@ -63,9 +63,9 @@ impl Sensors {
     /// A list of sensor names should be passed as the `sensors` argument. (You
     /// can discover the names by running the `sensors` utility in a terminal).
     ///
-    /// The [`Cnx`] instance is borrowed during construction in order to get
+    /// The [`cnx::Cnx`] instance is borrowed during construction in order to get
     /// access to handles of its event loop. However, it is not borrowed for the
-    /// lifetime of the widget. See the [`cnx_add_widget!()`] for more discussion
+    /// lifetime of the widget. See the [`cnx::Cnx::add_widget`] for more discussion
     /// about the lifetime of the borrow.
     ///
     /// # Examples
