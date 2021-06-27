@@ -59,12 +59,19 @@
 //! - [`Pager`] — Shows the WM's workspaces/groups, highlighting whichever is
 //!   currently active. (Uses [`EWMH`]'s `_NET_DESKTOP_NAMES`,
 //!   `_NET_NUMBER_OF_DESKTOPS` and `_NET_CURRENT_DESKTOP`).
+//! - [`Clock`] — Shows the time.
+//!
+//! The cnx-contrib crate contains additional widgets:
+//!
 //! - [`Sensors`] — Periodically parses and displays the output of the
 //!   sensors provided by the system.
 //! - [`Volume`] - Shows the current volume/mute status of the default output
 //!   device.
 //! - [`Battery`] - Shows the remaining battery and charge status.
-//! - [`Clock`] — Shows the time.
+//! - [`Wireless`] - Shows the wireless strength of your current network.
+//! - [`CPU`] - Shows the current CPU consumption
+//! - [`Weather`] - Shows the Weather information of your location
+//! - [`Disk Usage`] - Show the current usage of your monted filesystem
 //!
 //! The [`Sensors`], [`Volume`] and [`Battery`] widgets require platform
 //! support. They currently support Linux (see dependencies below) and OpenBSD.
@@ -85,6 +92,7 @@
 //!
 //!  - [`Volume`] widget relies on `alsa-lib`
 //!  - [`Sensors`] widget relies on [`lm_sensors`] being installed.
+//!  - [`Wireless`] widget relies on `libiw-dev`.
 //!
 //! # Creating new widgets
 //!
