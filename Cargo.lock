@@ -261,7 +261,6 @@ dependencies = [
  "chrono",
  "futures",
  "lazy_static",
- "mio",
  "ordered-float",
  "pango",
  "pangocairo",
