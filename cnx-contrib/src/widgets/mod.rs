@@ -11,4 +11,5 @@ pub mod volume;
 /// Weather widget to show temperature of your location
 pub mod weather;
 /// Wireless widget to show wireless strength of your SSID
+#[cfg(feature = "wireless")]
 pub mod wireless;
