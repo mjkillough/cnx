@@ -41,7 +41,7 @@
 //! }
 //! ```
 //!
-//! A more complex example is given in [`src/bin/cnx.rs`] alongside the project.
+//! A more complex example is given in [`cnx-bin/src/main.rs`] alongside the project.
 //! (This is the default `[bin]` target for the crate, so you _could_ use it by
 //! either executing `cargo run` from the crate root, or even running `cargo
 //! install cnx; cnx`. However, neither of these are recommended as options for
@@ -96,14 +96,11 @@
 //!
 //! # Creating new widgets
 //!
-//! Cnx is designed such that thirdparty widgets can be written in external
-//! crates and used with the main [`Cnx`] instance. However, I've never done
-//! this.
-//!
-//! The adventurous may choose to implement the [`Widget`] trait and see how
-//! far they can get. The [`Widget`] implementation can assume it's being run
-//! from a single-threaded [`tokio`] event-loop, but this is an implementation
-//! detail that should not be relied upon.
+//! Cnx is designed such that thirdparty widgets can be written in
+//! external crates and used with the main [`Cnx`] instance. We have
+//! [`cnx-contrib`] crate which contains various additional
+//! widgets. You can also create new crates or add it to the existing
+//! [`cnx-contrib`] crate.
 //!
 //! The built-in [`widgets`] should give you some examples on which to base
 //! your work.
@@ -113,9 +110,10 @@
 //! [`QTile`]: http://www.qtile.org/
 //! [`dwm`]: http://dwm.suckless.org/
 //! [readme-deps]: https://github.com/mjkillough/cnx/blob/master/README.md#dependencies
-//! [`src/bin/cnx.rs`]: https://github.com/mjkillough/cnx/blob/master/src/bin/cnx.rs
+//! [`cnx-bin/src/main.rs`]: https://github.com/mjkillough/cnx/blob/master/cnx-bin/src/main.rs
 //! [`EWMH`]: https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
 //! [`lm_sensors`]: https://wiki.archlinux.org/index.php/lm_sensors
+//! [`cnx-contrib`]: https://github.com/mjkillough/cnx/tree/master/cnx-contrib
 
 #![recursion_limit = "256"]
 
