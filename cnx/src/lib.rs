@@ -2,7 +2,7 @@
 //!
 //! Cnx is written to be customisable, simple and fast. Where possible, it
 //! prefers to asynchronously wait for changes in the underlying data sources
-//! (and uses [`mio`]/[`tokio`] to achieve this), rather than periodically
+//! (and uses [`tokio`] to achieve this), rather than periodically
 //! calling out to external programs.
 //!
 //! # How to use
@@ -105,7 +105,6 @@
 //! The built-in [`widgets`] should give you some examples on which to base
 //! your work.
 //!
-//! [`mio`]: https://docs.rs/mio
 //! [`tokio`]: https://tokio.rs/
 //! [`QTile`]: http://www.qtile.org/
 //! [`dwm`]: http://dwm.suckless.org/
