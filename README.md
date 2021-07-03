@@ -13,10 +13,9 @@ enough of EWMH, it should work with Cnx.
 Cnx is written to be customisable, simple and fast.
 
 Where possible, it prefers to asynchronously wait for changes in the underlying
-data sources (and uses [`mio`]/[`tokio`] to achieve this), rather than periodically
+data sources (and uses [`tokio`] to achieve this), rather than periodically
 calling out to external programs.
 
-[`mio`]: https://docs.rs/mio
 [`tokio`]: https://tokio.rs/
 
 There are currently these widgets available:
