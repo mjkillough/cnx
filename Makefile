@@ -28,7 +28,7 @@ run:
 
 ## Create release binary
 bin-release:
-	cargo install --path . --root ~
+	cd cnx-bin && cargo install --path . --root ~
 
 ## Setup
 setup:
