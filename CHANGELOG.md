@@ -1,3 +1,7 @@
+# v0.3.1
+
+ * Add ability to define colors for widgets' attributes with RGB values
+
 # v0.3.0
 
 * Update to tokio 1.2.0 (from 0.2)
