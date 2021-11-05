@@ -40,6 +40,14 @@ impl Color {
         cr.set_source_rgb(self.red, self.green, self.blue);
     }
 
+    pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
+        Self {
+            red: r as f64 / 255.0,
+            green: g as f64 / 255.0,
+            blue: b as f64 / 255.0,
+        }
+    }
+
     pub fn to_hex(&self) -> String {
         let r = if self.red >= 1.0 {
             255
