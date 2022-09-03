@@ -5,6 +5,7 @@
 
 use anyhow::{anyhow, Result};
 use cairo::{Context, Surface};
+use colors_transform::{Rgb, Color as ColorTransform};
 use pango::{EllipsizeMode, FontDescription};
 use std::fmt;
 
@@ -45,6 +46,23 @@ impl Color {
             red: r as f64 / 255.0,
             green: g as f64 / 255.0,
             blue: b as f64 / 255.0,
+        }
+    }
+
+    /// Parse string as hex color
+    /// # Example
+    /// ```
+    /// use cnx::text::Color;
+    ///
+    /// assert_eq!(Color::from_hex("#1e1e2e"), Color::from_rgb(30, 30, 46));
+    /// ```
+    pub fn from_hex(hex: &str) -> Self {
+        let rgb = Rgb::from_hex_str(hex).unwrap();
+
+        Self {
+            red: rgb.get_red() as f64 / 255.0,
+            green: rgb.get_green() as f64 / 255.0,
+            blue: rgb.get_blue() as f64 / 255.0,
         }
     }
 

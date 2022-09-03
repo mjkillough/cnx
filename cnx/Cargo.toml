@@ -16,6 +16,7 @@ async-stream = "0.2"
 cairo-rs = { version = "0.8", features = ["xcb"] }
 cairo-sys-rs = "0.9"
 chrono = "0.4"
+colors-transform = "0.2.11"
 futures = "0.3"
 lazy_static = "1.4"
 ordered-float = "1.0"
