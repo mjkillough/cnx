@@ -5,7 +5,7 @@
 
 use anyhow::{anyhow, Result};
 use cairo::{Context, Surface};
-use colors_transform::{Rgb, Color as ColorTransform};
+use colors_transform::{Color as ColorTransform, Rgb};
 use pango::{EllipsizeMode, FontDescription};
 use std::fmt;
 
@@ -153,7 +153,7 @@ pub struct Text {
 impl Text {
     pub(crate) fn compute(self, surface: &Surface) -> Result<ComputedText> {
         let (width, height) = {
-            let context = Context::new(&surface);
+            let context = Context::new(surface);
             let layout = create_pango_layout(&context)?;
             if self.markup {
                 layout.set_markup(&self.text);
@@ -205,7 +205,7 @@ pub(crate) struct ComputedText {
 
 impl ComputedText {
     pub fn render(&self, surface: &Surface) -> Result<()> {
-        let context = Context::new(&surface);
+        let context = Context::new(surface);
         let layout = create_pango_layout(&context)?;
         if self.markup {
             layout.set_markup(&self.text);

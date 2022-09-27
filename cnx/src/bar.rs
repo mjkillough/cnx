@@ -64,7 +64,7 @@ fn create_surface(
     let width = screen.width_in_pixels();
 
     xcb::create_window(
-        &conn,
+        conn,
         xcb::COPY_FROM_PARENT as u8,
         window_id,
         screen.root(),
@@ -79,7 +79,7 @@ fn create_surface(
     );
 
     let surface = cairo_surface_for_xcb_window(
-        &conn,
+        conn,
         &screen,
         window_id,
         i32::from(width),

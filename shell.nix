@@ -5,7 +5,9 @@ stdenv.mkDerivation {
     alsaLib
     cairo
     cargo
+    cargo-watch
     clang
+    clippy
     glib
     gobject-introspection
     libclang
@@ -17,6 +19,7 @@ stdenv.mkDerivation {
     python3
     rust-bindgen
     rustc
+    rustfmt
     wirelesstools
     xorg.libxcb
     xorg.libxcb

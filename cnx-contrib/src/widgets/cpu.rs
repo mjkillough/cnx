@@ -124,7 +124,7 @@ impl CpuData {
             iowait_time: 0,
         };
         match val[..] {
-            [ref user, ref nice, ref system, ref idle, ref iowait, ..] => {
+            [user, nice, system, idle, iowait, ..] => {
                 let user_time = user.parse()?;
                 let nice_time = nice.parse()?;
                 let system_time = system.parse()?;
