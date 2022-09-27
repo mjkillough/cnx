@@ -55,9 +55,13 @@ impl Color {
     /// use cnx::text::Color;
     ///
     /// assert_eq!(Color::from_hex("#1e1e2e"), Color::from_rgb(30, 30, 46));
+    /// assert_eq!(Color::from_hex("not hex"), Color::from_rgb(0, 0, 0));
     /// ```
     pub fn from_hex(hex: &str) -> Self {
-        let rgb = Rgb::from_hex_str(hex).unwrap();
+        let rgb = match Rgb::from_hex_str(hex) {
+            Ok(rgb) => rgb,
+            Err(_) => Rgb::from(0.0, 0.0, 0.0),
+        };
 
         Self {
             red: rgb.get_red() as f64 / 255.0,
