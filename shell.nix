@@ -2,20 +2,25 @@ with import <nixpkgs> { };
 stdenv.mkDerivation {
   name = "cnx";
   buildInputs = [
-    pkg-config
     alsaLib
-    gobject-introspection
     cairo
-    glib
-    pango
-    xorg.libxcb
-    openssl
-    wirelesstools
-    libllvm
+    cargo
+    cargo-watch
     clang
+    clippy
+    glib
+    gobject-introspection
     libclang
-    rust-bindgen
+    libllvm
     llvmPackages.libclang
+    openssl
+    pango
+    pkg-config
+    python3
+    rust-bindgen
+    rustc
+    rustfmt
+    wirelesstools
     xorg.libxcb
     xorg.xcbutilwm
   ];

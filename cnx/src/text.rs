@@ -5,6 +5,7 @@
 
 use anyhow::{anyhow, Result};
 use cairo::{Context, Surface};
+use colors_transform::{Color as ColorTransform, Rgb};
 use pango::{EllipsizeMode, FontDescription};
 use std::fmt;
 
@@ -45,6 +46,27 @@ impl Color {
             red: r as f64 / 255.0,
             green: g as f64 / 255.0,
             blue: b as f64 / 255.0,
+        }
+    }
+
+    /// Parse string as hex color
+    /// # Example
+    /// ```
+    /// use cnx::text::Color;
+    ///
+    /// assert_eq!(Color::from_hex("#1e1e2e"), Color::from_rgb(30, 30, 46));
+    /// assert_eq!(Color::from_hex("not hex"), Color::from_rgb(0, 0, 0));
+    /// ```
+    pub fn from_hex(hex: &str) -> Self {
+        let rgb = match Rgb::from_hex_str(hex) {
+            Ok(rgb) => rgb,
+            Err(_) => Rgb::from(0.0, 0.0, 0.0),
+        };
+
+        Self {
+            red: rgb.get_red() as f64 / 255.0,
+            green: rgb.get_green() as f64 / 255.0,
+            blue: rgb.get_blue() as f64 / 255.0,
         }
     }
 
@@ -131,7 +153,7 @@ pub struct Text {
 impl Text {
     pub(crate) fn compute(self, surface: &Surface) -> Result<ComputedText> {
         let (width, height) = {
-            let context = Context::new(&surface);
+            let context = Context::new(surface);
             let layout = create_pango_layout(&context)?;
             if self.markup {
                 layout.set_markup(&self.text);
@@ -183,7 +205,7 @@ pub(crate) struct ComputedText {
 
 impl ComputedText {
     pub fn render(&self, surface: &Surface) -> Result<()> {
-        let context = Context::new(&surface);
+        let context = Context::new(surface);
         let layout = create_pango_layout(&context)?;
         if self.markup {
             layout.set_markup(&self.text);

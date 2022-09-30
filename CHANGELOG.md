@@ -1,6 +1,6 @@
 # v0.3.1
 
- * Add ability to define colors for widgets' attributes with RGB values
+ * Add ability to define colors for widgets' attributes with RGB values or Hex color codes.
 
 # v0.3.0
 
