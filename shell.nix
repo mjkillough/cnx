@@ -22,7 +22,6 @@ stdenv.mkDerivation {
     rustfmt
     wirelesstools
     xorg.libxcb
-    xorg.libxcb
     xorg.xcbutilwm
   ];
 
