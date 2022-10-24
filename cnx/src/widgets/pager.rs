@@ -18,14 +18,20 @@ use crate::xcb::xcb_properties_stream;
 pub struct Pager {
     active_attr: Attributes,
     inactive_attr: Attributes,
+    hidden_attr: Attributes,
 }
 
 impl Pager {
     ///  Creates a new Pager widget.
-    pub fn new(active_attr: Attributes, inactive_attr: Attributes) -> Self {
+    pub fn new(
+        active_attr: Attributes,
+        inactive_attr: Attributes,
+        hidden_attr: Attributes,
+    ) -> Self {
         Self {
             active_attr,
             inactive_attr,
+            hidden_attr,
         }
     }
 
@@ -53,15 +59,20 @@ impl Pager {
             }
         }
 
+        let hidden_desktops = hidden_desktops_with_normal_windows(conn, screen_idx);
+
         names
             .into_iter()
             .enumerate()
             .map(|(i, name)| {
                 let attr = if i == current {
                     self.active_attr.clone()
+                } else if hidden_desktops.contains(&(i as u32)) {
+                    self.hidden_attr.clone()
                 } else {
                     self.inactive_attr.clone()
                 };
+
                 Text {
                     attr,
                     text: name.to_owned(),
@@ -71,6 +82,29 @@ impl Pager {
             })
             .collect()
     }
+}
+
+fn hidden_desktops_with_normal_windows(conn: &ewmh::Connection, screen_idx: i32) -> Vec<u32> {
+    let client_list = ewmh::get_client_list(conn, screen_idx).get_reply();
+    let windows: &[u32] = match client_list {
+        Ok(ref cl) => cl.windows(),
+        Err(_) => &[],
+    };
+
+    windows
+        .iter()
+        .filter(|&w| match ewmh::get_wm_window_type(conn, *w).get_reply() {
+            Ok(wt) => wt.atoms().first() == Some(&conn.WM_WINDOW_TYPE_NORMAL()),
+            Err(_) => false,
+        })
+        .filter_map(|w| ewmh::get_wm_desktop(conn, *w).get_reply().ok())
+        .filter(
+            |&d| match ewmh::get_current_desktop(conn, screen_idx).get_reply() {
+                Ok(c) => c != d,
+                Err(_) => true,
+            },
+        )
+        .collect()
 }
 
 impl Widget for Pager {

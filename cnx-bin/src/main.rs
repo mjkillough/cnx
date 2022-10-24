@@ -105,9 +105,15 @@ fn main() -> Result<()> {
 
     let weather = weather::Weather::new(attr.clone(), "VOBL".into(), Some(weather_render));
 
-    let mut p2_attr = pager_attr.clone();
-    p2_attr.bg_color = None;
-    cnx.add_widget(Pager::new(pager_attr, p2_attr));
+    let inactive_attr = Attributes {
+        bg_color: None,
+        ..pager_attr.clone()
+    };
+    let hidden_attr = Attributes {
+        fg_color: Color::blue(),
+        ..inactive_attr.clone()
+    };
+    cnx.add_widget(Pager::new(pager_attr, inactive_attr, hidden_attr));
     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
     cnx.add_widget(cpu);
     cnx.add_widget(weather);
