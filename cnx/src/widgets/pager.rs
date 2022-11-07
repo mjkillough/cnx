@@ -3,35 +3,33 @@ use futures::stream::StreamExt;
 use std::cmp::Ordering;
 use xcb_util::ewmh;
 
-use crate::text::{Attributes, Text};
+use crate::text::{Attributes, PagerAttributes, Text};
 use crate::widgets::{Widget, WidgetStream};
 use crate::xcb::xcb_properties_stream;
 
-/// Shows the WM's workspaces/groups, highlighting whichever is currently
-/// active.
+/// Shows the WM's workspaces/groups.
+///
+/// This widget can highlight the currently active, inactive and non empty
+/// workspaces/groups differently.
 ///
 /// This widget shows the WM's workspaces/groups, as determined by the [`EWMH`]
-/// `_NET_NUMBER_OF_DESKTOPS` and `_NET_DESKTOP_NAMES` and
-/// `_NET_CURRENT_DESKTOP` properties. The active workspace is highlighted.
+/// `_NET_NUMBER_OF_DESKTOPS`, `_NET_DESKTOP_NAMES`, `_NET_CURRENT_DESKTOP`,
+/// `_NET_CLIENT_LIST`, `_NET_WM_WINDOW_TYPE` and `_NET_WM_DESKTOP` properties.
 ///
 /// [`EWMH`]: https://specifications.freedesktop.org/wm-spec/wm-spec-latest.html
 pub struct Pager {
     active_attr: Attributes,
     inactive_attr: Attributes,
-    hidden_attr: Attributes,
+    non_empty_attr: Attributes,
 }
 
 impl Pager {
     ///  Creates a new Pager widget.
-    pub fn new(
-        active_attr: Attributes,
-        inactive_attr: Attributes,
-        hidden_attr: Attributes,
-    ) -> Self {
+    pub fn new(pager_attrs: PagerAttributes) -> Self {
         Self {
-            active_attr,
-            inactive_attr,
-            hidden_attr,
+            active_attr: pager_attrs.active_attr,
+            inactive_attr: pager_attrs.inactive_attr,
+            non_empty_attr: pager_attrs.non_empty_attr,
         }
     }
 
@@ -59,16 +57,14 @@ impl Pager {
             }
         }
 
-        let hidden_desktops = hidden_desktops_with_normal_windows(conn, screen_idx);
-
         names
             .into_iter()
             .enumerate()
             .map(|(i, name)| {
                 let attr = if i == current {
                     self.active_attr.clone()
-                } else if hidden_desktops.contains(&(i as u32)) {
-                    self.hidden_attr.clone()
+                } else if non_empty_desktops(conn, screen_idx).contains(&(i as u32)) {
+                    self.non_empty_attr.clone()
                 } else {
                     self.inactive_attr.clone()
                 };
@@ -84,7 +80,7 @@ impl Pager {
     }
 }
 
-fn hidden_desktops_with_normal_windows(conn: &ewmh::Connection, screen_idx: i32) -> Vec<u32> {
+fn non_empty_desktops(conn: &ewmh::Connection, screen_idx: i32) -> Vec<u32> {
     let client_list = ewmh::get_client_list(conn, screen_idx).get_reply();
     let windows: &[u32] = match client_list {
         Ok(ref cl) => cl.windows(),

@@ -132,6 +132,12 @@ pub struct Attributes {
     pub padding: Padding,
 }
 
+pub struct PagerAttributes {
+    pub active_attr: Attributes,
+    pub inactive_attr: Attributes,
+    pub non_empty_attr: Attributes,
+}
+
 fn create_pango_layout(cairo_context: &cairo::Context) -> Result<pango::Layout> {
     let layout = pangocairo::functions::create_layout(cairo_context)
         .ok_or_else(|| anyhow!("Failed to create Pango layout"))?;
