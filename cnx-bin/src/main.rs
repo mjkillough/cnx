@@ -47,13 +47,6 @@ fn main() -> Result<()> {
         padding: Padding::new(0.0, 0.0, 0.0, 0.0),
     };
 
-    let pager_attr = Attributes {
-        font: Font::new("Ubuntu Mono Bold 14"),
-        fg_color: Color::white(),
-        bg_color: Some(Color::blue()),
-        padding: Padding::new(8.0, 8.0, 0.0, 0.0),
-    };
-
     let mut cnx = Cnx::new(Position::Bottom);
 
     // let sensors = Sensors::new(attr.clone(), vec!["Core 0", "Core 1"]);
@@ -105,9 +98,28 @@ fn main() -> Result<()> {
 
     let weather = weather::Weather::new(attr.clone(), "VOBL".into(), Some(weather_render));
 
-    let mut p2_attr = pager_attr.clone();
-    p2_attr.bg_color = None;
-    cnx.add_widget(Pager::new(pager_attr, p2_attr));
+    let active_attr = Attributes {
+        font: Font::new("Ubuntu Mono Bold 14"),
+        fg_color: Color::white(),
+        bg_color: Some(Color::blue()),
+        padding: Padding::new(8.0, 8.0, 0.0, 0.0),
+    };
+    let inactive_attr = Attributes {
+        bg_color: None,
+        ..active_attr.clone()
+    };
+    let non_empty_attr = Attributes {
+        fg_color: Color::blue(),
+        ..inactive_attr.clone()
+    };
+    let pager_attrs = PagerAttributes {
+        active_attr,
+        inactive_attr,
+        non_empty_attr,
+    };
+    let pager = Pager::new(pager_attrs);
+
+    cnx.add_widget(pager);
     cnx.add_widget(ActiveWindowTitle::new(attr.clone()));
     cnx.add_widget(cpu);
     cnx.add_widget(weather);

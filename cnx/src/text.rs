@@ -132,6 +132,15 @@ pub struct Attributes {
     pub padding: Padding,
 }
 
+pub struct PagerAttributes {
+    /// Active attributes are applied to the currently active workspace
+    pub active_attr: Attributes,
+    /// Inactive attributes are applied to workspaces that are not active and contain no windows
+    pub inactive_attr: Attributes,
+    /// Non empty attributes are applied to workspaces that are not active and contain windows
+    pub non_empty_attr: Attributes,
+}
+
 fn create_pango_layout(cairo_context: &cairo::Context) -> Result<pango::Layout> {
     let layout = pangocairo::functions::create_layout(cairo_context)
         .ok_or_else(|| anyhow!("Failed to create Pango layout"))?;

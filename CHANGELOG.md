@@ -1,6 +1,7 @@
 # v0.3.1
 
- * Add ability to define colors for widgets' attributes with RGB values or Hex color codes.
+* Add ability to define colors for widgets' attributes with RGB values or Hex color codes.
+* Extend pager widget to mark hidden desktops that contain windows.
 
 # v0.3.0
 
