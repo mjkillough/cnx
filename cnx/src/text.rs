@@ -133,8 +133,11 @@ pub struct Attributes {
 }
 
 pub struct PagerAttributes {
+    /// Active attributes are applied to the currently active workspace
     pub active_attr: Attributes,
+    /// Inactive attributes are applied to workspaces that are not active and contain no windows
     pub inactive_attr: Attributes,
+    /// Non empty attributes are applied to workspaces that are not active and contain windows
     pub non_empty_attr: Attributes,
 }
 
