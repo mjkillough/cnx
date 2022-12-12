@@ -72,8 +72,7 @@ impl Cpu {
             + (current.nice_time - previous.nice_time)
             + (current.system_time - previous.system_time)
             + (current.idle_time - previous.idle_time)
-            + (current.iowait_time - previous.iowait_time)
-            + (current.total_time - previous.total_time);
+            + (current.iowait_time - previous.iowait_time);
         let percentage = match diff_total {
             0 => 0.0,
             _ => (current.total_time - previous.total_time) as f64 / diff_total as f64,
