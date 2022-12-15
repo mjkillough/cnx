@@ -2,6 +2,7 @@
 
 * Add ability to define colors for widgets' attributes with RGB values or Hex color codes.
 * Extend pager widget to mark hidden desktops that contain windows.
+* Fix calculation of cpu usage.
 
 # v0.3.0
 
