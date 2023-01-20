@@ -47,14 +47,11 @@ impl Command {
     /// }
     /// fn main() { run().unwrap(); }
     /// ```
-    pub fn new(
-        attr: Attributes,
-        command: String,
-    ) -> Self {
+    pub fn new(attr: Attributes, command: String) -> Self {
         Self { attr, command }
     }
 
-    fn tick(&self) -> Result<Vec<Text>> {
+    fn tick(&self) -> Vec<Text> {
         let output = Process::new("sh")
             .arg("-c")
             .arg(self.command.clone())
@@ -63,11 +60,12 @@ impl Command {
 
         let texts = vec![Text {
             attr: self.attr.clone(),
-            text: String::from_utf8(output.stdout).unwrap_or("error".into()),
+            text: String::from_utf8(output.stdout).unwrap_or_else(|_| "error".into()),
             stretch: false,
             markup: true,
         }];
-        Ok(texts)
+
+        texts
     }
 }
 
@@ -75,7 +73,7 @@ impl Widget for Command {
     fn into_stream(self: Box<Self>) -> Result<WidgetStream> {
         let ten_seconds = Duration::from_secs(10);
         let interval = time::interval(ten_seconds);
-        let stream = IntervalStream::new(interval).map(move |_| self.tick());
+        let stream = IntervalStream::new(interval).map(move |_| Ok(self.tick()));
 
         Ok(Box::pin(stream))
     }
