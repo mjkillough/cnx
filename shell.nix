@@ -4,10 +4,7 @@ stdenv.mkDerivation {
   buildInputs = [
     alsaLib
     cairo
-    cargo
-    cargo-watch
     clang
-    clippy
     glib
     gobject-introspection
     libclang
@@ -18,7 +15,6 @@ stdenv.mkDerivation {
     pkg-config
     python3
     rust-bindgen
-    rustc
     rustfmt
     wirelesstools
     xorg.libxcb
