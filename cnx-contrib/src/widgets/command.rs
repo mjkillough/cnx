@@ -10,6 +10,7 @@ use tokio_stream::StreamExt;
 pub struct Command {
     attr: Attributes,
     command: String,
+    update_interval: Duration,
 }
 
 impl Command {
@@ -22,6 +23,8 @@ impl Command {
     ///
     /// * `command` - Command to be executed.
     ///
+    /// * `update_interval` - Time interval between updates.
+    ///
     /// # Examples
     ///
     /// ```
@@ -32,6 +35,7 @@ impl Command {
     /// use cnx::text::*;
     /// use cnx_contrib::widgets::command::*;
     /// use anyhow::Result;
+    /// use std::time::Duration;
     ///
     /// fn run() -> Result<()> {
     /// let attr = Attributes {
@@ -42,13 +46,17 @@ impl Command {
     /// };
     ///
     /// let mut cnx = Cnx::new(Position::Top);
-    /// cnx.add_widget(Command::new(attr, "echo foo".into()));
+    /// cnx.add_widget(Command::new(attr, "echo foo".into(), Duration::from_secs(10)));
     /// Ok(())
     /// }
     /// fn main() { run().unwrap(); }
     /// ```
-    pub fn new(attr: Attributes, command: String) -> Self {
-        Self { attr, command }
+    pub fn new(attr: Attributes, command: String, update_interval: Duration) -> Self {
+        Self {
+            attr,
+            command,
+            update_interval,
+        }
     }
 
     fn tick(&self) -> Vec<Text> {
@@ -71,8 +79,7 @@ impl Command {
 
 impl Widget for Command {
     fn into_stream(self: Box<Self>) -> Result<WidgetStream> {
-        let ten_seconds = Duration::from_secs(10);
-        let interval = time::interval(ten_seconds);
+        let interval = time::interval(self.update_interval);
         let stream = IntervalStream::new(interval).map(move |_| Ok(self.tick()));
 
         Ok(Box::pin(stream))
