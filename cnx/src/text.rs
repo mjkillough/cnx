@@ -109,7 +109,7 @@ impl Padding {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Font(FontDescription);
 
 impl Font {

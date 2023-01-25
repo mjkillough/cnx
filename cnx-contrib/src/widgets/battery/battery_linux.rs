@@ -51,7 +51,7 @@ pub struct Battery {
 }
 
 /// Represent Battery information
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BatteryInfo {
     /// Battery Status
     pub status: Status,

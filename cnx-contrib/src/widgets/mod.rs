@@ -1,5 +1,7 @@
 /// Battery widget to shows the current capacity
 pub mod battery;
+/// Command widget to show output of a CLI command
+pub mod command;
 /// CPU widget to show the current CPU consumption
 pub mod cpu;
 /// Disk usage widget to show current usage and remaining free space
