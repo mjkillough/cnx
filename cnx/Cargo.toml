@@ -1,7 +1,7 @@
 [package]
 name = "cnx"
 version = "0.3.0"
-edition = "2018"
+edition = "2021"
 authors = ["Michael Killough <michaeljkillough@gmail.com>", "Sibi Prabakaran <sibi@psibi.in"]
 description = "A simple X11 status bar"
 repository = "https://github.com/mjkillough/cnx"
@@ -12,7 +12,7 @@ license = "MIT"
 
 [dependencies]
 anyhow = "1.0"
-async-stream = "0.2"
+async-stream = "0.3.3"
 cairo-rs = { version = "0.16.7", features = ["xcb"] }
 cairo-sys-rs = "0.16.3"
 chrono = "0.4"
@@ -22,7 +22,7 @@ lazy_static = "1.4"
 ordered-float = "1.0"
 pango = "0.16.5"
 pangocairo = "0.16.3"
-tokio = { version = "1.2.0", features = ["rt", "net", "time", "macros", "rt-multi-thread"] }
-tokio-stream = { version = "0.1.5" }
+tokio = { version = "1.18.0", features = ["rt", "net", "time", "macros", "rt-multi-thread"] }
+tokio-stream = { version = "0.1.8" }
 xcb = "0.9"
 xcb-util = { version = "0.3", features = ["ewmh"] }
