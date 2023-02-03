@@ -51,7 +51,7 @@ fn create_surface(
     window_id: u32,
     height: u16,
     width: Option<u16>,
-    offset: (i16, i16),
+    offset: Offset,
 ) -> Result<(u16, cairo::XCBSurface)> {
     let screen = conn
         .get_setup()
@@ -63,15 +63,15 @@ fn create_surface(
         (xcb::CW_EVENT_MASK, xcb::EVENT_MASK_EXPOSURE),
     ];
 
-    let width = width.unwrap_or(screen.width_in_pixels());
+    let width = width.unwrap_or_else(|| screen.width_in_pixels());
 
     xcb::create_window(
         conn,
         xcb::COPY_FROM_PARENT as u8,
         window_id,
         screen.root(),
-        offset.0,
-        offset.1,
+        offset.x,
+        offset.y,
         width,
         height,
         0,
@@ -112,6 +112,13 @@ pub enum Position {
     Bottom,
 }
 
+/// A struct specifying the `x` and `y` offset
+#[derive(Default, Clone, Copy)]
+pub struct Offset {
+    pub x: i16,
+    pub y: i16,
+}
+
 pub struct Bar {
     position: Position,
 
@@ -122,13 +129,13 @@ pub struct Bar {
     surface: cairo::XCBSurface,
     width: u16,
     height: u16,
-    offset: (i16, i16),
+    offset: Offset,
 
     contents: Vec<Vec<ComputedText>>,
 }
 
 impl Bar {
-    pub fn new(position: Position, width: Option<u16>, offset: (i16, i16)) -> Result<Bar> {
+    pub fn new(position: Position, width: Option<u16>, offset: Offset) -> Result<Bar> {
         let (conn, screen_idx) =
             xcb::Connection::connect(None).context("Failed to connect to X server")?;
         let screen_idx = screen_idx as usize;
@@ -221,10 +228,10 @@ impl Bar {
             // If we're at the bottom of the screen, we'll need to update the
             // position of the window.
             let y = match self.position {
-                Position::Top => self.offset.1.max(0) as u16,
+                Position::Top => self.offset.y.max(0) as u16,
                 Position::Bottom => {
                     let h = (self.screen()?.height_in_pixels() - self.height) as i32;
-                    h.checked_add(self.offset.1 as i32).unwrap_or(h).max(0) as u16
+                    h.checked_add(self.offset.y as i32).unwrap_or(h).max(0) as u16
                 }
             };
 

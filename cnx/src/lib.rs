@@ -131,6 +131,7 @@ use crate::bar::Bar;
 use crate::widgets::Widget;
 use crate::xcb::XcbEventStream;
 
+pub use bar::Offset;
 pub use bar::Position;
 
 /// The main object, used to instantiate an instance of Cnx.
@@ -148,7 +149,7 @@ pub struct Cnx {
     widgets: Vec<Box<dyn Widget>>,
     /// The (x,y) offset of the bar
     /// It can be used in order to run multiple bars in a multi-monitor setup
-    offset: (i16, i16),
+    offset: Offset,
     /// The (optional) width of the bar
     /// It can be used in order to run multiple bars in a multi-monitor setup
     width: Option<u16>,
@@ -166,7 +167,7 @@ impl Cnx {
         Self {
             position,
             widgets,
-            offset: (0, 0),
+            offset: Offset::default(),
             width: None,
         }
     }
@@ -191,7 +192,7 @@ impl Cnx {
     /// [`with_width()`]: #method.with_width
     pub fn with_offset(self, x: i16, y: i16) -> Self {
         Self {
-            offset: (x, y),
+            offset: Offset { x, y },
             ..self
         }
     }
