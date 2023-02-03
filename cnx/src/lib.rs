@@ -72,6 +72,7 @@
 //! - **CPU** - Shows the current CPU consumption
 //! - **Weather** - Shows the Weather information of your location
 //! - **Disk Usage** - Show the current usage of your monted filesystem
+//! - **LeftWM** - Shows the monitors and tags from LeftWM
 //!
 //! The Sensors, Volume and Battery widgets require platform
 //! support. They currently support Linux (see dependencies below) and OpenBSD.
