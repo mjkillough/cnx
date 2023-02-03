@@ -131,6 +131,7 @@ use crate::bar::Bar;
 use crate::widgets::Widget;
 use crate::xcb::XcbEventStream;
 
+pub use bar::Offset;
 pub use bar::Position;
 
 /// The main object, used to instantiate an instance of Cnx.
@@ -142,8 +143,16 @@ pub use bar::Position;
 /// [`add_widget()`]: #method.add_widget
 /// [`run()`]: #method.run
 pub struct Cnx {
+    /// The position of the Cnx bar
     position: Position,
+    /// The list of widgets attached to the Cnx bar
     widgets: Vec<Box<dyn Widget>>,
+    /// The (x,y) offset of the bar
+    /// It can be used in order to run multiple bars in a multi-monitor setup
+    offset: Offset,
+    /// The (optional) width of the bar
+    /// It can be used in order to run multiple bars in a multi-monitor setup
+    width: Option<u16>,
 }
 
 impl Cnx {
@@ -155,7 +164,37 @@ impl Cnx {
     /// [`Position`]: enum.Position.html
     pub fn new(position: Position) -> Self {
         let widgets = Vec::new();
-        Self { position, widgets }
+        Self {
+            position,
+            widgets,
+            offset: Offset::default(),
+            width: None,
+        }
+    }
+
+    /// Returns a new instance of `Cnx` with the specified width.
+    ///
+    /// This allows to specify the width of the `Cnx` bar,
+    /// which can be used with the [`with_offset()`] method
+    /// in order to have a multiple bar setup.
+    ///
+    /// [`with_offset()`]: #method.with_offset
+    pub fn with_width(self, width: Option<u16>) -> Self {
+        Self { width, ..self }
+    }
+
+    /// Returns a new instance of `Cnx` with the specified offset.
+    ///
+    /// This allows to specify the x and y offset of the `Cnx` bar,
+    /// which can be used with the [`with_width()`] method
+    /// in order to have a multiple bar setup.
+    ///
+    /// [`with_width()`]: #method.with_width
+    pub fn with_offset(self, x: i16, y: i16) -> Self {
+        Self {
+            offset: Offset { x, y },
+            ..self
+        }
     }
 
     /// Adds a widget to the `Cnx` instance.
@@ -187,7 +226,7 @@ impl Cnx {
     }
 
     async fn run_inner(self) -> Result<()> {
-        let mut bar = Bar::new(self.position)?;
+        let mut bar = Bar::new(self.position, self.width, self.offset)?;
 
         let mut widgets = StreamMap::with_capacity(self.widgets.len());
         for widget in self.widgets {

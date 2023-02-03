@@ -1,6 +1,7 @@
 # Unreleased
 
 * Add the leftwm widget to cnx-contrib
+* Add ability to specify bar offset and width
 
 # v0.3.1
 
