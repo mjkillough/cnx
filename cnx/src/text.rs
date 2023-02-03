@@ -3,7 +3,7 @@
 //! This module is light on documentation. See the existing widget
 //! implementations for inspiration.
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use cairo::{Context, Surface};
 use colors_transform::{Color as ColorTransform, Rgb};
 use pango::{EllipsizeMode, FontDescription};
@@ -141,10 +141,8 @@ pub struct PagerAttributes {
     pub non_empty_attr: Attributes,
 }
 
-fn create_pango_layout(cairo_context: &cairo::Context) -> Result<pango::Layout> {
-    let layout = pangocairo::functions::create_layout(cairo_context)
-        .ok_or_else(|| anyhow!("Failed to create Pango layout"))?;
-    Ok(layout)
+fn create_pango_layout(cairo_context: &cairo::Context) -> pango::Layout {
+    pangocairo::functions::create_layout(cairo_context)
 }
 
 fn show_pango_layout(cairo_context: &cairo::Context, layout: &pango::Layout) {
@@ -162,8 +160,8 @@ pub struct Text {
 impl Text {
     pub(crate) fn compute(self, surface: &Surface) -> Result<ComputedText> {
         let (width, height) = {
-            let context = Context::new(surface);
-            let layout = create_pango_layout(&context)?;
+            let context = Context::new(surface)?;
+            let layout = create_pango_layout(&context);
             if self.markup {
                 layout.set_markup(&self.text);
             } else {
@@ -172,7 +170,7 @@ impl Text {
             layout.set_font_description(Some(&self.attr.font.0));
 
             let padding = &self.attr.padding;
-            let (text_width, text_height) = layout.get_pixel_size();
+            let (text_width, text_height) = layout.pixel_size();
             let width = f64::from(text_width) + padding.left + padding.right;
             let height = f64::from(text_height) + padding.top + padding.bottom;
             (width, height)
@@ -214,8 +212,8 @@ pub(crate) struct ComputedText {
 
 impl ComputedText {
     pub fn render(&self, surface: &Surface) -> Result<()> {
-        let context = Context::new(surface);
-        let layout = create_pango_layout(&context)?;
+        let context = Context::new(surface)?;
+        let layout = create_pango_layout(&context);
         if self.markup {
             layout.set_markup(&self.text);
         } else {
@@ -240,7 +238,7 @@ impl ComputedText {
         // would be useful if we could do Surface.get_height(), but that
         // doesn't seem to be available in cairo-rs for some reason?
         context.rectangle(0.0, 0.0, self.width, self.height);
-        context.fill();
+        context.fill()?;
 
         self.attr.fg_color.apply_to_context(&context);
         context.translate(padding.left, padding.top);

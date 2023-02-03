@@ -13,15 +13,15 @@ license = "MIT"
 [dependencies]
 anyhow = "1.0"
 async-stream = "0.2"
-cairo-rs = { version = "0.8", features = ["xcb"] }
-cairo-sys-rs = "0.9"
+cairo-rs = { version = "0.16.7", features = ["xcb"] }
+cairo-sys-rs = "0.16.3"
 chrono = "0.4"
 colors-transform = "0.2.11"
 futures = "0.3"
 lazy_static = "1.4"
 ordered-float = "1.0"
-pango = "0.8"
-pangocairo = "0.9"
+pango = "0.16.5"
+pangocairo = "0.16.3"
 tokio = { version = "1.2.0", features = ["rt", "net", "time", "macros", "rt-multi-thread"] }
 tokio-stream = { version = "0.1.5" }
 xcb = "0.9"
