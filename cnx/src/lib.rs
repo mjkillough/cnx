@@ -201,7 +201,7 @@ impl Cnx {
                     // Pass each XCB event to the Bar.
                     Some(event) = event_stream.next() => {
                         if let Err(err) = bar.process_event(event) {
-                            println!("Error processing XCB event: {}", err);
+                            println!("Error processing XCB event: {err}");
                         }
                     },
 
@@ -209,10 +209,10 @@ impl Cnx {
                     // Ignore (but log) any errors from widgets.
                     Some((idx, result)) = widgets.next() => {
                         match result {
-                            Err(err) => println!("Error from widget {}: {}", idx, err),
+                            Err(err) => println!("Error from widget {idx}: {err}"),
                             Ok(texts) => {
                                 if let Err(err) = bar.update_content(idx, texts) {
-                                    println!("Error updating widget {}: {}", idx, err);
+                                    println!("Error updating widget {idx}: {err}");
                                 }
                             }
                         }

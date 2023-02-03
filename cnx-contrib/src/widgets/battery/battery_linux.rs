@@ -135,7 +135,7 @@ impl Battery {
     {
         let value = self
             .load_value_inner(file)
-            .with_context(|| format!("Could not load value from battery status file: {}", file))?;
+            .with_context(|| format!("Could not load value from battery status file: {file}"))?;
         Ok(value)
     }
 

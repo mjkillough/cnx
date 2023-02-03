@@ -116,9 +116,7 @@ impl LeftWM {
         let state: State = serde_json::from_str(&content)?;
         let w = state
             .workspaces
-            .iter()
-            .filter(|w| w.output == self.output)
-            .next();
+            .iter().find(|w| w.output == self.output);
         if let Some(w) = w {
             let text = w
                 .tags
@@ -141,9 +139,9 @@ impl LeftWM {
                     }
                 })
                 .collect();
-            return Ok(text);
+            Ok(text)
         } else {
-            return Ok(vec![]);
+            Ok(vec![])
         }
     }
 }

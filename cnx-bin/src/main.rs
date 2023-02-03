@@ -53,7 +53,7 @@ fn main() -> Result<()> {
     let battery_render = Box::new(|battery_info: BatteryInfo| {
         let percentage = battery_info.capacity;
 
-        let default_text = format!("🔋{percentage:.0}%", percentage = percentage,);
+        let default_text = format!("🔋{percentage:.0}%",);
         pango_markup_single_render(Color::white(), default_text)
     });
 
@@ -67,8 +67,7 @@ fn main() -> Result<()> {
             color = Color::red().to_hex();
         }
         format!(
-            "<span foreground=\"#808080\">[</span>Cpu: <span foreground=\"{}\">{}%</span><span foreground=\"#808080\">]</span>",
-            color, load
+            "<span foreground=\"#808080\">[</span>Cpu: <span foreground=\"{color}\">{load}%</span><span foreground=\"#808080\">]</span>"
         )
     });
     let cpu = cpu::Cpu::new(attr.clone(), Some(render))?;
@@ -83,7 +82,7 @@ fn main() -> Result<()> {
     let disk_render = Box::new(|disk_info: DiskInfo| {
         let used = disk_info.used.get_adjusted_unit(ByteUnit::GiB).format(0);
         let total = disk_info.total.get_adjusted_unit(ByteUnit::GiB).format(0);
-        let disk_text = format!("🏠 {}/{}", used, total);
+        let disk_text = format!("🏠 {used}/{total}");
         pango_markup_single_render(Color::white(), disk_text)
     });
 
@@ -91,7 +90,7 @@ fn main() -> Result<()> {
 
     let weather_render = Box::new(|weather: WeatherInfo| {
         let sky_condition = weather_sky_condition(weather.sky_condition);
-        let weather_text = format!("BLR: {} :", sky_condition);
+        let weather_text = format!("BLR: {sky_condition} :");
         let weather_temp = format!(" {}°C", weather.temperature.celsius);
         pango_markup_render(Color::white(), weather_text, weather_temp)
     });

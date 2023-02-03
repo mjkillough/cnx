@@ -82,7 +82,7 @@ impl Cpu {
         let text = self
             .render
             .as_ref()
-            .map_or(format!("{} %", cpu_usage), |x| (x)(cpu_usage));
+            .map_or(format!("{cpu_usage} %"), |x| (x)(cpu_usage));
         self.cpu_data = current;
         let texts = vec![Text {
             attr: self.attr.clone(),
