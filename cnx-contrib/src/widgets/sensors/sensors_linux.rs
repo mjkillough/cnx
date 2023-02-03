@@ -116,7 +116,7 @@ impl Sensors {
                 let text = parsed
                     .get::<str>(sensor_name)
                     .map_or("Invalid".to_owned(), |&Value { temp, units }| {
-                        format!("{}°{}", temp, units)
+                        format!("{temp}°{units}")
                     });
                 Ok(Text {
                     attr: self.attr.clone(),

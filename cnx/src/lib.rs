@@ -72,6 +72,7 @@
 //! - **CPU** - Shows the current CPU consumption
 //! - **Weather** - Shows the Weather information of your location
 //! - **Disk Usage** - Show the current usage of your monted filesystem
+//! - **LeftWM** - Shows the monitors and tags from LeftWM
 //!
 //! The Sensors, Volume and Battery widgets require platform
 //! support. They currently support Linux (see dependencies below) and OpenBSD.
@@ -201,7 +202,7 @@ impl Cnx {
                     // Pass each XCB event to the Bar.
                     Some(event) = event_stream.next() => {
                         if let Err(err) = bar.process_event(event) {
-                            println!("Error processing XCB event: {}", err);
+                            println!("Error processing XCB event: {err}");
                         }
                     },
 
@@ -209,10 +210,10 @@ impl Cnx {
                     // Ignore (but log) any errors from widgets.
                     Some((idx, result)) = widgets.next() => {
                         match result {
-                            Err(err) => println!("Error from widget {}: {}", idx, err),
+                            Err(err) => println!("Error from widget {idx}: {err}"),
                             Ok(texts) => {
                                 if let Err(err) = bar.update_content(idx, texts) {
-                                    println!("Error updating widget {}: {}", idx, err);
+                                    println!("Error updating widget {idx}: {err}");
                                 }
                             }
                         }

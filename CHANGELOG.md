@@ -1,3 +1,7 @@
+# Unreleased
+
+* Add the leftwm widget to cnx-contrib
+
 # v0.3.1
 
 * Add ability to define colors for widgets' attributes with RGB values or Hex color codes.

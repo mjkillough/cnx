@@ -79,7 +79,7 @@ impl Widget for Volume {
         // to cache the state from when it was created. It's relatively cheap
         // create a new mixer each time we get an event though.
         let mixer = Mixer::new(mixer_name, true)
-            .with_context(|| format!("Failed to open ALSA mixer: {}", mixer_name))?;
+            .with_context(|| format!("Failed to open ALSA mixer: {mixer_name}"))?;
         let stream = AlsaEventStream::new(mixer)?.map(move |()| {
             // FrontLeft has special meaning in ALSA and is the channel
             // that's used when the mixer is mono.
@@ -95,7 +95,7 @@ impl Widget for Volume {
                 let volume = master.get_playback_volume(channel)?;
                 let (min, max) = master.get_playback_volume_range();
                 let percentage = (volume as f64 / (max as f64 - min as f64)) * 100.0;
-                format!("<span foreground=\"#808080\">[</span>🔈 {:.0}%<span foreground=\"#808080\">]</span>", percentage)
+                format!("<span foreground=\"#808080\">[</span>🔈 {percentage:.0}%<span foreground=\"#808080\">]</span>")
             } else {
                 "🔇".to_owned()
             };

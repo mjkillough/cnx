@@ -57,7 +57,7 @@ impl Stream for XcbEventStream {
                 }
                 Poll::Ready(Err(e)) => {
                     // Unsure when this would happen:
-                    panic!("Error polling xcb::Connection: {}", e);
+                    panic!("Error polling xcb::Connection: {e}");
                 }
                 Poll::Pending => return Poll::Pending,
             }
