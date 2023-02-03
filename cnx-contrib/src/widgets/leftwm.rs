@@ -78,21 +78,21 @@ impl LeftWM {
     /// let focused = Attributes {
     ///     font: Font::new("SourceCodePro 14"),
     ///     fg_color: Color::white(),
-    ///     bg_color: Some(Color:::blue()),
+    ///     bg_color: Some(Color::blue()),
     ///     padding: Padding::new(8.0, 8.0, 0.0, 0.0),
     /// };
     ///
     /// let empty = Attributes {
     ///     bg_color: None,
-    ///     ..focused.clone(),
+    ///     ..focused.clone()
     /// };
     /// let busy = Attributes {
-    ///     fg_color: Some(Color::blue()),
-    ///     ..empty.clone(),
+    ///     fg_color: Color::blue(),
+    ///     ..empty.clone()
     /// };
     /// let visible = Attributes {
-    ///     fg_color: Some(Color::red()),
-    ///     ..empty.clone(),
+    ///     fg_color: Color::red(),
+    ///     ..empty.clone()
     /// };
     ///
     /// let mut cnx = Cnx::new(Position::Top);
@@ -103,7 +103,7 @@ impl LeftWM {
     ///     visible,
     /// };
     ///
-    /// cnx.add_widget(LeftWM::new("eDP1", leftwm_attr));
+    /// cnx.add_widget(LeftWM::new("eDP1".to_string(), leftwm_attr));
     /// # Ok(())
     /// # }
     /// # fn main() { run().unwrap(); }
@@ -114,9 +114,7 @@ impl LeftWM {
 
     fn on_change(&self, content: String) -> Result<Vec<Text>> {
         let state: State = serde_json::from_str(&content)?;
-        let w = state
-            .workspaces
-            .iter().find(|w| w.output == self.output);
+        let w = state.workspaces.iter().find(|w| w.output == self.output);
         if let Some(w) = w {
             let text = w
                 .tags
