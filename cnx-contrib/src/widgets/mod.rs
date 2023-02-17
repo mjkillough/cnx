@@ -11,11 +11,11 @@ pub mod disk_usage;
 #[cfg_attr(docsrs, doc(cfg(feature = "leftwm")))]
 pub mod leftwm;
 /// Sensor widget to periodically parses and displays the output of the sensors provided by the system.
-pub mod sensors;
+/// pub mod sensors;
 /// Volume widget to show the current volume/mute status of the default output device.
 pub mod volume;
 /// Weather widget to show temperature of your location
-pub mod weather;
+/// pub mod weather;
 /// Wireless widget to show wireless strength of your SSID
 #[cfg(feature = "wireless")]
 #[cfg_attr(docsrs, doc(cfg(feature = "wireless")))]

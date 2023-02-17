@@ -14,7 +14,7 @@ pub struct DiskInfo {
     /// Total size of the filesystem
     pub total: Byte,
     /// Total used space of the filesystem
-    pub used: Byte,
+   /// pub used: Byte,
     /// Total free space of the filesystem
     pub free: Byte,
 }
@@ -23,18 +23,18 @@ impl DiskInfo {
     fn new(path: &str) -> Result<Self> {
         let stat = statvfs(path)?;
         let total_size = stat.blocks() * stat.fragment_size();
-        let used = (stat.blocks() - stat.blocks_free()) * stat.fragment_size();
+        /// let used = (stat.blocks() - stat.blocks_free()) * stat.fragment_size();
         let available = stat.blocks_available() * stat.fragment_size();
         let total = byte_unit::Byte::from_bytes(total_size as u128);
-        let used = byte_unit::Byte::from_bytes(used as u128);
+        /// let used = byte_unit::Byte::from_bytes(used as u128);
         let free: Byte = byte_unit::Byte::from_bytes(available as u128);
 
-        let disk_info = DiskInfo { total, used, free };
+        let disk_info = DiskInfo { total, free };
         Ok(disk_info)
     }
 }
 
-/// Disk usage widget to show current usage and remaining free space
+/// Disk usage widget to show total size and remaining free space
 /// in the mounted filesystem.
 pub struct DiskUsage {
     attr: Attributes,

@@ -11,6 +11,7 @@ use crate::widgets::{Widget, WidgetStream};
 ///
 /// This widget shows the current time and date, in the form `%Y-%m-%d %a %I:%M
 /// %p`, e.g. `2017-09-01 Fri 12:51 PM`.
+/// modified to '%a %m-%d-%Y %I:%M %p' eg 'Fri 09-01-2017 12:51 PM'
 pub struct Clock {
     attr: Attributes,
     format_str: Option<String>,
@@ -27,7 +28,7 @@ impl Clock {
         let format_time: String = self
             .format_str
             .clone()
-            .map_or("%Y-%m-%d %a %I:%M %p".to_string(), |item| item);
+            .map_or("%a %m-%d-%Y %I:%M %p".to_string(), |item| item);
         let text = now.format(&format_time).to_string();
         let texts = vec![Text {
             attr: self.attr.clone(),
